@@ -174,7 +174,7 @@ static int _dxr3_video_set_attributes (void *this, u_int id, void *att)
     if(attr->aspect_output != -1) {
         switch(attr->aspect_output) {
 	case 0:
-	    dxr3_video_set_aspectratio(EM8300_ASPECTRATIO_3_2);
+	    dxr3_video_set_aspectratio(EM8300_ASPECTRATIO_4_3);
 	    break;
 	case 3:
 	    dxr3_video_set_aspectratio(EM8300_ASPECTRATIO_16_9);

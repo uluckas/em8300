@@ -1,3 +1,16 @@
+2001-03-04  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300.h,
+	  modules/em8300_dicom.c,
+	  modules/em8300_video.c:
+	Fix aspect ratio stuff thanks to information on enabling
+	16x9 mode from Morten Bøgeskov.
+
+	* omsplugin/dxr3/em8300.h,
+	  omsplugin/dxr3/dxr3-api.h,
+	  omsplugin/dxr3/dxr3_mpeg2.c:
+	update to match aspect ratio changes
+	
 2001-03-03  Rick Haines  <rick@kuroyi.net>
 
 	* omsplugin/dxr3/em8300.h,

@@ -32,16 +32,10 @@ struct dicom_tvmode {
     int horizoffset;
 };
 
-struct dicom_tvmode tvmodematrix[EM8300_VIDEOMODE_LAST+1][3] = {
-    { {576, 720, 46, 130},     // PAL 4:3
-      {480, 720, 76, 130},     // PAL 16:9
-      {390, 720, 120, 130}},   // PAL 2.35:1
-    { {480, 720, 46, 138},     // PAL60 4:3
-      {480, 720, 46, 138},     // PAL60  16:9
-      {390, 720, 120, 138}},   // PAL60 2:35:1
-    { {480, 720, 42, 118},     // NTSC 4:3
-      {480, 720, 46, 138},     // NTSC 16:9
-      {390, 720, 120, 138}},   // NTSC 2:35:1
+struct dicom_tvmode tvmodematrix[EM8300_VIDEOMODE_LAST+1] = {
+    {576, 720, 46, 130},     // PAL 4:3
+    {480, 720, 46, 138},     // PAL60 4:3
+    {480, 720, 42, 118},     // NTSC 4:3
 };
 
 
@@ -148,19 +142,24 @@ int em8300_dicom_update(struct em8300_s *em)
 		  em->overlay_a[EM9010_ATTRIBUTE_XOFFSET], em->overlay_a[EM9010_ATTRIBUTE_YOFFSET],
 		  em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
     } else {
-	write_ucregister(DICOM_FrameTop, tvmodematrix[em->video_mode][em->aspect_ratio].vertoffset);
-	write_ucregister(DICOM_FrameBottom, tvmodematrix[em->video_mode][em->aspect_ratio].vertoffset +
-			 tvmodematrix[em->video_mode][em->aspect_ratio].vertsize-1);
-	write_ucregister(DICOM_FrameLeft, tvmodematrix[em->video_mode][em->aspect_ratio].horizoffset);
-	write_ucregister(DICOM_FrameRight, tvmodematrix[em->video_mode][em->aspect_ratio].horizoffset +
-			 tvmodematrix[em->video_mode][em->aspect_ratio].horizsize-1);
-	write_ucregister(DICOM_VisibleTop, tvmodematrix[em->video_mode][em->aspect_ratio].vertoffset);
-	write_ucregister(DICOM_VisibleBottom, tvmodematrix[em->video_mode][em->aspect_ratio].vertoffset +
-			 tvmodematrix[em->video_mode][em->aspect_ratio].vertsize-1);
-	write_ucregister(DICOM_VisibleLeft, tvmodematrix[em->video_mode][em->aspect_ratio].horizoffset);
-	write_ucregister(DICOM_VisibleRight, tvmodematrix[em->video_mode][em->aspect_ratio].horizoffset +
-			 tvmodematrix[em->video_mode][em->aspect_ratio].horizsize-1);
+	write_ucregister(DICOM_FrameTop, tvmodematrix[em->video_mode].vertoffset);
+	write_ucregister(DICOM_FrameBottom, tvmodematrix[em->video_mode].vertoffset +
+			 tvmodematrix[em->video_mode].vertsize-1);
+	write_ucregister(DICOM_FrameLeft, tvmodematrix[em->video_mode].horizoffset);
+	write_ucregister(DICOM_FrameRight, tvmodematrix[em->video_mode].horizoffset +
+			 tvmodematrix[em->video_mode].horizsize-1);
+	write_ucregister(DICOM_VisibleTop, tvmodematrix[em->video_mode].vertoffset);
+	write_ucregister(DICOM_VisibleBottom, tvmodematrix[em->video_mode].vertoffset +
+			 tvmodematrix[em->video_mode].vertsize-1);
+	write_ucregister(DICOM_VisibleLeft, tvmodematrix[em->video_mode].horizoffset);
+	write_ucregister(DICOM_VisibleRight, tvmodematrix[em->video_mode].horizoffset +
+			 tvmodematrix[em->video_mode].horizsize-1);
     }
+
+    if (em->aspect_ratio == EM8300_ASPECTRATIO_16_9)
+      em->dicom_tvout |= 0x10;
+    else
+      em->dicom_tvout &= ~0x10;
 
     write_ucregister(DICOM_TvOut, em->dicom_tvout);
 
@@ -254,7 +253,10 @@ void em8300_dicom_enable(struct em8300_s *em)
 	em->dicom_tvout=0x4000;
     else
 	em->dicom_tvout=0x4001;
-    
+
+    if (em->aspect_ratio == EM8300_ASPECTRATIO_16_9)
+      em->dicom_tvout |= 0x10;
+
     write_ucregister(DICOM_TvOut, em->dicom_tvout);
 
     if (activate_loopback) {

@@ -1,3 +1,10 @@
+2001-03-31  Rick Haines  <rick@kuroyi.net>
+
+	* xine/xine_dxr3.patch.gz,
+	  xine/xine-0.4.01_dxr3.patch.gz:
+	fix xine exit problem.  dxr3_write_*
+	were blocking when playback was stopped/paused.
+	
 2001-03-29  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_audio.c (preprocess_digital):

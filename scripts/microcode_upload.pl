@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-my @devs = ("/dev/em8300","/dev/em8300-0","/dev/em8300-1","/dev/em8300-2","/dev/em8300-3");
+my @devs = ("/dev/em8300-0","/dev/em8300-1","/dev/em8300-2","/dev/em8300-3");
 $_IOC_NRBITS    =  8;
 $_IOC_TYPEBITS  =  8;
 $_IOC_SIZEBITS  = 14;
@@ -31,7 +31,8 @@ sub EMCTL_IOCTL_WRITEREG { _IOC(1,'C',2,8); }
 sub EMCTL_IOCTL_GETSTATUS { _IOC(2,'C',3,shift)}
 
 # Read microcode file
-open (UCODE,"<$ARGV[0]") or die("Can't open microcode file: $ARGV[0]");
+#open (UCODE,"<$ARGV[0]") or die("Can't open microcode file: $ARGV[0]");
+open (UCODE,"/usr/share/misc/em8300.uc") or die("ERROR: /usr/share/misc/em8300.uc not found");
 undef $/;
 $ucode=<UCODE>;
 close UCODE;

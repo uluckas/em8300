@@ -7,6 +7,9 @@ General fixes:
                           when uploading the microcode.
    use_bt865           -- set to 1 if you have a bt865.  Modifies some
                           initialization values.
+			  This now works with multiple cards, so you can
+                          do use_bt865=0,1 if you have two cards and the
+                          second uses a bt865.
 
 If your red and blue colors channels are switched:
 

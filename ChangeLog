@@ -1,3 +1,12 @@
+2001-04-18  Rick Haines  <rick@kuroyi.net>
+
+	* em8300_main.c:
+	patch from Eg to make use_bt865 work with multiple cards.
+	we'll want to do this with all the options.
+	
+	* scripts/microcode_upload.pl:
+	try to upload microcode to all the devices (from Eg)
+	
 2001-04-17  Rick Haines  <rick@kuroyi.net>
 
 	* overlay/dxr3view.c:

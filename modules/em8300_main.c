@@ -54,6 +54,9 @@ MODULE_DESCRIPTION("EM8300 MPEG-2 decoder");
 MODULE_PARM(remap,"1-" __MODULE_STRING(EM8300_MAX) "i");
 #endif
 
+static unsigned int use_bt865[EM8300_MAX]={};
+MODULE_PARM(use_bt865,"1-" __MODULE_STRING(EM8300_MAX) "i");
+
 /*
  * Module params by Jonas Birmé (birme@jpl.nu)
  */
@@ -66,8 +69,6 @@ MODULE_PARM(dicom_fix, "i");
 int dicom_control = 1;
 MODULE_PARM(dicom_control, "i");
 
-static int use_bt865 = 0;
-MODULE_PARM(use_bt865, "i");
 
 int bt865_ucode_timeout = 0;
 MODULE_PARM(bt865_ucode_timeout, "i");
@@ -394,6 +395,7 @@ void cleanup_module(void) {
 
 int em8300_init(struct em8300_s *em) {
     /* Setup parameters */
+    static unsigned int *bt = use_bt865; 
 #if 0
     em->videodelay = 0x3000 / 2;
     em->max_videodelay = 90000*4;    
@@ -411,7 +413,7 @@ int em8300_init(struct em8300_s *em) {
 	  em->var_ucode_reg2 = 0x272;
 	  em->var_ucode_reg3 = 0x8272;
 	  if (0x20 & read_register(0x1c08)) {
-	      if(use_bt865)
+	      if(*bt)
 		      em->var_ucode_reg1 = 0x800;
 	      else
 		      em->var_ucode_reg1 = 0x818;	      
@@ -432,9 +434,10 @@ int em8300_init(struct em8300_s *em) {
     }
 
     pr_info("em8300_main.o: Chip revision: %d\n",em->chip_revision);
-    pr_debug("em8300_main.o: use_bt865: %d\n", use_bt865);
+    pr_debug("em8300_main.o: use_bt865: %d\n", *bt);
     em8300_i2c_init(em);
 
+    bt++;
     return 0;
 }
 

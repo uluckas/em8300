@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+my @devs = ("/dev/em8300","/dev/em8300-1","/dev/em8300-2","/dev/em8300-3");
 $_IOC_NRBITS    =  8;
 $_IOC_TYPEBITS  =  8;
 $_IOC_SIZEBITS  = 14;
@@ -36,8 +37,9 @@ $ucode=<UCODE>;
 close UCODE;
 
 # Open device
-open (DEV,"</dev/em8300") or die("Can't open device");
-
+foreach (@devs){
+	open (DEV,"<$_") or die("Can't open $_");
+	
 # Prepare ioctl
 $initparams = pack("PI", $ucode, length($ucode));
 
@@ -45,4 +47,7 @@ if(!ioctl(DEV, &EMCTL_IOCTL_INIT, $initparams)) {
   print "Microcode upload failed: $!\n";
 }
 
+print "Microcode uploaded to $_\n";
+
 close DEV; 
+}

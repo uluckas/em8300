@@ -477,6 +477,8 @@ int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
 		adv717x_update(client);
 		break;
 	default:
+		return -EINVAL;
+		break;
 	}
 
 	return 0;

@@ -366,6 +366,9 @@ struct em8300_s
 	/* Memory exported via mmap() */
 	struct list_head  memory;
 #endif	
+
+	/* To support different options for different cards */
+	unsigned int card_nr;
 };
 
 #define TIMEDIFF(a,b) a.tv_usec - b.tv_usec + \

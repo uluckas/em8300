@@ -54,12 +54,12 @@
 
 MODULE_SUPPORTED_DEVICE("bt865");
 
-static int color_bars = 0;
-MODULE_PARM(color_bars, "i");
+static int color_bars[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
+MODULE_PARM(color_bars, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be displayed on your screen (used for testing if the chip is working). Defaults to 0.");
 
-static int rgb_mode = 0;
-MODULE_PARM(rgb_mode, "i");
+static int rgb_mode[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
+MODULE_PARM(rgb_mode, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(rgb_mode, "If you set this to 1, RGB output is enabled. You will need to hack the DXR3 hardware. Defaults to 0.");
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
@@ -841,14 +841,15 @@ static int bt865_setmode(int mode, struct i2c_client *client)
 static int bt865_setup(struct i2c_client *client)
 {
 	struct bt865_data_s *data = client->data ;
+	struct em8300_s *em = client->adapter->data;
 
 	if (memset(data->config, 0, sizeof(data->config)) != data->config) {
 		printk(KERN_NOTICE "bt865_setup: memset error\n");
 		return -1;
 	}
 
-	data->bars = 0;
-	data->rgbmode = 0;
+	data->bars = color_bars[em->card_nr];
+	data->rgbmode = rgb_mode[em->card_nr];
 	data->enableoutput = 0;
 
 	if (EM8300_VIDEOMODE_DEFAULT == EM8300_VIDEOMODE_PAL) {
@@ -981,30 +982,6 @@ int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg)
 
 int __init bt865_init(void)
 {
-	int bars;
-
-	if (color_bars) {
-		bars = 0x10;
-	} else {
-		bars = 0x00;
-	}
-
-	if (rgb_mode) {
-
-	bars = bars | 0x40;
-	pr_debug("bt865.o: rgb_mode: %d\n", rgb_mode);
-
-	}
-
-	pr_debug("bt865.o: color_bars: %d\n", color_bars);
-
-	NTSC_CONFIG_BT865[23] = (NTSC_CONFIG_BT865[23] & ~0x10) | bars;
-	NTSC60_CONFIG_BT865[23] = (NTSC60_CONFIG_BT865[23] & ~0x10) | bars;
-	PALM_CONFIG_BT865[23] = (PALM_CONFIG_BT865[23] & ~0x10) | bars;
-	PALM60_CONFIG_BT865[23] = (PALM60_CONFIG_BT865[23] & ~0x10) | bars;
-	PAL_CONFIG_BT865[23] = (PAL_CONFIG_BT865[23] & ~0x10) | bars;
-	PALNC_CONFIG_BT865[23] = (PALNC_CONFIG_BT865[23] & ~0x10) | bars;
-
 	//request_module("i2c-algo-bit");
 	return i2c_add_driver(&bt865_driver);
 }

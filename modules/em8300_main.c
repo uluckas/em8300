@@ -95,7 +95,7 @@ MODULE_LICENSE("GPL");
 
 EXPORT_NO_SYMBOLS;
 
-static unsigned int use_bt865[EM8300_MAX]={};
+static unsigned int use_bt865[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 MODULE_PARM(use_bt865, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(use_bt865, "Set this to 1 if you have a bt865. It changes some internal register values. Defaults to 0.");
 
@@ -103,43 +103,43 @@ MODULE_PARM_DESC(use_bt865, "Set this to 1 if you have a bt865. It changes some 
  * Module params by Jonas Birmé (birme@jpl.nu)
  */
 #ifdef CONFIG_EM8300_DICOMPAL
-int dicom_other_pal = 1;
+int dicom_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
-int dicom_other_pal = 0;
+int dicom_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
-MODULE_PARM(dicom_other_pal, "i");
+MODULE_PARM(dicom_other_pal, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(dicom_other_pal, "If this is set, then some internal register values are swapped for PAL and NTSC. Defaults to 1.");
 
 #ifdef CONFIG_EM8300_DICOMFIX
-int dicom_fix = 1;
+int dicom_fix[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
-int dicom_fix = 0;
+int dicom_fix[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
-MODULE_PARM(dicom_fix, "i");
+MODULE_PARM(dicom_fix, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(dicom_fix, "If this is set then some internal register values are changed. Fixes green screen problems for some. Defaults to 1.");
 
 #ifdef CONFIG_EM8300_DICOMCTRL
-int dicom_control = 1;
+int dicom_control[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
-int dicom_control = 0;
+int dicom_control[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
-MODULE_PARM(dicom_control, "i");
+MODULE_PARM(dicom_control, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(dicom_control, "If this is set then some internal register values are changed. Fixes green screen problems for some. Defaults to 1.");
 
 #ifdef CONFIG_EM8300_UCODETIMEOUT
-int bt865_ucode_timeout = 1;
+int bt865_ucode_timeout[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
-int bt865_ucode_timeout = 0;
+int bt865_ucode_timeout[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
-MODULE_PARM(bt865_ucode_timeout, "i");
+MODULE_PARM(bt865_ucode_timeout, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(bt865_ucode_timeout, "Set this to 1 if you have a bt865 and get timeouts when uploading the microcode. Defaults to 0.");
 
 #ifdef CONFIG_EM8300_LOOPBACK
-int activate_loopback = 1;
+int activate_loopback[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
-int activate_loopback = 0;
+int activate_loopback[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
-MODULE_PARM(activate_loopback, "i");
+MODULE_PARM(activate_loopback, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(activate_loopback, "If you lose video after loading the modules or uploading the microcode set this to 1. Defaults to 0.");
 
 static int em8300_cards,clients;
@@ -251,12 +251,13 @@ static int find_em8300(void)
 	struct pci_dev *dev = NULL;
 	unsigned char revision;
 	struct em8300_s *em;
-	int em8300_n = 0;
+	unsigned int em8300_n = 0;
 	int result;
 
 	while ((dev = pci_find_device(PCI_VENDOR_ID_SIGMADESIGNS, PCI_DEVICE_ID_SIGMADESIGNS_EM8300, dev))) {
 		em = &em8300[em8300_n];
 		em->dev = dev;
+		em->card_nr = em8300_n;
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
 		em->adr = dev->base_address[0];
@@ -730,9 +731,6 @@ int em8300_proc_read(char *page, char **start, off_t off, int count, int *eof, v
 
 int init_em8300(struct em8300_s *em)
 {
-	/* Setup parameters */
-	static unsigned int *bt = use_bt865;
-
 	write_register(0x30000, read_register(0x30000));
 
 	write_register(0x1f50, 0x123);
@@ -745,7 +743,7 @@ int init_em8300(struct em8300_s *em)
 			em->var_ucode_reg2 = 0x272;
 			em->var_ucode_reg3 = 0x8272;
 			if (0x20 & read_register(0x1c08)) {
-				if(*bt) {
+				if (use_bt865[em->card_nr]) {
 					em->var_ucode_reg1 = 0x800;
 				} else {
 					em->var_ucode_reg1 = 0x818;
@@ -767,12 +765,10 @@ int init_em8300(struct em8300_s *em)
 	}
 
 	pr_info("em8300_main.o: Chip revision: %d\n", em->chip_revision);
-	pr_debug("em8300_main.o: use_bt865: %d\n", *bt);
+	pr_debug("em8300_main.o: use_bt865: %d\n", use_bt865[em->card_nr]);
 	em8300_i2c_init(em);
 
-	bt++;
-
-	if (activate_loopback == 0) {
+	if (activate_loopback[em->card_nr] == 0) {
 		em->clockgen_tvmode = CLOCKGEN_TVMODE_1;
 		em->clockgen_overlaymode = CLOCKGEN_OVERLAYMODE_1;
 	} else {

@@ -23,7 +23,7 @@
 
 #include <linux/soundcard.h>
 
-extern int bt865_ucode_timeout;
+extern int bt865_ucode_timeout[EM8300_MAX];
 
 static int mpegvideo_command(struct em8300_s *em, int cmd)
 {
@@ -237,14 +237,14 @@ int em8300_video_setup(struct em8300_s *em)
 	em9010_write(em, 7, 0x80);
 	em9010_write(em, 9, 0);
 
-	if (bt865_ucode_timeout) {
+	if (bt865_ucode_timeout[em->card_nr]) {
 		write_register(0x1f47, 0x18);
 	}
 	if (em->encoder_type == ENCODER_BT865) {
 		write_register(0x1f5e, 0x9efe);
 		write_ucregister(DICOM_Control, 0x9efe);
 	} else {
-		if (!bt865_ucode_timeout) {
+		if (!bt865_ucode_timeout[em->card_nr]) {
 			write_register(0x1f47, 0x18);
 		}
 		write_register(0x1f5e,0x9afe);

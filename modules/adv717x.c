@@ -60,32 +60,32 @@ MODULE_LICENSE("GPL");
 EXPORT_NO_SYMBOLS;
 
 #ifdef CONFIG_ADV717X_PIXELPORT16BIT
-int pixelport_16bit = 1;
+int pixelport_16bit[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
-int pixelport_16bit = 0;
+int pixelport_16bit[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
-MODULE_PARM(pixelport_16bit, "i");
+MODULE_PARM(pixelport_16bit, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(pixelport_16bit, "Changes how the ADV717x expects its input data to be formatted. If the colours on the TV appear green, try changing this. Defaults to 1.");
 
 #ifdef CONFIG_ADV717X_PIXELPORTPAL
-int pixelport_other_pal = 1;
+int pixelport_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
-int pixelport_other_pal = 0;
+int pixelport_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
-MODULE_PARM(pixelport_other_pal, "i");
+MODULE_PARM(pixelport_other_pal, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(pixelport_other_pal, "If this is set to 1, then the pixelport setting is swapped for PAL from the setting given with pixelport_16bit. Defaults to 1.");
 
-int pixeldata_adjust_ntsc = 1;
-MODULE_PARM(pixeldata_adjust_ntsc, "i");
+int pixeldata_adjust_ntsc[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
+MODULE_PARM(pixeldata_adjust_ntsc, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(pixeldata_adjust_ntsc, "If your red and blue colours are swapped in NTSC, try setting this to 0,1,2 or 3. Defaults to 1.");
 
-int pixeldata_adjust_pal = 1;
-MODULE_PARM(pixeldata_adjust_pal, "i");
+int pixeldata_adjust_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
+MODULE_PARM(pixeldata_adjust_pal, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(pixeldata_adjust_pal, "If your red and blue colours are swapped in PAL, try setting this to 0,1,2 or 3. Defaults to 1.");
 
 
-static int color_bars = 0;
-MODULE_PARM(color_bars, "i");
+static int color_bars[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
+MODULE_PARM(color_bars, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be displayed on your screen (used for testing if the chip is working). Defaults to 0.");
 
 #define i2c_is_isa_client(clientptr) \
@@ -111,6 +111,10 @@ struct adv717x_data_s {
 	int bars;
 	int rgbmode;
 	int enableoutput;
+	int pp_pal;
+	int pp_ntsc;
+	int pd_adj_pal;
+	int pd_adj_ntsc;
 
 	unsigned char config[32];
 	int configlen;
@@ -384,16 +388,59 @@ static int adv717x_setmode(int mode, struct i2c_client *client) {
 		memcpy(data->config, config, data->configlen);
 	}
 
+	switch (mode) {
+	case ENCODER_MODE_PAL:
+	case ENCODER_MODE_PAL_M:
+	case ENCODER_MODE_PAL60:
+		data->config[7] = (data->config[7] & ~0x40) | data->pp_pal;
+		switch (data->chiptype) {
+		case CHIP_ADV7175A:
+			data->config[12] = (data->config[12] & ~0xC0) | data->pd_adj_pal;
+			break;
+		case CHIP_ADV7170:
+			data->config[8] = (data->config[8] & ~0xC0) | data->pd_adj_pal;
+			break;
+		}
+		break;
+	case ENCODER_MODE_NTSC:
+		data->config[7] = (data->config[7] & ~0x40) | data->pp_ntsc;
+		switch (data->chiptype) {
+		case CHIP_ADV7175A:
+			data->config[12] = (data->config[12] & ~0xC0) | data->pd_adj_ntsc;
+			break;
+		case CHIP_ADV7170:
+			data->config[8] = (data->config[8] & ~0xC0) | data->pd_adj_ntsc;
+			break;
+		}
+		break;
+	}
+
 	return 0;
 }
 
 static int adv717x_setup(struct i2c_client *client)
 {
 	struct adv717x_data_s *data = client->data ;
+	struct em8300_s *em = client->adapter->data;
 
 	memset(data->config, 0, sizeof(data->config));
 
-	data->bars = 0;
+	if (pixelport_16bit[em->card_nr]) {
+		data->pp_ntsc = data->pp_pal = 0x40;
+		if (pixelport_other_pal[em->card_nr]) {
+			data->pp_pal = 0x00;
+		}
+	} else {
+		data->pp_ntsc = data->pp_pal = 0x00;
+		if (pixelport_other_pal[em->card_nr]) {
+			data->pp_pal = 0x40;
+		}
+	}
+
+	data->pd_adj_ntsc = (0x03 & pixeldata_adjust_ntsc[em->card_nr]) << 6;
+	data->pd_adj_pal = (0x03 & pixeldata_adjust_pal[em->card_nr]) << 6;
+
+	data->bars = color_bars[em->card_nr];
 	data->rgbmode = 0;
 	data->enableoutput = 0;
 
@@ -419,8 +466,6 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA)) {
 		return 0;
 	}
-
-
 
 	if (!(new_client = kmalloc(sizeof(struct i2c_client) + sizeof(struct adv717x_data_s), GFP_KERNEL))) {
 		return -ENOMEM;
@@ -522,63 +567,6 @@ int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
 
 int __init adv717x_init(void)
 {
-	int pp_ntsc;
-	int pp_pal;
-	int pd_adj_ntsc;
-	int pd_adj_pal;
-	int bars;
-
-	if (pixelport_16bit) {
-		pp_ntsc = pp_pal = 0x40;
-		if (pixelport_other_pal) {
-			pp_pal = 0x00;
-		}
-	} else {
-		pp_ntsc = pp_pal = 0x00;
-		if (pixelport_other_pal) {
-			pp_pal = 0x40;
-		}
-	}
-
-	pd_adj_ntsc = (0x03 & pixeldata_adjust_ntsc ) << 6;
-	pd_adj_pal = (0x03 & pixeldata_adjust_pal ) << 6;
-
-
-	//	rb_pal = 0xA0;
-
-	if (color_bars) {
-		bars = 0x80;
-	} else {
-		bars = 0x00;
-	}
-
-	pr_debug("adv717x.o: pixelport_16bit: %d\n", pixelport_16bit);
-	pr_debug("adv717x.o: pixelport_other_pal: %d\n", pixelport_other_pal);
-	pr_debug("adv717x.o: pixeldata_adjust_pal: %d\n", pixeldata_adjust_pal);
-	pr_debug("adv717x.o: pixeldata_adjust_ntsc: %d\n", pixeldata_adjust_ntsc);
-	pr_debug("adv717x.o: color_bars: %d\n", color_bars);
-
-	PAL_config_7170[7] = (PAL_config_7170[7] & ~0x40) | pp_pal;
-	NTSC_config_7170[7] = (NTSC_config_7170[7] & ~0x40) | pp_ntsc;
-	PAL_M_config_7175[7] = (PAL_M_config_7175[7] & ~0x40) | pp_pal;
-	PAL_config_7175[7] = (PAL_config_7175[7] & ~0x40) | pp_pal;
-	PAL60_config_7175[7] = (PAL60_config_7175[7] & ~0x40) | pp_pal;
-	NTSC_config_7175[7] = (NTSC_config_7175[7] & ~0x40) | pp_ntsc;
-
-	PAL_config_7170[8] = (PAL_config_7170[8] & ~0xC0) | pd_adj_pal;
-	NTSC_config_7170[8] = (NTSC_config_7170[8] & ~0xC0) | pd_adj_ntsc;
-	PAL_M_config_7175[12] = (PAL_M_config_7175[12] & ~0xC0) | pd_adj_pal;
-	PAL_config_7175[12] = (PAL_config_7175[12] & ~0xC0) | pd_adj_pal;
-	PAL60_config_7175[12] = (PAL60_config_7175[12] & ~0xC0) | pd_adj_pal;
-	NTSC_config_7175[12] = (NTSC_config_7175[12] & ~0xC0) | pd_adj_ntsc;
-
-	PAL_config_7170[1] = (PAL_config_7170[1] & ~0x80) | bars;
-	NTSC_config_7170[1] = (NTSC_config_7170[1] & ~0x80) | bars;
-	PAL_M_config_7175[1] = (PAL_M_config_7175[1] & ~0x80) | bars;
-	PAL_config_7175[1] = (PAL_config_7175[1] & ~0x80) | bars;
-	PAL60_config_7175[1] = (PAL60_config_7175[1] & ~0x80) | bars;
-	NTSC_config_7175[1] = (NTSC_config_7175[1] & ~0x80) | bars;
-
 	//request_module("i2c-algo-bit");
 	return i2c_add_driver(&adv717x_driver);
 }

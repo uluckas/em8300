@@ -1,3 +1,11 @@
+2001-11-03  Rick Haines  <rick@kuroyi.net>
+
+	* include/libdxr3/api.h,
+	  libdxr3/dxr3-api.c:
+	patch from David Holm to add
+	dxr3_audio_get_buffersize() and
+	dxr3_audio_get_bytesleft()
+	
 2001-10-27  Rick Haines  <rick@kuroyi.net>
 
 	* modules/Makefile,

@@ -84,6 +84,8 @@ int dxr3_audio_get_mode(void);
 int dxr3_audio_set_stereo(int);
 int dxr3_audio_set_rate(int);
 int dxr3_audio_set_samplesize(int);
+int dxr3_audio_get_buffersize(void);
+int dxr3_audio_get_bytesleft(void); //Bytes left to play in buffer
 
 // Video related functions
 int dxr3_video_set_overlaymode(int);

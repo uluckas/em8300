@@ -15,6 +15,7 @@
 #include <sys/soundcard.h>
 #endif
 #include <sys/ioctl.h>
+#include "../modules/em8300_reg.h"
 
 dxr3_state_t state = { -1,-1,-1,-1,0,0 };
 
@@ -165,6 +166,53 @@ int dxr3_audio_set_samplesize(int val)
 		return -1;
 
 	return ioctl(state.fd_audio, SNDCTL_DSP_SAMPLESIZE, &val);
+}
+
+int dxr3_audio_get_buffersize()
+{
+    em8300_register_t ucregister;
+    
+    int buffsize = 0;
+    int error;
+    
+    if( !state.open ) return -1;
+    
+    ucregister.reg = MA_BuffSize;
+    ucregister.microcode_register = 1;
+    ioctl(state.fd_control, EM8300_IOCTL_READREG, &ucregister);
+    buffsize = ucregister.val;
+    ucregister.reg = MA_BuffSize_Hi;
+    ioctl(state.fd_control, EM8300_IOCTL_READREG, &ucregister);
+    buffsize = buffsize|(ucregister.val<<16);
+
+    return buffsize;
+}
+
+int dxr3_audio_get_bytesleft()
+{
+    int readptr, writeptr, bufsize;
+    em8300_register_t ucregister;
+        
+    if( !state.open ) return -1;
+    
+    bufsize = dxr3_audio_get_buffersize();
+    ucregister.microcode_register = 1;
+    ucregister.reg = MA_Rdptr;
+    ioctl(state.fd_control, EM8300_IOCTL_READREG, &ucregister);
+    readptr = ucregister.val;
+    ucregister.reg = MA_Rdptr_Hi;
+    ioctl(state.fd_control, EM8300_IOCTL_READREG, &ucregister);
+    readptr = readptr|(ucregister.val<<16);
+    
+    ucregister.reg = MA_Wrptr;
+    ioctl(state.fd_control, EM8300_IOCTL_READREG, &ucregister);
+    writeptr = ucregister.val;
+    ucregister.reg = MA_Wrptr_Hi;
+    ioctl(state.fd_control, EM8300_IOCTL_READREG, &ucregister);
+    writeptr = writeptr|(ucregister.val<<16);
+
+    if( readptr > writeptr ) return (readptr-writeptr);
+    return (writeptr-readptr);
 }
 
 /* probably move this to the driver eventually */

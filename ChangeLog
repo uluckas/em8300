@@ -1,5 +1,23 @@
 2002-01-08  Rick Haines  <rick@kuroyi.net>
 
+	* scripts/microcode_upload.pl:
+	display error message if it can't open
+	the first device
+
+	* dhc/dhc_main.c,
+	  libdxr3/dxr3-api.c,
+	  modules/rmm,
+	  overlay/allblackbut.c,
+	  overlay/autocal.c,
+	  overlay/dxr3view.c,
+	  overlay/overlay.c:
+	minor cleanups from James
+	(exit -> _exit, some missing returns, 
+	include string.h in a few files,
+	don't remove i2c* in rmm).
+	
+2002-01-08  Rick Haines  <rick@kuroyi.net>
+
 	* AUTHORS,
 	  modules/em8300_main.c:
 	minor devfs/procfs #ifdef cleanups from Graeme.

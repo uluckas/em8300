@@ -49,7 +49,7 @@ int main( int   argc,
     em8300_overlay_screen_t scr;
       
     dpy = XOpenDisplay (NULL);
-    if (!dpy) exit(1);
+    if (!dpy) _exit(1);
 
     xscrn=ScreenOfDisplay(dpy, 0);
     xsize=WidthOfScreen(xscrn)/NUM_MONITORS;
@@ -63,7 +63,7 @@ int main( int   argc,
     if(!(dev=fopen("/dev/em8300", "r")))
         {
 	    perror("Error opening em8300");
-	    exit(-1);
+	    _exit(-1);
         }
 
     ov = overlay_init(dev);
@@ -81,5 +81,5 @@ int main( int   argc,
     fclose(dev);    
 
     AllBlackButClose();
-
+    return 0;
 }

@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <inttypes.h>
+#include <string.h>  /* For memcpy */
 
 #include <libdxr3/api.h>
 #if defined(__OpenBSD__)

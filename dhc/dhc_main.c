@@ -52,7 +52,7 @@ int main (int argc, char *argv[])
 	if((dev=open(EM_DEV, O_WRONLY))==-1)
 	{
 		perror("Error opening em8300");
-		exit(-1);
+		_exit(-1);
 	}
 
 	cur_state.tvmode=0;
@@ -64,7 +64,7 @@ int main (int argc, char *argv[])
 	if (ioctl(dev, EM8300_IOCTL_GETBCS, &bcs)==-1)
 	{
 		perror("Failed getting BCS values...exiting");
-		exit(1);
+		_exit(1);
 	}
 	
 	pthread_mutex_init(&mut, NULL);

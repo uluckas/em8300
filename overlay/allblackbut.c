@@ -91,7 +91,7 @@ void AllBlackButInit()
 		somecolor.green = G << 8;			\
 		somecolor.blue = B << 8;			\
 		somecolor.flags = DoRed | DoGreen | DoBlue;	\
-		if (!XAllocColor(dpy, cmap, &somecolor)) exit(1);	\
+		if (!XAllocColor(dpy, cmap, &somecolor)) _exit(1);	\
 		TARGET = somecolor.pixel;
 
 	GETRGBPIX(0,0,0,pixel[MY_BLACK]);

@@ -7,6 +7,7 @@
 #include <sys/ioctl.h>
 #include <stdlib.h>
 #include <gdk/gdkkeysyms.h>
+#include <string.h>     /* For memcpy */
 
 #include <linux/em8300.h>
 #include "overlay.h"

@@ -22,6 +22,7 @@ static int update_parameters(overlay_t *o)
     overlay_set_attribute(o, EM9010_ATTRIBUTE_XCORR, o->xcorr);
     overlay_set_attribute(o, EM9010_ATTRIBUTE_STABILITY, o->stability);
     overlay_set_attribute(o, EM9010_ATTRIBUTE_JITTER, o->jitter);
+    return 0;
 }
 
 int overlay_set_attribute(overlay_t *o, int attribute, int value)
@@ -323,6 +324,7 @@ int overlay_set_keycolor(overlay_t *o, int color) {
     printf("0x%06x 0x%06x\n",upper,lower);
     overlay_set_attribute(o,EM9010_ATTRIBUTE_KEYCOLOR_UPPER,upper);
     overlay_set_attribute(o,EM9010_ATTRIBUTE_KEYCOLOR_LOWER,lower);
+    return 0;
 }
 
 static void least_sq_fit(int *x, int *y, int n, float *k, float *m)

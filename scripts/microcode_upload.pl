@@ -36,19 +36,27 @@ undef $/;
 $ucode=<UCODE>;
 close UCODE;
 
+$opened_one = 0;
+
 # Open device
 foreach (@devs){
-	open (DEV,"<$_") or exit(0);
-	
-# Prepare ioctl
-$initparams = pack("PI", $ucode, length($ucode));
+  if (!open(DEV,"<$_")) {
+    if (!$opened_one) {
+      die("Can't open $_\n");
+    }
+    exit(0);
+  }
+  $opened_one = 1;
 
-if(!ioctl(DEV, &EMCTL_IOCTL_INIT, $initparams)) {
-  print "Microcode upload failed: $!\n";
-  exit(1);
-}
+  # Prepare ioctl
+  $initparams = pack("PI", $ucode, length($ucode));
 
-print "Microcode uploaded to $_\n";
+  if(!ioctl(DEV, &EMCTL_IOCTL_INIT, $initparams)) {
+    print "Microcode upload to $_ failed: $!\n";
+    exit(1);
+  }
 
-close DEV; 
+  print "Microcode uploaded to $_\n";
+
+  close DEV;
 }

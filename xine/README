@@ -33,9 +33,6 @@ make
 make install
 cd ..
 
-rm -f /tmp/xine/lib/xine/plugins/xineplug_decode_mpeg2*
-rm -f /tmp/xine/lib/xine/plugins/xineplug_decode_spu*
-
 cd em8300/xine
 make
 make install

@@ -1,5 +1,14 @@
 2001-07-19  Rick Haines  <rick@kuroyi.net>
 
+	* xine/*:
+	Update from Eduard "This version has the possibility of
+	setting the bcs values and the aspectratio. Priorities
+	are also working now. If the plugin detects the dxr3
+	devices, it activates itself and is taken from XINE due
+	to a higher priority."
+	
+2001-07-19  Rick Haines  <rick@kuroyi.net>
+
 	* modules/Makefile:
 	Patch from Graeme to change include path order to find
 	local em8300.h first

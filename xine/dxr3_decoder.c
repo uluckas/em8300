@@ -54,9 +54,33 @@ typedef struct dxr3_decoder_s {
 	int last_pts;
 } dxr3_decoder_t;
 
+static int dxr3_tested = 0;
+static int dxr3_ok;
+
+static void dxr3_presence_test()
+{
+	int fd, val;
+	dxr3_tested = 1;
+	dxr3_ok = 0;
+	
+	if ((fd = open(devname, O_WRONLY))<0) {
+		fprintf(stderr, "dxr3: not detected. (%s: %s)\n",
+			devname, strerror(errno));
+		return;
+	}
+	if (ioctl(fd, EM8300_IOCTL_GET_AUDIOMODE, &val)<0) {
+		fprintf(stderr, "dxr3: ioctl failed. (%s)\n", strerror(errno));
+		return;
+	}
+	close(fd);
+	dxr3_ok = 1;
+}
+
 static int dxr3_can_handle (video_decoder_t *this_gen, int buf_type)
 {
-	return ((buf_type & 0xFFFF0000) == BUF_VIDEO_MPEG) ;
+	if (!dxr3_tested)
+		dxr3_presence_test();
+	return (dxr3_ok && (buf_type & 0xFFFF0000) == BUF_VIDEO_MPEG) ;
 }
 
 static void dxr3_init (video_decoder_t *this_gen, vo_instance_t *video_out)
@@ -70,6 +94,7 @@ static void dxr3_init (video_decoder_t *this_gen, vo_instance_t *video_out)
 	if ((this->fd_control = open(devname, O_WRONLY)) < 0) {
 		fprintf(stderr, "dxr3: Failed to open control device %s (%s)\n",
 		 devname, strerror(errno));
+		this->fd_video = -1;
 		return;
 	}
 
@@ -84,7 +109,7 @@ static void dxr3_init (video_decoder_t *this_gen, vo_instance_t *video_out)
 	/* set video mode
 	 * TODO: configurable
 	 */
-#if 0
+#if 0 /* only if user specifies */
 	this->tv_mode = EM8300_VIDEOMODE_PAL;
 	if (ioctl(this->fd_control, EM8300_IOCTL_SET_VIDEOMODE, &this->tv_mode))
 		fprintf(stderr, "dxr3: setting video mode failed.");
@@ -159,12 +184,13 @@ video_decoder_t *init_video_decoder_plugin (int iface_version,
 
 	this = (dxr3_decoder_t *) malloc (sizeof (dxr3_decoder_t));
 
-	this->video_decoder.interface_version   = 1;
+	this->video_decoder.interface_version   = 2;
 	this->video_decoder.can_handle          = dxr3_can_handle;
 	this->video_decoder.init                = dxr3_init;
 	this->video_decoder.decode_data         = dxr3_decode_data;
 	this->video_decoder.close               = dxr3_close;
 	this->video_decoder.get_identifier      = dxr3_get_id;
+	this->video_decoder.priority            = 10;
 
 	return (video_decoder_t *) this;
 }
@@ -182,7 +208,9 @@ typedef struct spudec_decoder_s {
 
 static int spudec_can_handle (spu_decoder_t *this_gen, int buf_type)
 {
-  return ((buf_type & 0xFFFF0000) == BUF_SPU_PACKAGE);
+	if (!dxr3_tested)
+		dxr3_presence_test();
+	return (dxr3_ok && (buf_type & 0xFFFF0000) == BUF_SPU_PACKAGE);
 }
 
 static void spudec_init (spu_decoder_t *this_gen, vo_instance_t *vo_out)
@@ -253,12 +281,13 @@ spu_decoder_t *init_spu_decoder_plugin (int iface_version,
 
   this = (spudec_decoder_t *) malloc (sizeof (spudec_decoder_t));
 
-  this->spu_decoder.interface_version   = 1;
+  this->spu_decoder.interface_version   = 2;
   this->spu_decoder.can_handle          = spudec_can_handle;
   this->spu_decoder.init                = spudec_init;
   this->spu_decoder.decode_data         = spudec_decode_data;
   this->spu_decoder.close               = spudec_close;
   this->spu_decoder.get_identifier      = spudec_get_id;
+  this->spu_decoder.priority            = 10;
   
   return (spu_decoder_t *) this;
 }

@@ -89,7 +89,7 @@ struct bt865_data_s {
 
 /* This is the driver that will be inserted */
 static struct i2c_driver bt865_driver = {
-#ifdef _LINUX_I2C_H /* i2c version 2.8.0 or above */
+#if defined(EM8300_I2C_FORCE_NEW_API) || (LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54) && !defined(EM8300_I2C_FORCE_OLD_API))
 	.owner =		THIS_MODULE,
 #endif
 	.name =			"BT865 video encoder driver",

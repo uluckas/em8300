@@ -77,8 +77,8 @@ install : $(MODULES)
 	@depmod -a
 	install -D ../include/linux/em8300.h \
 		/usr/include/linux/em8300.h
-	install -d /usr/share/em8300/
-	install em8300.uc /usr/share/em8300
+	install -d /usr/share/misc/
+	install em8300.uc /usr/share/misc
 	install ../scripts/microcode_upload.pl /usr/bin/em8300init
 	@echo Installed to running kernel
 

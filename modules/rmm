@@ -1,7 +1,7 @@
 #!/bin/sh
-fuser -k /dev/em8300
-fuser -k /dev/em8300_mv
-fuser -k /dev/em8300_ma
+fuser -k /dev/em8300-0
+fuser -k /dev/em8300_mv-0
+fuser -k /dev/em8300_ma-0
 rmmod em8300
 rmmod adv717x
 rmmod bt865

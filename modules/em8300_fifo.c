@@ -146,8 +146,8 @@ int em8300_fifo_check(struct fifo_s *fifo)
 	if (!fifo || !fifo->valid) {
 		return -1;
 	}
-	
-	freeslots = ((*fifo->readptr - *fifo->writeptr) / 4 + fifo->nslots - 1) % fifo->nslots;
+
+	freeslots = ((*fifo->readptr - *fifo->writeptr) / fifo->slotptrsize + fifo->nslots - 1) % fifo->nslots;
 
 	if ((freeslots > fifo->threshold) && fifo->waiting) {
 		fifo->waiting=0;
@@ -232,6 +232,14 @@ int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer
 	while (n) {
 		copy_size = em8300_fifo_write(fifo, n, userbuffer, flags);
 
+		if (copy_size < 0) {
+			return -EIO;
+		}
+	
+		n -= copy_size;
+		userbuffer += copy_size;
+		total_bytes_written += copy_size;
+
 		if (!copy_size) {
 			fifo->waiting=1;
 			interruptible_sleep_on(&fifo->wait);
@@ -245,13 +253,6 @@ int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer
 			}
 		}
 
-		if (copy_size < 0) {
-			return -EIO;
-		}
-	
-		n -= copy_size;
-		userbuffer += copy_size;
-		total_bytes_written += copy_size;
 	}
 
 	return total_bytes_written;

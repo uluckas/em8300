@@ -1,5 +1,20 @@
 2001-12-18  Rick Haines  <rick@kuroyi.net>
 
+	Apply the following from Larice Robert.
+	
+	* modules/em8300_fifo.c:
+	change 4 to fifo->slotptrsize
+	reorder some lines to fix possible problem
+	
+	* modules/em8300_video.c:
+	change 'read_register(ptsfifoptr+1) & 1' to
+	'read_register(ptsfifoptr+3) & 1'
+
+	* modules/em8300_video.c:
+	correctly update em->video_offset
+	
+2001-12-18  Rick Haines  <rick@kuroyi.net>
+
 	* modules/adv717x.c:
 	ADV7170 PAL mode register mods from Vidar Hoel
 

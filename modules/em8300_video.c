@@ -277,7 +277,7 @@ void em8300_video_check_ptsfifo(struct em8300_s *em)
 
 		ptsfifoptr = ucregister(MV_PTSFifo) + 4*em->video_ptsfifo_ptr;
 
-		if (!(read_register(ptsfifoptr+1) & 1)) {
+		if (!(read_register(ptsfifoptr+3) & 1)) {
 			em->video_ptsfifo_waiting=0;
 			wake_up_interruptible(&em->video_ptsfifo_wait);
 		}
@@ -288,6 +288,7 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos)
 {
 	unsigned flags=0;
+	int written;
 	
 	if (em->video_ptsvalid) {
 		int ptsfifoptr=0;
@@ -321,8 +322,11 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
 		em->video_ptsvalid=0;
 	}
 
-	em->video_offset += count;
-	return em8300_fifo_writeblocking(em->mvfifo, count, buf, flags);
+	written = em8300_fifo_writeblocking(em->mvfifo, count, buf, flags);
+	if(written > 0) {
+		em->video_offset += written;
+	}
+	return written;
 }
 
 int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)

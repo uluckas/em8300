@@ -350,9 +350,12 @@ int em8300_ioctl_setvideomode(struct em8300_s *em, int mode)
 	case EM8300_VIDEOMODE_NTSC:
 		encoder = ENCODER_MODE_NTSC;
 		break;
+	default:
+		encoder = ENCODER_MODE_UNKNOWN;
+		break;
 	}
 	
-	em->video_mode = mode;
+	em->video_mode = encoder;
 
 	em8300_dicom_disable(em);
 

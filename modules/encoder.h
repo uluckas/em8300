@@ -3,6 +3,7 @@
 
 #include <linux/em8300.h>
 
+#define ENCODER_MODE_UNKNOWN	0
 #define ENCODER_MODE_NTSC	1
 #define ENCODER_MODE_NTSC60	2
 #define ENCODER_MODE_PAL_M	3

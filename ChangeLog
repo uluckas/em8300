@@ -3,8 +3,11 @@
 	  modules/em8300_main.c,
 	  modules/em8300_video.c,
 	  modules/em8300_audio.c,
-	  modules/em8300_spu.c:
+	  modules/em8300_spu.c,
+	  modules/em8300_ioctl.c,
+	  modules/encoder.h:
 	It is now possible to open the devices in nonblocking mode
+	Fixed warnings
 
 2002-01-12  David Holm  <dholm@iname.com>
 	* include/linux/em8300.h,

@@ -656,9 +656,7 @@ void __exit em8300_exit(void)
 int __init em8300_init(void)
 {
 	int card = 0;
-#ifdef CONFIG_DEVFS_FS
-	int frame;
-#endif
+	int frame = 3;
 	struct em8300_s *em = NULL;
 
 	char devname[32];

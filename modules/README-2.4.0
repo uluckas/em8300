@@ -1,29 +1,25 @@
 To compile the modules under 2.4.x kernels you will need to run the script:
-switch-to-2.4. (This is only necessary for the first compilation after 
-checking out the driver source from CVS.)
+	./make-modules-2.4
 
-If your kernel sources are not in /usr/src/linux then edit the switch-to-2.4
+If your kernel sources are not in /usr/src/linux then edit the make-modules-2.4
 script at the top to change where the correct location is.
 
-NB: You need to have write access to the main directory of your kernel sources
-    otherwise the patch will fail!
-
 Also, if you are not executing the script from within your em8300/modules
-directory, you will need to edit the switch-to-2.4 script at the top and
-change the EM_LOCATION=`pwd` to EM_LOCATION=/your/path/em8300/modules.
+directory, you will, again, need to edit the script and change the
+EM_LOCATION=`pwd` to EM_LOCATION=/whatever/your/path/is/em8300/modules.
 
-Now run the script: ./switch-to-2.4
-
-Finally change into the linux kernel directory (/usr/src/linux) and do a:
-	make modules
-
-Go back to the em8300/modules directory and you should find the compiled
-modules there! (-:
+Now run the script and if all goes well, you should find the compiled modules
+in your em8300/modules directory! (-:
 
 For this to work you need to have configured your kernel and done a make dep,
-followed by a make bzImage (or equivalent) before the make modules of course.
+before running the script. (A make bzImage and make modules is not necessary
+but since the modules need to be compiled for the same kernel that they will
+be used under it doesn't make sense not to have done a make bzImage (or
+equivalent) and a make modules at least at some point in the past...)
 
-Hope this is helpful.
+Let me know if you have any problems using the script...
+
+I verified it to work fine on kernels 2.4.0-ac9 and -ac10.
 
 Anton Altaparmakov <aia21@cam.ac.uk>
 

@@ -1,4 +1,9 @@
-2004-02-16  Nicolas Boullis  <nboullis@debian.org>
+2004-03-23  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_main.c:
+	Since before kernel 2.4.0, the file_operations structure has an
+	owner field. Thanks to Håkon Skjelten for pointing this.
+
+2004-03-16  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_fifo.c,
 	  modules/em8300_ioctl.c,
 	  modules/em8300_spu.c,

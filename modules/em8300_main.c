@@ -576,6 +576,7 @@ int em8300_io_release(struct inode* inode, struct file *filp)
 }
 
 static struct file_operations em8300_fops = {
+	owner: THIS_MODULE,
 	write: em8300_io_write,
 	ioctl: em8300_io_ioctl,
 	mmap: em8300_io_mmap,
@@ -670,6 +671,7 @@ int em8300_dsp_release(struct inode* inode, struct file* filp)
 }
 
 static struct file_operations em8300_dsp_audio_fops = {
+	owner: THIS_MODULE,
 	write: em8300_dsp_write,
 	ioctl: em8300_dsp_ioctl,
 	poll: em8300_dsp_poll,

@@ -72,6 +72,7 @@
 
 MODULE_AUTHOR("Henrik Johansson <henrikjo@post.utfors.se>");
 MODULE_DESCRIPTION("EM8300 MPEG-2 decoder");
+MODULE_SUPPORTED_DEVICE("em8300");
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
 MODULE_PARM(remap,"1-" __MODULE_STRING(EM8300_MAX) "i");
 #endif
@@ -90,18 +91,23 @@ MODULE_PARM(use_bt865,"1-" __MODULE_STRING(EM8300_MAX) "i");
  */
 int dicom_other_pal = 1;
 MODULE_PARM(dicom_other_pal, "i");
+MODULE_PARM_DESC(dicom_other_pal, "If this is set, then some internal register values are swapped for PAL and NTSC. Defaults to 1.");
 
 int dicom_fix = 1;
 MODULE_PARM(dicom_fix, "i");
+MODULE_PARM_DESC(dicom_fix, "If this is set then some internal register values are changed. Fixes green screen problems for some. Defaults to 1.");
 
 int dicom_control = 1;
 MODULE_PARM(dicom_control, "i");
+MODULE_PARM_DESC(dicom_control, "If this is set then some internal register values are changed. Fixes green screen problems for some. Defaults to 1.");
 
 int bt865_ucode_timeout = 0;
 MODULE_PARM(bt865_ucode_timeout, "i");
+MODULE_PARM_DESC(bt865_ucode_timeout, "Set this to 1 if you have a bt865 and get timeouts when uploading the microcode. Defaults to 0.");
 
 int activate_loopback = 0;
 MODULE_PARM(activate_loopback, "i");
+MODULE_PARM_DESC(activate_loopback, "If you lose video after loading the modules or uploading the microcode set this to 1. Defaults to 0.");
 
 static int em8300_cards,clients;
 
@@ -552,7 +558,7 @@ void cleanup_module(void)
 	for (card = 0; card < em8300_cards; card++) {
 #ifdef CONFIG_DEVFS_FS
 		for (frame = 0; frame < 4; frame++) {
-			devfs_unregister(em8300_handle[card+frame]);
+			devfs_unregister(em8300_handle[(card * 4) + frame]);
 		}
 #endif
 #ifdef REGISTER_DSP

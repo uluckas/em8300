@@ -327,7 +327,6 @@ void em8300_ioctl_getstatus(struct em8300_s *em, char *usermsg)
 	do_gettimeofday(&tv);
 	tdiff = TIMEDIFF(tv, em->last_status_time);
 	em->last_status_time = tv;
-	sprintf(tmpstr,"Time elapsed: %ld us\nIRQ time period: %ld\nInterrupts : %d\nFrames: %ld\nSCR: %ld\nPicture PTS: %ld\nSCR diff: %ld\nMV Fifo: %s\nMA Fifo: %s\nSP Fifo: %s\nAudio pts: %d\nAudio lag: %d\n", tdiff, em->irqtimediff,em->irqcount,frames-em->frames,scr,picpts,scr-em->scr,mvfstatus,mafstatus,spfstatus,em->audio_pts,em->audio_lag);
 	em->irqcount = 0;
 	em->frames = frames;
 	em->scr = scr;
@@ -337,28 +336,12 @@ void em8300_ioctl_getstatus(struct em8300_s *em, char *usermsg)
 
 int em8300_ioctl_setvideomode(struct em8300_s *em, int mode)
 {
-	int encoder;
-
-	switch (mode) {
-	case EM8300_VIDEOMODE_PAL:
-		encoder = ENCODER_MODE_PAL;
-		break;
-	case EM8300_VIDEOMODE_PAL60:
-		encoder = ENCODER_MODE_PAL60;
-		break;
-	case EM8300_VIDEOMODE_NTSC:
-		encoder = ENCODER_MODE_NTSC;
-		break;
-	default:
-		return -EINVAL;
-	}
-
 	em->video_mode = mode;
 
 	em8300_dicom_disable(em);
 
 	if (em->encoder) {
-		em->encoder->driver->command(em->encoder, ENCODER_CMD_SETMODE, (void *)encoder);
+		em->encoder->driver->command(em->encoder, ENCODER_CMD_SETMODE, (void *) mode);
 	}
 	em8300_dicom_enable(em);
 	em8300_dicom_update(em);

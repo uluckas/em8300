@@ -91,16 +91,18 @@ typedef struct {
 #define EM8300_IOCTL_SPU_SETPALETTE 2
 #define EM8300_IOCTL_SPU_BUTTON 3
 
-#define EM8300_IOCTL_AUDIO_SETPTS _SIOWR('P', 30, int)
-
 #define EM8300_ASPECTRATIO_4_3 0
 #define EM8300_ASPECTRATIO_16_9 1
 #define EM8300_ASPECTRATIO_LAST 1
 
-#define EM8300_VIDEOMODE_PAL 0
-#define EM8300_VIDEOMODE_PAL60 1
-#define EM8300_VIDEOMODE_NTSC 2
-#define EM8300_VIDEOMODE_LAST 2
+#define EM8300_VIDEOMODE_NTSC	1
+#define EM8300_VIDEOMODE_NTSC60	2
+#define	EM8300_VIDEOMODE_PAL_M	3
+#define EM8300_VIDEOMODE_PALM60	4
+#define	EM8300_VIDEOMODE_PAL	5
+#define EM8300_VIDEOMODE_PAL60	6
+#define EM8300_VIDEOMODE_PALNC	7
+#define EM8300_VIDEOMODE_LAST 	7
 #ifndef EM8300_VIDEOMODE_DEFAULT
 #define EM8300_VIDEOMODE_DEFAULT EM8300_VIDEOMODE_NTSC
 #endif
@@ -312,20 +314,6 @@ struct em8300_s
 	int audio_mode;
         int pcm_mode;
 	int dsp_num;
-/* remove these when audio sync goes away */
-	int audio_sync;
-	int audio_ptsvalid;
-	uint32_t audio_pts;
-	uint32_t audio_lastpts;
-	uint32_t audio_lag;
-	uint32_t last_calcbuf;
-  /* the following used to be static in em8300_audio_write() */
-	int rollover;
-	uint32_t basepts;
-	uint32_t rollover_pts;
-	uint32_t rollover_lastpts;
-	uint32_t rollover_startpts;
-	uint32_t lastpts_count;
 /* */
 	int dword_DB4;
 	unsigned char byte_D90[24];

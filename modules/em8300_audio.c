@@ -27,10 +27,6 @@
 
 #include <endian.h>
 
-__inline__ uint32_t my_abs(int32_t v) {
-	return v < 0 ? -v : v;
-}
-
 int em8300_audio_calcbuffered(struct em8300_s *em);
 static int set_audiomode(struct em8300_s *em, int mode);
 
@@ -155,7 +151,8 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
 	sub_prepare_SPDIF(em,outbuf, em->mafifo->preprocess_buffer, inlength);
 }
 
-static void setup_mafifo(struct em8300_s *em) {
+static void setup_mafifo(struct em8300_s *em)
+{
 	if (em->audio_mode == EM8300_AUDIOMODE_ANALOG) {
 		em->mafifo->preprocess_ratio = ((em->audio.channels == 2) ? 1 : 2);
 		em->mafifo->preprocess_cb = &preprocess_analog;
@@ -165,15 +162,9 @@ static void setup_mafifo(struct em8300_s *em) {
 	}
 }
 
-int mpegaudio_command(struct em8300_s *em, int cmd) {
+int mpegaudio_command(struct em8300_s *em, int cmd)
+{
 	em8300_waitfor(em,ucregister(MA_Command), 0xffff, 0xffff);
-
-	if (cmd == 2) {
-		em->audio_sync = 0;
-		em->audio_ptsvalid = 0;
-		em->audio_lag = 0;
-		em->audio_lastpts = 0;
-	}
 
 	pr_debug("MA_Command: %d\n",cmd);
 	write_ucregister(MA_Command,cmd);
@@ -181,14 +172,16 @@ int mpegaudio_command(struct em8300_s *em, int cmd) {
 	return em8300_waitfor(em, ucregister(MA_Status), cmd, 0xffff);
 }
 
-static int audio_start(struct em8300_s *em) {
+static int audio_start(struct em8300_s *em)
+{
 	em->irqmask |= IRQSTATUS_AUDIO_FIFO;
 	write_ucregister(Q_IrqMask, em->irqmask);
 	em->audio.enable_bits = PCM_ENABLE_OUTPUT;
 	return mpegaudio_command(em, MACOMMAND_PLAY);
 }
 
-static int audio_stop(struct em8300_s *em) {
+static int audio_stop(struct em8300_s *em)
+{
 	em->irqmask &= ~IRQSTATUS_AUDIO_FIFO;
 	write_ucregister(Q_IrqMask, em->irqmask);
 	em->audio.enable_bits = 0;
@@ -228,7 +221,8 @@ static int set_speed(struct em8300_s *em, int speed)
 	return speed;
 }
 
-static int set_channels(struct em8300_s *em, int val) {
+static int set_channels(struct em8300_s *em, int val)
+{
 	if (val > 2) val = 2;
 	em->audio.channels = val;
 	setup_mafifo(em);
@@ -453,18 +447,6 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		val = em8300_audio_calcbuffered(em);
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETODELAY %i\n", val);
 		break;
-#if 0
-	case SOUND_DSP_GETERROR:
-		return -EINVAL;
-		break;
-#endif
-	case EM8300_IOCTL_AUDIO_SETPTS:
-		if (get_user(em->audio_pts, (int *)arg))
-			return -EFAULT;
-		em->audio_pts >>= 1;
-		em->audio_ptsvalid=1;
-		em->audio_sync = 1;
-		break;
 
 	default:
 		pr_info("em8300_audio.o: unknown ioctl called\n");
@@ -495,10 +477,6 @@ int em8300_audio_open(struct em8300_s *em)
 		return -ENODEV;
 	}
 	
-	em->audio_lastpts = 0;
-	em->audio_lag = 0;
-	em->last_calcbuf = 0;
-
 	em->mafifo->bytes = 0;
 
 	return audio_start(em);
@@ -624,83 +602,6 @@ int em8300_audio_calcbuffered(struct em8300_s *em)
 
 int em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
 {
-	int32_t diff;
-	uint32_t vpts, master_vpts;
-	uint32_t calcbuf;
-
-	if (em->audio_sync) {
-	if (em->audio_ptsvalid) {
-		em->audio_ptsvalid=0;
-		if (em->audio_lastpts == 0) {
-			em->audio_lastpts = em->audio_pts;
-		}
-
-		if (em->rollover) {
-			em->rollover_lastpts += (em->audio_pts - em->audio_lastpts);
-			em->audio_lag -= (em->audio_pts - em->audio_lastpts);
-			em->audio_lastpts = em->audio_pts;
-		}
-
-		/* rollover detected */
-		if (em->audio_pts < em->audio_lastpts) {
-			pr_debug("em8300_audio.o: ROLLOVER DETECTED! lastpts: %u pts: %u\n", em->audio_lastpts, em->audio_pts);
-			em->rollover = 1;
-			em->rollover_pts = 0;
-			em->rollover_startpts = em->audio_pts;
-			em->rollover_lastpts = em->audio_lastpts + em->lastpts_count;
-			em->audio_lastpts = em->audio_pts;
-			em->audio_lag -= em->lastpts_count;
-		} else {
-			em->audio_lag -= (em->audio_pts - em->audio_lastpts);
-			em->audio_lastpts = em->audio_pts;
-		}
-		em->lastpts_count = 0;
-	}
-
-	if (!em->rollover) {
-		em->basepts = em->audio_pts;
-	} else {
-		em->basepts = em->rollover_lastpts;
-	}
-
-	calcbuf = em8300_audio_calcbuffered(em);
-
-#ifdef DEBUG_SYNC
-	pr_debug("em8300_audio.o: calcbuf: %u since_last_pts: %i\n", calcbuf, em->audio_lag);
-#endif
-	
-	vpts = em->basepts + em->audio_lag - (calcbuf * 45000/4 / em->audio.speed);
-	master_vpts = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);
-
-	if (em->rollover && (em->rollover_pts == 0)) {
-	  /* I'm not sure if there's any significance to this 45000/4 */
-	  /* I had to add some pts, so I just picked it	   -RH	 */
-		em->rollover_pts = em->basepts + em->audio_lag + 45000/4;
-	}
-	if (em->rollover && (vpts > em->rollover_pts)) {
-		em->rollover = 0;
-		vpts -= em->rollover_startpts;
-	}
-
-#ifdef DEBUG_SYNC
-	pr_debug("em8300_audio.o: pts: %u vpts: %u scr: %u bpts: %u\n", em->audio_pts, vpts, master_vpts, basepts);
-#endif
-	
-	diff = vpts - master_vpts;
-	
-	if (my_abs(diff) > 1500) {
-	        pr_info("em8300_audio.o: resyncing\n");
-		pr_debug("em8300_audio.o: master clock adjust time %d -> %d\n", master_vpts, vpts); 
-		write_ucregister(MV_SCRlo, vpts & 0xffff);
-		write_ucregister(MV_SCRhi, (vpts >> 16) & 0xffff);
-		pr_debug("Setting SCR: %d\n", vpts);
-	}
-
-	em->audio_lag += (count * 45000/4 / em->audio.speed);
-	em->last_calcbuf = calcbuf + count;
-	em->lastpts_count += (count * 45000/4 / em->audio.speed);
-	}
-
 	return em8300_fifo_writeblocking(em->mafifo, count, buf,0);
 }
 

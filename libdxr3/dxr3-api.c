@@ -140,7 +140,8 @@ int dxr3_subpic_set_pts(long pts)
 
 int dxr3_audio_set_pts(long pts)
 {
-	return ioctl(state.fd_audio, EM8300_IOCTL_AUDIO_SETPTS, &pts);
+	/* Retain for backwards compatibility, use of libdxr3 should be deprecated */
+	return 0;
 }
 
 

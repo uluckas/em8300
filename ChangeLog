@@ -7,6 +7,10 @@
 	deprecated 2.8.x i2c modules; a new option in the makefile fixes
 	this by giving the user the ability to force the i2c API.
 
+	* debian:
+	Nuke the debian directory as it was completely outdated, and some
+	users found it confusing.
+
 2005-03-08  Nicolas Boullis  <nboullis@debian.org>
 	* em8300setup/em8300setup.c:
 	Improve em8300setup's usage message. Thanks to Ville Skyttä for

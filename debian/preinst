@@ -1,5 +1,0 @@
-#!/bin/sh
-
-. /usr/share/debconf/confmodule
-
-if [ "$1" = "abort-upgrade" ]; then exit 0; fi

@@ -1,9 +1,0 @@
-#!/bin/sh -e
-
-if [ "$1" = "purge" -a -e /usr/share/debconf/confmodule ]; then
-  . /usr/share/debconf/confmodule
-  [ -x /usr/sbin/update-devfsd ] && /usr/sbin/update-devfsd >&2  
-  [ -x /usr/sbin/update-rc.d ] && /usr/sbin/update-rc.d em8300 remove >&2
-
-  db_purge
-fi

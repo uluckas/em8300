@@ -1,8 +1,0 @@
-#!/bin/sh -e
-
-[ -x /etc/init.d/em8300 ] && /etc/init.d/em8300 stop
-
-rm -f /dev/em8300-0 /dev/em8300_mv-0 /dev/em8300_ma-0 /dev/em8300_sp-0
-rm -f /dev/em8300 /dev/em8300_mv /dev/em8300_ma /dev/em8300_sp
-
-

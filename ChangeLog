@@ -1,3 +1,8 @@
+2002-05-03  David Holm  <dholm@telia.com>
+	* modules/em8300_audio.c:
+	Hopefully fixed a bug which would leave data in the audio
+	buffer when you closed it.
+
 2002-04-12  David Holm	<dholm@iname.com>
 	* modules/em8300_spu.c,
 	  modules/em8300_main.c:

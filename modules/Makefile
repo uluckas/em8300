@@ -130,6 +130,9 @@ install-newkern : $(MODULES)
 		/usr/include/linux/em8300.h
 	@echo Installed to kernel version of header files
 
+devices :
+	@sh devices.sh
+
 clean :
 	rm -f *.o
 	rm -f $(VERSION_HEADER)

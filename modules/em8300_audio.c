@@ -190,24 +190,24 @@ static
 int set_rate(struct em8300_s *em,int rate)
 {
     em->audio_rate = rate; 
+
+    em->clockgen &= ~CLOCKGEN_SAMPFREQ_MASK;
+
     switch(rate) {
-    case 48000:
-	em8300_clockgen_write(em,(em->clockgen & ~CLOCKGEN_SAMPFREQ_MASK) |
-			      CLOCKGEN_SAMPFREQ_48);
-	break;
     case 44100:
-	em8300_clockgen_write(em,(em->clockgen & ~CLOCKGEN_SAMPFREQ_MASK) |
-			      CLOCKGEN_SAMPFREQ_44);
+	em->clockgen |= CLOCKGEN_SAMPFREQ_44;
 	break;
     case 32000:
-	em8300_clockgen_write(em,(em->clockgen & ~CLOCKGEN_SAMPFREQ_MASK) |
-			      CLOCKGEN_SAMPFREQ_32);
+	em->clockgen |= CLOCKGEN_SAMPFREQ_32;
 	break;
+    case 48000:
     default:
-	em8300_clockgen_write(em,(em->clockgen & ~CLOCKGEN_SAMPFREQ_MASK) |
-			      CLOCKGEN_SAMPFREQ_48);
+	em->clockgen |= CLOCKGEN_SAMPFREQ_48;
 	rate = 48000;
     }
+    
+    em8300_clockgen_write(em,em->clockgen);
+    
     return rate;
 }
 

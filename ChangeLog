@@ -1,3 +1,10 @@
+2001-07-20  Rick Haines  <rick@kuroyi.net>
+
+	* xine/video_out_dxr3.c,
+	  xine/README:
+	Eduard fixed the priority, added tvmode option, and
+	updated the README
+	
 2001-07-19  Rick Haines  <rick@kuroyi.net>
 
 	* xine/*:

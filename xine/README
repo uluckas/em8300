@@ -1,39 +1,40 @@
+Introduction
+============
+
 This directory contains the Xine 0.5 plugin for dxr3 support
 The Xine 0.4.x patches are now located at
 http://dxr3.sourceforge.net/download/xine
 
 This is still a work in progress.  Audio output currently does
-not use the dxr3 device, although the oss ioctl's will likely be
-implemented soon.  dhc is be necessary to switch to 16x9 mode.
+not use the dxr3 device, although the oss ioctl's are in the cvs
+version of the drivers.  You can symlink /dev/em8300_ma to /dev/dsp
+to try it.
+
+Getting and compiling XINE 0.5 CVS
+==================================
+
+cvs -z3 -d:pserver:anonymous@cvs.xine.sourceforge.net:/cvsroot/xine co xine-lib
+cd xine-lib
+./cvscompile.sh --prefix=/tmp/xine
+make
+make install
+cd ..
+
+cvs -z3 -d:pserver:anonymous@cvs.xine.sourceforge.net:/cvsroot/xine co xine-ui
+cd xine-ui
+LD_LIBRARY_PATH=/tmp/xine/lib \
+	./cvscompile.sh --prefix=/tmp/xine --with-xine-prefix=/tmp/xine
+make
+make install
+cd ..
+
+Installation of the dxr3 plugin
+===============================
 
 You'll need to edit the Makefile to specify your xine src patch and
 xine installation path.
 
-"After having installed the dxr3 plugin you must also delete the
-corresponding software decoders in the plugins directory. This
-is later solved with a priority mechanism (not yet coded).  
-(xineplug_decode_spu.so xineplug_decode_mpeg2.so)"
-
-I used:
-
-cvs -z3 -d:pserver:anonymous@cvs.xine.sourceforge.net:/cvsroot/xine co xine-lib
-cd xine-lib
-./cvscompile.sh --prefix=/tmp
-make
-make install
-cd ..
-
-export XINE_CONFIG=/tmp/xine/bin/xine-config
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/tmp/xine/lib
-
-cvs -z3 -d:pserver:anonymous@cvs.xine.sourceforge.net:/cvsroot/xine co xine-ui
-cd xine-ui
-./cvscompile.sh --prefix=/tmp
-make
-make install
-cd ..
-
-cd em8300/xine
+cd em8300/xine    # = this directory
 make
 make install
 cd ..
@@ -42,4 +43,33 @@ cd modules
 ./ldm
 ../scripts/microcode_upload.pl /etc/dxr3.ux
 
+XINE configuration
+==================
+
+XINE has several configuration options in $HOME/.xinerc
+
+Some of them are important for dxr3 playback:
+*) dxr3_tvmode:
+	default Keep the current driver setting
+	ntsc    NTSC 60Hz
+	pal     PAL 50Hz
+	pal60   PAL 60Hz
+	
+*) video_driver_name:
+	dxr3    Usually default if available, should be set to
+	        dxr3 if not.
+
+It is recommented to run XINE one time before configuring it,
+since all options get written in .xinerc and have their default
+values. The dummy video driver can be forced using the "-V dxr3"
+command line option. Only the tvmode value has to be edited
+if the default driver setting is not correct.
+
+Running XINE
+============
+
 /tmp/xine/bin/xine
+
+Help on command line options can be obtained with
+
+/tmp/xine/bin/xine --help

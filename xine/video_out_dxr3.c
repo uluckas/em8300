@@ -1,3 +1,28 @@
+/* 
+ * Copyright (C) 2000-2001 the xine project
+ * 
+ * This file is part of xine, a unix video player.
+ * 
+ * xine is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * xine is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+ *
+ * $Id$
+ *
+ * Dummy video out plugin for the dxr3. Is responsible for setting
+ * tv_mode, bcs values and the aspectratio.
+ */
+ 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
@@ -18,10 +43,11 @@
 
 char devname[]="/dev/em8300";
 
-typedef struct xshm_driver_s {
+typedef struct dxr3_driver_s {
 	vo_driver_t      vo_driver;
 	int fd_control;
 	int aspectratio;
+	int tv_mode;
 	em8300_bcs_t bcs;
 } dxr3_driver_t;
 
@@ -141,10 +167,10 @@ static int dxr3_set_property (vo_driver_t *this_gen,
 		this->aspectratio = value;
 
 		if (value == ASPECT_ANAMORPHIC) {
-			printf("ratio: anamorphic\n");
+			fprintf(stderr, "dxr3: setting aspect ratio to anamorphic\n");
 			val = EM8300_ASPECTRATIO_16_9;
 		} else {
-			printf("ratio: full\n");
+			fprintf(stderr, "dxr3: setting aspect ratio to full\n");
 			val = EM8300_ASPECTRATIO_4_3;
 		}
 
@@ -198,6 +224,7 @@ static void dxr3_exit (vo_driver_t *this_gen)
 vo_driver_t *init_video_out_plugin (config_values_t *config, void *visual_gen)
 {
   dxr3_driver_t        *this;
+  char* str;
 
   /*
    * allocate plugin struct
@@ -236,6 +263,23 @@ vo_driver_t *init_video_out_plugin (config_values_t *config, void *visual_gen)
 	this->vo_driver.set_property(&this->vo_driver,
 	 VO_PROP_ASPECT_RATIO, ASPECT_FULL);
 
+	str = config->lookup_str(config, "dxr3_tvmode", "default");
+	if (!strcmp(str, "ntsc")) {
+		this->tv_mode = EM8300_VIDEOMODE_NTSC;
+		fprintf(stderr, "dxr3: setting tv_mode to NTSC\n");
+	} else if (!strcmp(str, "pal")) {
+		this->tv_mode = EM8300_VIDEOMODE_PAL;
+		fprintf(stderr, "dxr3: setting tv_mode to PAL 50Hz\n");
+	} else if (!strcmp(str, "pal60")) {
+		this->tv_mode = EM8300_VIDEOMODE_PAL60;
+		fprintf(stderr, "dxr3: setting tv_mode to PAL 60Hz\n");
+	} else {
+		this->tv_mode = EM8300_VIDEOMODE_DEFAULT;
+	}
+	if (this->tv_mode != EM8300_VIDEOMODE_DEFAULT)
+		if (ioctl(this->fd_control, EM8300_IOCTL_SET_VIDEOMODE, &this->tv_mode))
+			fprintf(stderr, "dxr3: setting video mode failed.");
+
   return &this->vo_driver;
 }
 
@@ -245,7 +289,7 @@ static vo_info_t vo_info_dxr3 = {
   "dxr3",
   "xine dummy video output plugin for dxr3 cards",
   VISUAL_TYPE_X11,
-  5  /* priority */
+  20  /* priority */
 };
 
 vo_info_t *get_video_out_plugin_info()

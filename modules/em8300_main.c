@@ -34,6 +34,7 @@
 #include <linux/string.h>
 #include <linux/time.h>
 #include <linux/poll.h>
+#include <linux/kcomp.h>
 #ifdef CONFIG_PROC_FS
 #include <linux/proc_fs.h>
 #endif

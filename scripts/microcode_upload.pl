@@ -45,6 +45,7 @@ $initparams = pack("PI", $ucode, length($ucode));
 
 if(!ioctl(DEV, &EMCTL_IOCTL_INIT, $initparams)) {
   print "Microcode upload failed: $!\n";
+  exit(1);
 }
 
 print "Microcode uploaded to $_\n";

@@ -1,3 +1,18 @@
+2001-06-13  Rick Haines  <rick@kuroyi.net>
+
+	* modules/Makefile,
+	  modules/Makefile.2.2,
+	  modules/README-2.2,
+	  modules/README-2.4.0:
+	Add new Makefile for 2.4 kernels (from Graeme Gregory) and
+	make it the default. If no problems are found I'll remove
+	all the make-* scripts.
+	
+2001-06-12  Rick Haines  <rick@kuroyi.net>
+
+	* scripts/microcode_upload.pl:
+	add exit statement if upload fails
+	
 2001-05-13  Rick Haines  <rick@kuroyi.net>
 
 	* include/libdxr3/api.h,

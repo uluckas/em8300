@@ -1,3 +1,17 @@
+The Makefile is now defaulted to kernel 2.4.x
+All that is necessary is the following:
+
+make
+make install
+
+If your kernel sources are in a location other than /usr/src/linux
+you need to modify the second line of the Makefile.  If you need
+to build with a compiler other than gcc (i.e. kgcc), modify line 8.
+
+
+
+(the following is kept for reference until the new Makefile is fully tested)
+
 To compile the modules under 2.4.x kernels you will need to run the script:
 	./make-modules-2.4
 

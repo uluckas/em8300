@@ -1,4 +1,13 @@
-2004-11-16  Nicolas Boullis  <nboullis@debian.org>
+2004-11-14  Nicolas Boullis  <nboullis@debian.org>
+	* dhc/Makefile.am,
+	  em8300setup/Makefile.am,
+	  libdxr3/Makefile.am,
+	  libdxr3/libac3/Makefile.am,
+	  overlay/Makefile.am:
+	Use AM_CFLAGS and AM_LDFLAGS rather than CFLAGS and LDFLAGS to
+	avoid automake warnings. Thanks to Ville Skyttä.
+
+2004-11-10  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Replace remap_page_range with remap_pfn_range for kernels 2.6.10
 	and above, as spotted by Christian Gmeiner. Thanks to him.

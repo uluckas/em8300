@@ -1,4 +1,4 @@
-CFLAGS = @GLOBAL_CFLAGS@
+AM_CFLAGS = @GLOBAL_CFLAGS@
 INCLUDES = -I@srcdir@/include -I/usr/local/include
 
 bin_PROGRAMS = em8300setup

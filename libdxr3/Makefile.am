@@ -1,6 +1,6 @@
 SUBDIRS = libac3
 
-CFLAGS = @GLOBAL_CFLAGS@
+AM_CFLAGS = @GLOBAL_CFLAGS@
 INCLUDES = -I@srcdir@/include
 
 lib_LTLIBRARIES = libdxr3.la

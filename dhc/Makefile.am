@@ -1,6 +1,6 @@
-CFLAGS = @GLOBAL_CFLAGS@ $(GTK_CFLAGS)
+AM_CFLAGS = @GLOBAL_CFLAGS@ $(GTK_CFLAGS)
 INCLUDES = -I@srcdir@/include -I/usr/local/include
-LDFLAGS = $(GTK_LIBS) -lpthread
+AM_LDFLAGS = $(GTK_LIBS) -lpthread
 
 bin_PROGRAMS = dhc
 noinst_HEADERS = dhc_callback.h dhc_gui.h pixmaps.h

@@ -1,8 +1,8 @@
 EXTRA_DIST = configs/
 
-CFLAGS = @GLOBAL_CFLAGS@ $(GTK_CFLAGS)
+AM_CFLAGS = @GLOBAL_CFLAGS@ $(GTK_CFLAGS)
 INCLUDES = -I@srcdir@/include -I/usr/local/include
-LDFLAGS = $(GTK_LIBS)
+AM_LDFLAGS = $(GTK_LIBS)
 
 bin_PROGRAMS = autocal dxr3view
 noinst_HEADERS = autocal.h allblackbut.h overlay.h

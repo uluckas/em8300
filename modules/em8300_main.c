@@ -422,7 +422,8 @@ static unsigned int em8300_poll(struct file *file, struct poll_table_struct *wai
 	case EM8300_SUBDEVICE_AUDIO:
 		poll_wait(file, &em->mafifo->wait, wait);
 		if (file->f_mode & FMODE_WRITE) {
-			if ((em->mafifo->bytes - em8300_fifo_calcbuffered(em->mafifo)) > em->mafifo->slotsize) {
+			if (em8300_fifo_freeslots(em->mafifo)) {
+				pr_debug("Poll audio - Free slots: %d\n", em8300_fifo_freeslots(em->mafifo));
 				mask |= POLLOUT | POLLWRNORM;
 			}
 		}
@@ -430,7 +431,8 @@ static unsigned int em8300_poll(struct file *file, struct poll_table_struct *wai
 	case EM8300_SUBDEVICE_VIDEO:
 		poll_wait(file, &em->mvfifo->wait, wait);
 		if (file->f_mode & FMODE_WRITE) {
-			if ((em->mvfifo->bytes - em8300_fifo_calcbuffered(em->mvfifo)) > em->mvfifo->slotsize) {
+			if (em8300_fifo_freeslots(em->mvfifo)) {
+				pr_debug("Poll video - Free slots: %d\n", em8300_fifo_freeslots(em->mvfifo));
 				mask |= POLLOUT | POLLWRNORM;
 			}
 		}
@@ -438,7 +440,8 @@ static unsigned int em8300_poll(struct file *file, struct poll_table_struct *wai
 	case EM8300_SUBDEVICE_SUBPICTURE:
 		poll_wait(file, &em->spfifo->wait, wait);
 		if (file->f_mode & FMODE_WRITE) {
-			if ((em->spfifo->bytes - em8300_fifo_calcbuffered(em->spfifo)) > em->spfifo->slotsize) {
+			if (em8300_fifo_freeslots(em->spfifo)) {
+				pr_debug("Poll subpic - Free slots: %d\n", em8300_fifo_freeslots(em->spfifo));
 				mask |= POLLOUT | POLLWRNORM;
 			}
 		}
@@ -528,6 +531,20 @@ static int em8300_dsp_write(struct file *file, const char * buf, size_t count, l
 	return em8300_audio_write(em, buf, count, ppos);
 }
 
+static unsigned int em8300_dsp_poll(struct file *file, struct poll_table_struct *wait)
+{
+	struct em8300_s *em = file->private_data;
+	unsigned int mask = 0;
+	poll_wait(file, &em->mafifo->wait, wait);
+	if (file->f_mode & FMODE_WRITE) {
+		if (em8300_fifo_freeslots(em->mafifo)) {
+			pr_debug("Poll dsp - Free slots: %d\n", em8300_fifo_freeslots(em->mafifo));
+			mask |= POLLOUT | POLLWRNORM;
+		}
+	}
+	return mask;
+}
+
 int em8300_dsp_release(struct inode* inode, struct file* filp) 
 {
 	struct em8300_s *em = filp->private_data;
@@ -546,6 +563,7 @@ int em8300_dsp_release(struct inode* inode, struct file* filp)
 static struct file_operations em8300_dsp_audio_fops = {
 	write: em8300_dsp_write,
 	ioctl: em8300_dsp_ioctl,
+	poll: em8300_dsp_poll,
 	open: em8300_dsp_open,
 	release: em8300_dsp_release,
 };

@@ -1,3 +1,26 @@
+em8300 (0.10.1-1) unstable; urgency=high
+
+  * devfs (and non-devfs) bugfixes
+
+  * nonblocking write mode added
+          
+  * driver audio sync removed (audio_setpts)
+
+ -- Jonas Birme <jonas@birme.se>  Mon, 14 Jan 2002 09:05:13 +0100
+	  
+em8300 (0.10.0-2) unstable; urgency=high
+
+  * Minor fixes so the modules really can be compiled for another
+    computer, and not running.
+ 
+ -- Jonas Birme <jonas@birme.se>  Fri, 11 Jan 2001 07:41:41 +0100
+ 
+em8300 (0.10.0-1) unstable; urgency=high
+
+  * Version 0.10.0 (Farewell 2001 Release) released
+  
+ -- Jonas Birme <jonas@birme.se>  Wed, 02 Jan 2002 10:55:02 +0100
+ 
 em8300 (0.9.0-1) unstable; urgency=high
 
   * Version 0.9.0 (Super Smash Bros. Melee Release) released

@@ -118,7 +118,7 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 		}
 	}
 
-	spin_lock_init(&f->lock);
+	init_MUTEX(&f->lock);
 	f->valid = 1;
 
 	return 0;
@@ -191,8 +191,8 @@ int em8300_fifo_write_nolock(struct fifo_s *fifo, int n, const char *userbuffer,
 		return -1;
 	}
 
-	freeslots = em8300_fifo_freeslots(fifo);
 	writeindex = ((int)readl(fifo->writeptr) - fifo->start) / fifo->slotptrsize;
+	freeslots = em8300_fifo_freeslots(fifo);
 	for (i = 0; i < freeslots && n; i++) {
 		copysize = n < fifo->slotsize / fifo->preprocess_ratio ? n : fifo->slotsize / fifo->preprocess_ratio;
 
@@ -227,11 +227,9 @@ int em8300_fifo_write_nolock(struct fifo_s *fifo, int n, const char *userbuffer,
 int em8300_fifo_write(struct fifo_s *fifo, int n, const char *userbuffer, int flags)
 {
 	int ret;
-
-	spin_lock(&fifo->lock);
+	down(&fifo->lock);
 	ret = em8300_fifo_write_nolock(fifo, n, userbuffer, flags);
-
-	spin_unlock(&fifo->lock);
+	up(&fifo->lock);
 	return ret;
 }
 
@@ -305,11 +303,9 @@ int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *use
 int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer, int flags)
 {
 	int ret;
-
-	spin_lock(&fifo->lock);
+	down(&fifo->lock);
 	ret = em8300_fifo_writeblocking_nolock(fifo, n, userbuffer, flags);
-
-	spin_unlock(&fifo->lock);
+	up(&fifo->lock);
 	return ret;
 }
 

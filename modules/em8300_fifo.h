@@ -1,7 +1,7 @@
 #ifndef EM8300_FIFO_H
 #define EM8300_FIFO_H
 
-#include <linux/spinlock.h>
+#include <asm/semaphore.h>
 
 #define FIFOTYPE_AUDIO 1
 #define FIFOTYPE_VIDEO 2
@@ -63,7 +63,7 @@ struct fifo_s {
 #else
 	wait_queue_head_t wait;
 #endif
-	spinlock_t lock;
+	struct semaphore lock;
 
 	dma_addr_t phys_base;
 };

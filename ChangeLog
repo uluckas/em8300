@@ -1,3 +1,11 @@
+2004-02-26  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_fifo.c,
+	  modules/em8300_fifo.h:
+	Do locking with proper mutexes (implemented with semaphores) 
+	rather than misusing spinlocks. Thanks to Håkon Skjelten and 
+	Rune for pointing the misuse while working on a patch to support 
+	2.6 kernels.
+
 2004-02-17  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_fifo.c,
 	  modules/em8300_fifo.h:

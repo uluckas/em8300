@@ -53,7 +53,7 @@
 int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr, int rdptr, int pcisize, int slotsize, int fifotype)
 {
 	int i;
-	unsigned phys;
+	dma_addr_t phys;
 
 	f->em = em;
 	f->preprocess_ratio = 1;
@@ -91,7 +91,7 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 		kfree(f->fifobuffer);
 	}
 
-	f->fifobuffer = kmalloc(f->nslots * f->slotsize, GFP_KERNEL);
+	f->fifobuffer = pci_alloc_consistent(f->em->dev, f->nslots * f->slotsize, &f->phys_base);
 	if (f->fifobuffer == NULL) {
 		return -ENOMEM;
 	}
@@ -103,7 +103,7 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 #endif
 
 	for (i = 0; i < f->nslots; i++) {
-		phys = virt_to_bus(f->fifobuffer + i * f->slotsize);
+		phys = f->phys_base + i * f->slotsize;
 		switch (f->type) {
 		case FIFOTYPE_AUDIO:
 			writel(phys >> 16, &f->slots.a[i].physaddress_hi);
@@ -128,7 +128,7 @@ void em8300_fifo_free(struct fifo_s *f)
 {
 	if (f) {
 		if(f->valid && f->fifobuffer) {
-			kfree(f->fifobuffer);
+			pci_free_consistent(f->em->dev, f->nslots * f->slotsize, f->fifobuffer, f->phys_base);
 		}
 		if(f->valid && f->preprocess_buffer) {
 			kfree(f->preprocess_buffer);

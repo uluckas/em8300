@@ -64,6 +64,8 @@ struct fifo_s {
 	wait_queue_head_t wait;
 #endif
 	spinlock_t lock;
+
+	dma_addr_t phys_base;
 };
 
 struct em8300_s;

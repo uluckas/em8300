@@ -1,6 +1,6 @@
-EXTRA_DIST = autotools/ m4/ modules/ omsplugin/ xine/ scripts/ shinit.sh bootstrap
+EXTRA_DIST = autotools/ m4/ modules/ scripts/ shinit.sh bootstrap
 
-pkgdata_DATA = omsplugin.tar.gz xine.tar.gz modules.tar.gz
+pkgdata_DATA = modules.tar.gz
 pkgdata_SCRIPTS = em8300.sysv
 
 if HAVE_GTK
@@ -17,12 +17,6 @@ debug:
 clean-generic:
 	rm -rf BUILD SPECS RPMS SOURCES SRPMS
 	rm -f rpmrc rpmmacros
-
-omsplugin.tar.gz:
-	tar czvf omsplugin.tar.gz omsplugin
-
-xine.tar.gz:
-	tar czvf xine.tar.gz xine
 
 modules.tar.gz:
 	tar czvf modules.tar.gz modules

@@ -1,3 +1,17 @@
+2001-11-25  Rick Haines  <rick@kuroyi.net>
+
+	* modules/eeprom.c,
+	  modules/adv717x_eeprom.c,
+	  modules/Makefile*,
+	  modules/README-modules.conf,
+	  modules/ldm,
+	  modules/rmm:
+	rename eeprom per request from J G Miller
+        (conflicts with lm-sensors)
+
+	* modules/adv717x.c:
+	make swap_redblue_pal apply to NTSC
+
 2001-11-05  David Holm   <dholm@iname.com>
 
         * include/libdxr3/api.h,

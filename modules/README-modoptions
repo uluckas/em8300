@@ -14,7 +14,7 @@ General fixes:
 If your red and blue colors channels are switched:
 
  adv717x:
-   swap_redblue_pal    -- swaps the red and blue channels for pal modes
+   swap_redblue_pal    -- swaps the red and blue channels (ntsc and pal now)
 
 Greenscreen (tvout only) fixes:
 

@@ -545,6 +545,7 @@ int adv717x_init(void)
 
 	PAL_config_7175[12] = (PAL_config_7175[12] & ~0xF0) | rb_pal;
 	PAL60_config_7175[12] = (PAL60_config_7175[12] & ~0xF0) | rb_pal;
+	NTSC_config_7175[12] = (NTSC_config_7175[12] & ~0xF0) | rb_pal;
 
 	PAL_config_7170[1] = (PAL_config_7170[1] & ~0x80) | bars;
 	NTSC_config_7170[1] = (NTSC_config_7170[1] & ~0x80) | bars;

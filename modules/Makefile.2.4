@@ -11,7 +11,7 @@ EXTRA_CFLAGS = -g -I ../include -I $(KERNEL_LOCATION)/include/ \
 		-DEM8300_VIDEOMODE_DEFAULT=EM8300_VIDEOMODE_PAL \
 		-DEM8300_AUDIOMODE_DEFAULT=EM8300_AUDIOMODE_ANALOG
 
-MODULES = em8300.o adv717x.o bt865.o eeprom.o
+MODULES = em8300.o adv717x.o bt865.o adv717x_eeprom.o
 
 EM8300_OBJS = em8300_main.o em8300_i2c.o em8300_audio.o em8300_fifo.o \
 	   em8300_video.o em8300_misc.o em8300_dicom.o em8300_ucode.o \

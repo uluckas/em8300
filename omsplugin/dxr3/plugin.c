@@ -37,13 +37,13 @@ int plugin_init (char *whoami)
 		  &dxr3_spu);
   pluginRegister (whoami,
 		  PLUGIN_ID_OUTPUT_AUDIO,
-		  "dxr3",
+		  NULL,
 		  "dxr3",
 		  NULL,
 		  &audio_dxr3);
   pluginRegister (whoami,
 		  PLUGIN_ID_OUTPUT_VIDEO,
-		  "dxr3",
+		  NULL,
 		  "dxr3",
 		  NULL,
 		  &video_dxr3);

@@ -30,14 +30,13 @@ plugin_codec_t dxr3_ac3 = {
     config: NULL,
 };
 
-static int _dxr3_ac3_open  (void *this, void *output_audio) {
+static int _dxr3_ac3_open  (void *this, void *foo) {
   if (dxr3_get_status() == DXR3_STATUS_CLOSED) {
     dxr3_open("/dev/em8300", "/etc/dxr3.ux");
   }
 #if 0 /* let em8300 module defaults determine this */
   dxr3_audio_set_mode(DXR3_AUDIOMODE_DIGITALAC3);
 #endif
-  dxr3_ac3.output = output_audio;
   ac3dec_init();
   return 0;
 }
@@ -51,15 +50,16 @@ static int _dxr3_ac3_read  (void *this, buf_t *buf, buf_entry_t *buf_entry) {
 	dxr3_audio_set_pts(buf_entry->pts);
     
     dxr3_audio_get_mode();
-    if (state.audiomode==DXR3_AUDIOMODE_DIGITALAC3)
+    if (state.audiomode==DXR3_AUDIOMODE_DIGITALAC3) {
 	return output_spdif(buf_entry->data,
 			    buf_entry->data+buf_entry->data_len,
 			    state.fd_audio);
-    else {
-	if (dxr3_ac3.output != NULL)
+    } else {
+        if (dxr3_ac3.output != NULL) {
 	    return ac3dec_decode_data (dxr3_ac3.output, 
 				       buf_entry->data,
 				       buf_entry->data+buf_entry->data_len);
+	}
     }
     return 0;
 }

@@ -170,8 +170,26 @@ int dxr3_audio_sync(void)
 	return ioctl(state.fd_audio, EM8300_IOCTL_AUDIO_SYNC);
 }
 
+/* probably move this to the driver eventually */
+static void swab_clut(char* clut)
+{
+	int i;
+	char tmp;
+	i = 0;
+	while (i < 16*4) {
+		tmp = clut[i];
+		clut[i] = clut[i+3];
+		clut[i+3] = tmp;
+		tmp = clut[i+1];
+		clut[i+1] = clut[i+2];
+		clut[i+2] = tmp;
+		i += 4;
+	}
+}
+
 int dxr3_subpic_set_palette(char *palette)
 {
+        swab_clut(palette);
 	return ioctl(state.fd_spu, EM8300_IOCTL_SPU_SETPALETTE, palette);
 }
 

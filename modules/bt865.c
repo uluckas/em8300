@@ -45,6 +45,7 @@
 #include <linux/version.h>
 #include <asm/uaccess.h>
 
+#include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 #include <linux/video_encoder.h>
 
@@ -76,8 +77,6 @@ EXPORT_NO_SYMBOLS;
 static int bt865_attach_adapter(struct i2c_adapter *adapter);
 int bt865_detach_client(struct i2c_client *client);
 int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg);
-void bt865_inc_use (struct i2c_client *client);
-void bt865_dec_use (struct i2c_client *client);
 static int bt865_setup(struct i2c_client *client);
 
 struct bt865_data_s {
@@ -93,14 +92,13 @@ struct bt865_data_s {
 
 /* This is the driver that will be inserted */
 static struct i2c_driver bt865_driver = {
+  /* owner */           THIS_MODULE,
   /* name */		"BT865 video encoder driver",
   /* id */		I2C_DRIVERID_BT865,
   /* flags */		I2C_DF_NOTIFY,
   /* attach_adapter */  &bt865_attach_adapter,
   /* detach_client */   &bt865_detach_client,
-  /* command */		&bt865_command,
-  /* inc_use */		&bt865_inc_use,
-  /* dec_use */		&bt865_dec_use
+  /* command */		&bt865_command
 };
 
 int bt865_id = 0;
@@ -968,28 +966,13 @@ int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg)
 	return 0;
 }
 
-/* Nothing here yet */
-void bt865_inc_use (struct i2c_client *client)
-{
-#ifdef MODULE
-	MOD_INC_USE_COUNT;
-#endif
-}
-
-/* Nothing here yet */
-void bt865_dec_use (struct i2c_client *client)
-{
-#ifdef MODULE
-	MOD_DEC_USE_COUNT;
-#endif
-}
-
 /* ----------------------------------------------------------------------- */
 
 
 int __init bt865_init(void)
 {
 	int bars;
+	int ret;
 	
         if (color_bars) {
 		bars = 0x10;
@@ -1014,11 +997,21 @@ int __init bt865_init(void)
 	PALNC_CONFIG_BT865[23] = (PALNC_CONFIG_BT865[23] & ~0x10) | bars;
 
 	//request_module("i2c-algo-bit");
-	return i2c_add_driver(&bt865_driver);
+	ret = i2c_add_driver(&bt865_driver);
+	if (!ret) {
+#ifdef MODULE
+	MOD_INC_USE_COUNT;
+#endif
+	}
+
+	return ret;
 }
 
 void __exit bt865_cleanup(void)
 {
+#ifdef MODULE
+	MOD_DEC_USE_COUNT;
+#endif
 	i2c_del_driver(&bt865_driver);
 }
 

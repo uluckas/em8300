@@ -106,13 +106,9 @@ int em8300_video_sync(struct em8300_s *em)
 
 int em8300_video_flush(struct em8300_s *em)
 {
-	spin_lock(&em->mvfifo->lock);
 	*em->mvfifo->writeptr = *em->mvfifo->readptr;
 	em->mvfifo->waiting = 0;
 	em->video_ptsvalid = 0;
-	em8300_video_sync(em);
-	em8300_fifo_sync(em->mvfifo);
-	spin_unlock(&em->mvfifo->lock);
 	return 0;
 }
 

@@ -22,6 +22,14 @@
 	  modules/em8300_registration.c:
 	Also convert all the devfs stuff to that new interface.
 
+	* include/linux/em8300.h,
+	  modules/Makefile,
+	  modules/em8300_registration.c,
+	  modules/em8300_sysfs.c,
+	  modules/em8300_sysfs.h:
+	Add sysfs support. Many thanks to Eric Donohue who did most the
+	work.
+
 2004-04-14  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_compat24.h,
 	  modules/em8300_main.c:

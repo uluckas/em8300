@@ -1,6 +1,0 @@
-##
-## Process this file with automake to produce Makefile.in
-##
-
-#SUBDIRS = pipe dxr2 mgadvd
-SUBDIRS = dxr3

@@ -35,6 +35,7 @@ static int em8300_proc_read(char *page, char **start, off_t off, int count, int 
 {
 	int len = 0;
 	struct em8300_s *em = (struct em8300_s *) data;
+	char *encoder_name;
 
 	*start = 0;
 	*eof = 1;
@@ -56,19 +57,32 @@ static int em8300_proc_read(char *page, char **start, off_t off, int count, int 
 	len += sprintf(page + len,
 		       "Chip revision %d\n",
 		       em->chip_revision);
+	switch (em->encoder_type) {
+	case ENCODER_BT865:
+		encoder_name = "BT865";
+		break;
+	case ENCODER_ADV7170:
+		encoder_name = "ADV7170";
+		break;
+	case ENCODER_ADV7175:
+		encoder_name = "ADV7175";
+		break;
+	default:
+		len += sprintf(page + len, "No known video encoder found.\n");
+		goto encoder_done;
+	}
 	len += sprintf(page + len,
 		       "Video encoder: %s at address 0x%02x on %s\n",
-		       (em->encoder_type == ENCODER_BT865) ? "BT865" :
-		       (em->encoder_type == ENCODER_ADV7170) ? "ADV7170" :
-		       (em->encoder_type == ENCODER_ADV7175) ? "ADV7175" :
-		       "unknown",
-		       em->encoder->addr, em->encoder->adapter->name);
+		       encoder_name, em->encoder->addr,
+		       em->encoder->adapter->name);
+ encoder_done:
 	len += sprintf(page + len,
 		       "Memory mapped at addressrange 0x%0lx->0x%0lx%s\n",
 		       (unsigned long int) em->mem,
 		       (unsigned long int) em->mem
 		       + (unsigned long int) em->memsize,
 		       em->mtrr_reg ? " (FIFOs using MTRR)" : "");
+	em8300_dicom_get_dbufinfo(em);
 	len += sprintf(page + len,
 		       "Displaybuffer resolution: %dx%d\n",
 		       em->dbuf_info.xsize, em->dbuf_info.ysize);

@@ -1,3 +1,8 @@
+2004-08-21  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_procfs.c:
+	Update procfs to not segfault if no video encoder chip was
+	detected and to show the real displaybuffer resolution.
+
 2004-05-02  Nicolas Boullis  <nboullis@debian.org>
 	* modules/Makefile,
 	  modules/em8300_ioctl.c,

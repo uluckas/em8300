@@ -28,7 +28,7 @@ int em8300_waitfor(struct em8300_s *em, int reg, int val, int mask) {
     for(tries=0; tries < 100 ; tries++) {
 	if((em->mem[reg] & mask) == val)
 	    return 0;
-	udelay(10000);
+	mdelay(10);
     }
     return -ETIME;
 }

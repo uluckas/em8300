@@ -107,6 +107,24 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 	    em8300_ioctl_setaspectratio(em,val);
 	}
 	break;
+
+    case _IOC_NR(EM8300_IOCTL_GET_AUDIOMODE):
+         if (_IOC_DIR(cmd) & _IOC_WRITE) {
+	         int val;
+		 get_user(val, (int *)arg);
+		 em8300_ioctl_setaudiomode(em,val);
+         }
+	 if (_IOC_DIR(cmd) & _IOC_READ) {
+	         em8300_ioctl_getaudiomode(em, arg);
+	 }
+         break;
+    case _IOC_NR(EM8300_IOCTL_SET_SPUMODE):
+         if (_IOC_DIR(cmd) & _IOC_WRITE) {
+                 int val;
+                 get_user(val, (int *)arg);
+                 em8300_ioctl_setspumode(em,val);
+         }
+         break;
     case _IOC_NR(EM8300_IOCTL_OVERLAY_SETMODE):
 	if (_IOC_DIR(cmd) & _IOC_WRITE) {
 	    int val;
@@ -335,6 +353,11 @@ int em8300_ioctl_setplaymode(struct em8300_s *em, int mode) {
     }
     em->playmode = mode;
     return 0;
+}
+
+int em8300_ioctl_setspumode(struct em8300_s *em, int mode) {
+  em->sp_mode=mode;
+  return 0;
 }
 
 int em8300_ioctl_overlay_setmode(struct em8300_s *em,int val) {

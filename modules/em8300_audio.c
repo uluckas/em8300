@@ -23,7 +23,6 @@
 
 #include <linux/soundcard.h>
 
-
 /* C decompilation of sub_prepare_SPDIF by 
 *  Anton Altaparmakov <antona@bigfoot.com>
 *
@@ -228,7 +227,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
     switch(cmd) { 
     case SNDCTL_DSP_RESET:
 	return 0;
-    case SOUND_PCM_WRITE_RATE	:
+    case SOUND_PCM_WRITE_RATE:
 	if (get_user(val, (int *)arg))
 	    return -EFAULT;
 	val = set_rate(em,val);
@@ -463,4 +462,22 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 
     
     return em8300_fifo_writeblocking(em->mafifo, count, buf,0);
+}
+
+/* 18-09-2000 - Ze'ev Maor - added these two ioctls to set and get audio mode. */
+
+int em8300_ioctl_setaudiomode(struct em8300_s *em, int mode)
+{
+       em8300_audio_flush(em);
+       set_audiomode(em,mode);
+       setup_mafifo(em);
+       mpegaudio_command(em,MACOMMAND_PLAY);
+       return 0;
+}
+
+int em8300_ioctl_getaudiomode(struct em8300_s *em, int mode)
+{
+       int a=em->audio_mode;
+       copy_to_user((void *)mode, &a, sizeof(int));
+       return 0;
 }

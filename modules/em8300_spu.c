@@ -57,7 +57,8 @@ int em8300_spu_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos)
 {
     int flags=0;
-    em->sp_ptsvalid=0;
+    if (!(em->sp_mode)) return 0;
+//    em->sp_ptsvalid=0;
     if(em->sp_ptsvalid) {
 	int ptsfifoptr;
 	
@@ -116,6 +117,7 @@ int em8300_spu_open(struct em8300_s *em)
 {
     em->sp_ptsfifo_ptr=0;
     em->sp_ptsvalid = 0;
+    em->sp_mode = 1;
     em8300_spu_setpalette(em,default_palette);
     write_ucregister(SP_Command, 0x2);
 

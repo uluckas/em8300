@@ -43,6 +43,8 @@
 #include <linux/i2c-algo-bit.h>
 #include <linux/video_encoder.h>
 
+#include "em8300.h"
+
 #include "adv717x.h"
 
 #include "encoder.h"
@@ -93,6 +95,22 @@ static struct i2c_driver adv717x_driver = {
 
 int adv717x_id = 0;
 
+#ifdef EM8300_ADV717X_16BITPIXELPORTCONTROL
+#define TR0_NTSC 0x4d
+#ifdef EM8300_ADV717X_USE_OTHER_FOR_PAL
+#define TR0_PAL 0x0d
+#else
+#define TR0_PAL 0x4d
+#endif
+#else
+#define TR0_NTSC 0x0d
+#ifdef EM8300_ADV717X_USE_OTHER_FOR_PAL
+#define TR0_PAL 0x4d
+#else
+#define TR0_PAL 0x0d
+#endif
+#endif
+
 static unsigned char PAL_config_7170[27] = {
     0x05,       // Mode Register 0
     0x07,       // Mode Register 1
@@ -101,7 +119,7 @@ static unsigned char PAL_config_7170[27] = {
     0x00,       // Mode Register 4
     0x00,       // Reserved
     0x00,       // Reserved
-    0x0d,       // Timing Register 0
+    TR0_PAL,    // Timing Register 0
     0x77,       // Timing Register 1
     0xcb,       // Subcarrier Frequency Register 0
     0x8a,       // Subcarrier Frequency Register 1
@@ -130,7 +148,7 @@ static unsigned char NTSC_config_7170[27] = {
     0x10,       // Mode Register 4
     0x00,       // Reserved
     0x00,       // Reserved
-    0x0d,       // Timing Register 0
+    TR0_NTSC,   // Timing Register 0
     0x77,       // Timing Register 1
     0x16,       // Subcarrier Frequency Register 0
     0x7c,       // Subcarrier Frequency Register 1
@@ -159,7 +177,7 @@ static unsigned char PAL_M_config_7175[16] = {   //These need to be tested
     0xe6,     	// Subcarrier Frequency Register 2
     0x21,      	// Subcarrier Frequency Register 3
     0x00,       // Subcarrier Phase Register
-    0x4d,       // Timing Register 0
+    TR0_PAL,    // Timing Register 0
     0x00,       // Closed Captioning Ext Register 0
     0x00,       // Closed Captioning Ext Register 1
     0x00,       // Closed Captioning Register 0
@@ -172,13 +190,13 @@ static unsigned char PAL_M_config_7175[16] = {   //These need to be tested
 
 static unsigned char PAL_config_7175[17] = {
     0x01,       // Mode Register 0
-    0x06,        // Mode Register 1
+    0x06,       // Mode Register 1
     0xcb,       // Subcarrier Frequency Register 0
     0x8a,       // Subcarrier Frequency Register 1
     0x09,       // Subcarrier Frequency Register 2
     0x2a,       // Subcarrier Frequency Register 3
     0x00,       // Subcarrier Phase Register 
-    0x4d,       // Timing Register 0
+    TR0_PAL,    // Timing Register 0
     0x00,       // Closed Captioning Ext Register 0
     0x00,       // Closed Captioning Ext Register 1
     0x00,       // Closed Captioning Register 0 
@@ -198,7 +216,7 @@ static unsigned char PAL60_config_7175[16] = {
     0x09,       // Subcarrier Frequency Register 2
     0x2a,       // Subcarrier Frequency Register 3
     0x00,       // Subcarrier Phase Register 
-    0x4d,       // Timing Register 0
+    TR0_PAL,    // Timing Register 0
     0x00,       // Closed Captioning Ext Register 0
     0x00,       // Closed Captioning Ext Register 1
     0x00,       // Closed Captioning Register 0 
@@ -208,37 +226,16 @@ static unsigned char PAL60_config_7175[16] = {
     0x00,       // Pedestal Control Register 0
     0x00,       // Pedestal Control Register 1
 };
-
-/*
-static unsigned char NTSC_config_7175[16] = {
-    0x10,       // Mode Register 0
-    0x00,       // Mode Register 1
-    0x16,       // Subcarrier Frequency Register 0
-    0x7c,       // Subcarrier Frequency Register 1
-    0xf0,       // Subcarrier Frequency Register 2
-    0x21,       // Subcarrier Frequency Register 3
-    0x00,       // Subcarrier Phase Register 
-    0x4d,       // Timing Register 0
-    0x00,       // Closed Captioning Ext Register 0
-    0x00,       // Closed Captioning Ext Register 1
-    0x00,       // Closed Captioning Register 0 
-    0x00,       // Closed Captioning Register 1 
-    0x73,       // Timing Register 1
-    0x08,       // Mode Register 2
-    0x00,       // Pedestal Control Register 0
-    0x00,       // Pedestal Control Register 1
-};
-*/
 
 static unsigned char NTSC_config_7175[16] = {
     0x04,       // Mode Register 0
-    0x01,       // Mode Register 1
+    0x00,       // Mode Register 1
     0x16,       // Subcarrier Frequency Register 0
     0x7c,     	// Subcarrier Frequency Register 1
     0xf0,     	// Subcarrier Frequency Register 2
     0x21,      	// Subcarrier Frequency Register 3
     0x00,       // Subcarrier Phase Register
-    0x0d,       // Timing Register 0
+    TR0_NTSC,   // Timing Register 0
     0x00,       // Closed Captioning Ext Register 0
     0x00,       // Closed Captioning Ext Register 1
     0x00,       // Closed Captioning Register 0

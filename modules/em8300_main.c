@@ -166,6 +166,7 @@ static int find_em8300(void)
 	em->memsize = 1024*1024;
 	
 	pci_read_config_byte(dev, PCI_CLASS_REVISION, &revision);
+	em->pci_revision = revision;
 	printk(KERN_INFO "em8300: EM8300 %x (rev %d) ",
 	       dev->device, revision);
 	printk("bus: %d, devfn: %d, irq: %d, ",

@@ -27,13 +27,16 @@ struct dicom_tvmode {
     int horizoffset;
 };
 
-struct dicom_tvmode tvmodematrix[EM8300_VIDEOMODE_LAST+1][2] = {
-    { {576, 720, 46, 130},	// PAL 4:3 
-      {480, 720, 76, 130}},	// PAL 16:9
-    { {480, 720, 46, 138},	// PAL60 4:3 
-      {480, 720, 46, 138}},	// PAL60 16:9
-    { {480, 720, 46, 138},	// NTSC 4:3 
-      {480, 720, 46, 138}},	// NTSC 16:9
+struct dicom_tvmode tvmodematrix[EM8300_VIDEOMODE_LAST+1][3] = {
+    { {576, 720, 46, 130},     // PAL 4:3
+      {480, 720, 76, 130},     // PAL 16:9
+      {390, 720, 120, 130}},   // PAL 2.35:1
+    { {480, 720, 46, 138},     // PAL60 4:3
+      {480, 720, 46, 138},     // PAL60  16:9
+      {390, 720, 120, 138}},   // PAL60 2:35:1
+    { {480, 720, 42, 118},     // NTSC 4:3
+      {480, 720, 46, 138},     // NTSC 16:9
+      {390, 720, 120, 138}},   // NTSC 2:35:1
 };
 
 
@@ -157,17 +160,50 @@ int em8300_dicom_update(struct em8300_s *em)
 	 write_register(0x1f47,0x0);
 	 write_register(0x1f5e,0x1afe);
 	 write_ucregister(DICOM_Control,0x9afe);
+#if 0 /* don't know if this is necessary yet */
+#ifdef EM8300_DICOM_0x1f5e_0x1efe
+	 write_register(0x1f5e,0x1efe);
+#else
+	 write_register(0x1f5e,0x1afe);
+#endif
+#ifdef EM8300_DICOM_CONTROL_0x9efe
+	 write_ucregister(DICOM_Control,0x9efe);
+#else
+	 write_ucregister(DICOM_Control,0x9afe);
+#endif
+#endif
     } else {
 	 write_register(0x1f47,0x18);
-	 if(em->video_mode == EM8300_VIDEOMODE_NTSC) {
-	     write_register(0x1f5e,0x1efe);
-	     write_ucregister(DICOM_Control,0x9efe);
+
+#ifdef EM8300_DICOM_USE_OTHER_FOR_PAL
+	 if (em->video_mode == EM8300_VIDEOMODE_NTSC) {
+#endif
+#ifdef EM8300_DICOM_0x1f5e_0x1efe
+	   write_register(0x1f5e,0x1efe);
+#else
+	   write_register(0x1f5e,0x1afe);
+#endif
+#ifdef EM8300_DICOM_CONTROL_0x9efe
+	   write_ucregister(DICOM_Control,0x9efe);
+#else
+	   write_ucregister(DICOM_Control,0x9afe);
+#endif
+#ifdef EM8300_DICOM_USE_OTHER_FOR_PAL
 	 } else {
-	     write_register(0x1f5e,0x1afe);
-	     write_ucregister(DICOM_Control,0x9afe);
+#ifdef EM8300_DICOM_0x1f5e_0x1efe
+	   write_register(0x1f5e,0x1afe);
+#else
+	   write_register(0x1f5e,0x1efe);
+#endif
+#ifdef EM8300_DICOM_CONTROL_0x9efe
+	   write_ucregister(DICOM_Control,0x9afe);
+#else
+	   write_ucregister(DICOM_Control,0x9efe);
+#endif
 	 }
+#endif
     }
-    
+
     write_ucregister(DICOM_UpdateFlag,1);
     
     return em8300_waitfor(em, ucregister(DICOM_UpdateFlag), 0, 1);

@@ -53,7 +53,10 @@ int em8300_setregblock(struct em8300_s *em, int offset, int val, int len) {
 	if(!i)
 	    return -ETIME;
     }
-    
+#if 0 /* FIXME: was in the zeev01 branch, verify if it is necessary */
+    val = val | (val << 8) | (val << 16) | (val << 24);
+#endif
+
     em->mem[0x1c11] = offset & 0xffff;
     em->mem[0x1c12] = (offset >> 16) & 0xffff;
     em->mem[0x1c13] = len;
@@ -87,9 +90,12 @@ int em8300_setregblock(struct em8300_s *em, int offset, int val, int len) {
 	if(!i)
 	    return -ETIME;
     }
-    
-    /*    if(em8300_waitfor(em,0x1c1a, 0, 1)) 
-	  return -ETIME;  */
+
+#if 0 /* FIXME: was in zeev01 branch, verify if it is necessary */    
+    if(em8300_waitfor(em,0x1c1a, 0, 1)) 
+       return -ETIME;  
+#endif
+
     return 0;
 }
 

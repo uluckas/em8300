@@ -48,12 +48,15 @@ typedef struct {
 #define EM8300_IOCTL_GET_ASPECTRATIO _IOR('C',5,int)
 #define EM8300_IOCTL_SET_VIDEOMODE _IOW('C',6,int)
 #define EM8300_IOCTL_SET_PLAYMODE _IOW('C',7,int)
-#define EM8300_IOCTL_OVERLAY_CALIBRATE _IOWR('C',8,em8300_overlay_calibrate_t)
-#define EM8300_IOCTL_OVERLAY_SETMODE _IOW('C',9,int)
-#define EM8300_IOCTL_OVERLAY_SETWINDOW _IOWR('C',10,em8300_overlay_window_t)
-#define EM8300_IOCTL_OVERLAY_SETSCREEN _IOWR('C',11,em8300_overlay_screen_t)
-#define EM8300_IOCTL_OVERLAY_GET_ATTRIBUTE _IOR('C',12,em8300_attribute_t)
-#define EM8300_IOCTL_OVERLAY_SET_ATTRIBUTE _IOW('C',12,em8300_attribute_t)
+#define EM8300_IOCTL_SET_AUDIOMODE _IOW('C',8,int)
+#define EM8300_IOCTL_GET_AUDIOMODE _IOR('C',8,int)
+#define EM8300_IOCTL_SET_SPUMODE _IOW('C',9,int)
+#define EM8300_IOCTL_OVERLAY_CALIBRATE _IOWR('C',10,em8300_overlay_calibrate_t)
+#define EM8300_IOCTL_OVERLAY_SETMODE _IOW('C',11,int)
+#define EM8300_IOCTL_OVERLAY_SETWINDOW _IOWR('C',12,em8300_overlay_window_t)
+#define EM8300_IOCTL_OVERLAY_SETSCREEN _IOWR('C',13,em8300_overlay_screen_t)
+#define EM8300_IOCTL_OVERLAY_GET_ATTRIBUTE _IOR('C',14,em8300_attribute_t)
+#define EM8300_IOCTL_OVERLAY_SET_ATTRIBUTE _IOW('C',14,em8300_attribute_t)
 
 #define EM8300_IOCTL_VIDEO_SETPTS 1
 #define EM8300_IOCTL_SPU_SETPTS 1
@@ -63,6 +66,8 @@ typedef struct {
 
 #define EM8300_ASPECTRATIO_3_2 0
 #define EM8300_ASPECTRATIO_16_9 1
+#define EM8300_ASPECTRATIO_235_1 2
+#define EM8300_ASPECTRATIO_LAST 2
 
 #define EM8300_VIDEOMODE_PAL 0
 #define EM8300_VIDEOMODE_PAL60 1
@@ -72,12 +77,37 @@ typedef struct {
 #define EM8300_VIDEOMODE_DEFAULT EM8300_VIDEOMODE_NTSC
 #endif
 
+/* 8-bit or 16-bit pixel port control           */
+/* fixes black bar/green screen for some people */
+#define EM8300_ADV717X_16BITPIXELPORTCONTROL
+/* #undef EM8300_ADV717X_16BITPIXELPORTCONTROL */
+
+/* if you only use/care about NTSC or PAL don't define this */
+/* if you use both you may need to define this              */
+#define EM8300_ADV717X_USE_OTHER_FOR_PAL
+/* #undef EM8300_ADV717X_USE_OTHER_FOR_PAL */
+
+/* I don't know what these registers or values mean */
+/* fixes black bar/green screen for some people     */
+#define EM8300_DICOM_0x1f5e_0x1efe
+/* #undef EM8300_DICOM_0x1f5e_0x1efe */
+#define EM8300_DICOM_CONTROL_0x9efe
+/* #undef EM8300_DICOM_CONTROL_0x9efe */
+
+/* if you only use/care about NTSC or PAL don't define this */
+/* if you use both you may need to define this              */
+#define EM8300_DICOM_USE_OTHER_FOR_PAL
+/* #undef EM8300_DICOM_USE_OTHER_FOR_PAL */
+
 #define EM8300_AUDIOMODE_ANALOG 0
 #define EM8300_AUDIOMODE_DIGITALAC3 1
 #define EM8300_AUDIOMODE_DIGITALPCM 2
 #ifndef EM8300_AUDIOMODE_DEFAULT
 #define EM8300_AUDIOMODE_DEFAULT EM8300_AUDIOMODE_ANALOG
 #endif
+
+#define EM8300_SPUMODE_OFF 0
+#define EM8300_SPUMODE_ON 1
 
 #define EM8300_PLAYMODE_STOPPED         0
 #define EM8300_PLAYMODE_PAUSED          1
@@ -201,6 +231,7 @@ struct em8300_s
     char name[40];
 
     int chip_revision;
+    int pci_revision;
     
     int inuse[4];
     int ucodeloaded;
@@ -229,7 +260,7 @@ struct em8300_s
     /* I2C */
     int i2c_pin_reg;
     int i2c_oe_reg;
-    
+
     /* I2C bus 1*/
     struct i2c_algo_bit_data i2c_data_1;
     struct i2c_adapter i2c_ops_1;
@@ -298,6 +329,7 @@ struct em8300_s
     wait_queue_head_t sp_ptsfifo_wait;
 #endif
     int sp_ptsfifo_waiting;
+    int sp_mode;
     
     int linecounter;
 
@@ -383,7 +415,7 @@ int em8300_spu_open(struct em8300_s *em);
 int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg);
 int em8300_spu_init(struct em8300_s *em);
 void em8300_spu_check_ptsfifo(struct em8300_s *em);
-
+int em8300_ioctl_setspumode(struct em8300_s *em, int mode);
 
 /* em8300_ioctl.c */
 int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg);
@@ -393,6 +425,8 @@ void em8300_ioctl_getstatus(struct em8300_s *em, char *usermsg);
 int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc);
 void em8300_ioctl_enable_videoout(struct em8300_s *em, int mode);
 int em8300_ioctl_setplaymode(struct em8300_s *em, int mode);
+int em8300_ioctl_setaudiomode(struct em8300_s *em, int mode);
+int em8300_ioctl_getaudiomode(struct em8300_s *em, int mode);
 int em8300_ioctl_overlay_calibrate(struct em8300_s *em, em8300_overlay_calibrate_t *c);
 int em8300_ioctl_overlay_setwindow(struct em8300_s *em,em8300_overlay_window_t *w);
 int em8300_ioctl_overlay_setscreen(struct em8300_s *em,em8300_overlay_screen_t *s);

@@ -872,7 +872,6 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
 	int err, chk = 0;
 
 	if (i2c_is_isa_adapter(adapter)) {
-		printk(KERN_ERR "bt865a.o: called for an ISA bus adapter?!?\n");
 		return 0;
 	}
 

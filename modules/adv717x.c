@@ -456,7 +456,6 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 	int err;
 
 	if (i2c_is_isa_adapter(adapter)) {
-		printk(KERN_ERR "adv717xa.o: called for an ISA bus adapter?!?\n");
 		return 0;
 	}
 

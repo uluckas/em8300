@@ -346,6 +346,7 @@ int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 			scr -= val;
 			if (scr < 0) scr = -scr;
 			if (scr > 9000) {
+				pr_debug("setting scr: %i\n", val);
 				write_ucregister(MV_SCRlo, val & 0xffff);
 				write_ucregister(MV_SCRhi, (val >> 16) & 0xffff);
 			}

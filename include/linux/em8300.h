@@ -284,6 +284,7 @@ struct em8300_s
 	/* Audio */
 	struct em8300_audio_s audio;
 	int audio_mode;
+	int dsp_num;
 /* remove these when audio sync goes away */
 	int audio_sync;
 	int audio_ptsvalid;

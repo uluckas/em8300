@@ -28,6 +28,7 @@
 #include <linux/vmalloc.h>
 #include <linux/mm.h>
 #include <linux/pci.h>
+#include <linux/sound.h>
 #include <linux/signal.h>
 #include <linux/string.h>
 #include <linux/time.h>
@@ -82,6 +83,7 @@ static int em8300_cards,clients;
 static unsigned int remap[EM8300_MAX]={};
 #endif
 static struct em8300_s em8300[EM8300_MAX];
+static int dsp_num_table[16];
 
 static void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 {
@@ -389,9 +391,80 @@ static struct file_operations em8300_fops = {
 	release: em8300_io_release,
 };
 
+static int em8300_dsp_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, unsigned long arg)
+{
+	struct em8300_s *em = filp->private_data;
+	return em8300_audio_ioctl(em, cmd, arg);
+}
+
+static int em8300_dsp_open(struct inode* inode, struct file* filp) 
+{
+	int dsp_num = ((MINOR(inode->i_rdev) >> 4) & 0x0f);
+	int card = dsp_num_table[dsp_num]-1;
+	int err=0;
+
+        pr_debug("em8300: opening dsp %i for card %i\n", dsp_num, card);
+
+	if (card < 0 || card >= em8300_cards) {
+		return -ENODEV;
+	}
+
+        if (em8300[card].inuse[EM8300_SUBDEVICE_AUDIO]) {
+		return -EBUSY;
+	}
+  
+	filp->private_data = &em8300[card];
+
+        err =  em8300_audio_open(&em8300[card]);
+
+	if (err) {
+		return err;
+	}
+	
+	em8300[card].inuse[EM8300_SUBDEVICE_AUDIO]++;
+
+	clients++;
+	pr_info("em8300_main.o: Opening device %d, Clients:%d\n", EM8300_SUBDEVICE_AUDIO, clients);
+	MOD_INC_USE_COUNT;
+  
+	return(0);
+}
+
+static int em8300_dsp_write(struct file *file, const char * buf, size_t count, loff_t *ppos)
+{
+	struct em8300_s *em = file->private_data;
+	return em8300_audio_write(em, buf, count, ppos);
+}
+
+int em8300_dsp_release(struct inode* inode, struct file* filp) 
+{
+	struct em8300_s *em = filp->private_data;
+	
+	em8300_audio_release(em);
+	
+	em->inuse[EM8300_SUBDEVICE_AUDIO]--;
+
+	clients--;
+	pr_info("em8300_main.o: Releasing device %d, clients:%d\n", EM8300_SUBDEVICE_AUDIO, clients);
+	MOD_DEC_USE_COUNT;
+
+	return(0);
+}
+
+static struct file_operations em8300_dsp_audio_fops = {
+	write: em8300_dsp_write,
+	ioctl: em8300_dsp_ioctl,
+	open: em8300_dsp_open,
+	release: em8300_dsp_release,
+};
+
 void cleanup_module(void) {
-	release_em8300(em8300_cards);
+	int card;
+	for (card = 0; card < em8300_cards; card++) {
+		unregister_sound_dsp(em8300[card].dsp_num);
+	}
 	unregister_chrdev(EM8300_MAJOR, EM8300_LOGNAME);
+	release_em8300(em8300_cards);
 }
 
 int em8300_init(struct em8300_s *em) {
@@ -442,10 +515,11 @@ int em8300_init(struct em8300_s *em) {
 int init_module(void)
 {
 	int card;
-	struct em8300_s *em;
+	struct em8300_s *em = NULL;
 
 	memset(&em8300, 0, sizeof(em8300));
-    
+	memset(&dsp_num_table, 0, sizeof(dsp_num_table));
+
 	/* Find EM8300 cards */
 	em8300_cards = find_em8300();
 
@@ -461,12 +535,27 @@ int init_module(void)
 		em->linecounter=0;
 		
 		em8300_init(em);
+
+		if ((em8300[card].dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, -1)) < 0) {
+			printk(KERN_ERR "e8300: cannot register oss audio device!\n");
+			goto err_audio_dsp;
+		}
+		dsp_num_table[em8300[card].dsp_num >> 4 & 0x0f] = card+1;
+	        pr_debug("em8300: registered dsp %i for device %i\n", em8300[card].dsp_num >> 4 & 0x0f, card);
 	}
 
 	if (register_chrdev(EM8300_MAJOR, EM8300_LOGNAME, &em8300_fops)) {
 		printk(KERN_ERR "em8300: unable to get major %d\n", EM8300_MAJOR);
-		return -EBUSY;
+		goto err_chrdev;
 	}
     
 	return 0;
+
+ err_audio_dsp:
+ err_chrdev:
+	while (card-- > 0) {
+		unregister_sound_dsp(em[card].dsp_num);
+	}
+	release_em8300(em8300_cards);
+	return -ENODEV;
 }

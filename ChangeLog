@@ -1,3 +1,16 @@
+2001-07-24  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_main.c,
+	  include/linux/em8300.h:
+	add register_dsp code to use /dev/dsp*
+
+	* modules/em8300_audio.c:
+	add AFMT_AC3. Someone with an AC3 decoder will have
+	to verify
+
+	* modules/Makefile:
+	now installs em8300.h
+
 2001-07-20  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_video.c:

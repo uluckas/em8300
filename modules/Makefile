@@ -41,6 +41,9 @@ install : $(MODULES)
 	echo $$module ;\
 	done
 	@depmod -a
+	@echo em8300.h
+	@install -D ../include/linux/em8300.h \
+		$(KERNEL_LOCATION)/include/linux/em8300.h
 	@echo Installed to running kernel
 
 install-newkern : $(MODULES)
@@ -48,6 +51,9 @@ install-newkern : $(MODULES)
 	do \
 	install -D $$module /lib/modules/$(KERNVER)/kernel/drivers/video/$$module ;\
 	echo $$module ;\
+	@echo em8300.h
+	@install -D ../include/linux/em8300.h \
+		$(KERNEL_LOCATION)/include/linux/em8300.h
 	done
 	@echo Installed to kernel version of header files
 

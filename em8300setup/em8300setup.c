@@ -235,8 +235,10 @@ int main(int argc, char * argv[]) {
 		if ((DEV=open(devs[i],O_RDWR))== -1) {
 			if (!opened_one) {
 				printf("Can't open %s\n",devs[i]);
+				exit(1);
 			}
-			exit(1);
+			/* exit normally if at least one card has been initialized */
+			exit(0);
 		}
 		opened_one = 1;
 

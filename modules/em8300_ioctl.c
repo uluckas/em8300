@@ -108,6 +108,8 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc) {
     if((ret=em8300_ucode_upload(em,uc.ucode, uc.ucode_size)))
 	return ret;
 
+    em8300_dicom_init(em);
+    
     if((ret=em8300_video_setup(em)))
 	return ret;
 
@@ -139,11 +141,9 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc) {
 
     if((ret=em8300_audio_setup(em)))
 	return ret;
-	
-    if(em->encoder)
-	em->encoder->driver->command(em->encoder,ENCODER_CMD_ENABLEOUTPUT,
-				     (void *)1);
- 	
+
+    em8300_ioctl_enable_videoout(em,1);
+    
     em->ucodeloaded = 1;
 
     printk(KERN_INFO "em8300: Microcode version 0x%02x loaded\n",
@@ -200,14 +200,27 @@ int em8300_ioctl_setvideomode(struct em8300_s *em, int mode)
     }
 
     em->video_mode = mode;
-    
-    em8300_dicom_update(em);
+
+    em8300_dicom_disable(em);
 
     if(em->encoder)
 	em->encoder->driver->command(em->encoder,ENCODER_CMD_SETMODE,
 				     (void *)encoder);
+    em8300_dicom_enable(em);
+    em8300_dicom_update(em);
+
     return 0;
 }
+
+void em8300_ioctl_enable_videoout(struct em8300_s *em, int mode) {
+    em8300_dicom_disable(em);
+    
+    if(em->encoder)
+	em->encoder->driver->command(em->encoder,ENCODER_CMD_ENABLEOUTPUT,
+				     (void *)mode);
+    em8300_dicom_enable(em);
+}
+
 
 int em8300_ioctl_setaspectratio(struct em8300_s *em, int ratio) {
 

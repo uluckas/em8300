@@ -159,6 +159,7 @@ struct em8300_s
     int dicom_brightness;
     int dicom_contrast;
     int dicom_saturation;
+    int dicom_tvout;
 
     /* I2C */
     int i2c_pin_reg;
@@ -247,6 +248,11 @@ int em8300_i2c_init(struct em8300_s *em);
 void em8300_i2c_exit(struct em8300_s *em);
 void em8300_clockgen_write(struct em8300_s *em, int abyte);
 
+void em9010_write(struct em8300_s *em, int reg, int data);
+int em9010_read(struct em8300_s *em, int reg);
+int em9010_read16(struct em8300_s *em, int reg);
+void em9010_write16(struct em8300_s *em, int reg, int value);
+
 /* em8300_audio.c */
 int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg);
 int em8300_audio_open(struct em8300_s *em);
@@ -266,7 +272,10 @@ int em8300_waitfor(struct em8300_s *em, int reg, int val, int mask);
 
 /* em8300_dicom.c */
 void em8300_dicom_setBCS(struct em8300_s *em, int brightness, int contrast, int saturation);
+void em8300_dicom_enable(struct em8300_s *em);
+void em8300_dicom_disable(struct em8300_s *em);
 int em8300_dicom_update(struct em8300_s *em);
+void em8300_dicom_init(struct em8300_s *em);
 
 /* em8300_video.c */
 int em8300_video_start(struct em8300_s *em);
@@ -294,5 +303,6 @@ int em8300_ioctl_setvideomode(struct em8300_s *em, int mode);
 int em8300_ioctl_setaspectratio(struct em8300_s *em, int ratio);
 void em8300_ioctl_getstatus(struct em8300_s *em, char *usermsg);
 int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc);
+void em8300_ioctl_enable_videoout(struct em8300_s *em, int mode);
 
 #endif

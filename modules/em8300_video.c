@@ -85,9 +85,20 @@ int em8300_video_setup(struct em8300_s *em) {
     
     write_register(0x1f47,0x0);
     write_register(0x1f5e,0x9afe);
-
     write_ucregister(DICOM_Control,0x9afe);
 
+    write_register(0x1f4d,0x3c3c);
+    write_register(0x1f4e,0x3c00);
+    write_register(0x1f4e,0x3c3c);
+
+    write_register(0x1f4d,0x808);
+    write_register(0x1f4d,0x1010);
+		   
+    em9010_write(em,7,0x40);
+    em9010_write(em,9,0x4);
+
+    em9010_read(em,0);
+    
     udelay(100);
 
     write_ucregister(DICOM_UpdateFlag,0x0);
@@ -102,9 +113,34 @@ int em8300_video_setup(struct em8300_s *em) {
     write_ucregister(DICOM_TvOut,0x4000);
     write_ucregister(DICOM_UpdateFlag,0x1);
 
+    em9010_write16(em,0x8,0xff);
+    em9010_write16(em,0x10,0xff);
+    em9010_write16(em,0x20,0xff);
+
+    em9010_write(em,0xa,0x0);
+
+
+    /* FIXME: Detect loopback cable here */
+    DEBUG(printk("em8300: overlay reg 0x80 = %x \n",em9010_read16(em,0x80)));
+
+    em9010_write(em,0xb,0xc8);
+
     DEBUG(printk("em8300: register 0x1f4b = %x (0x138)\n",read_register(0x1f4b)));
-	  
-    write_ucregister(DICOM_Kmin,0x455);
+
+    em9010_write16(em,1,0x4fe);
+    em9010_write(em,1,4);
+    em9010_write(em,5,0);
+    em9010_write(em,6,0);
+    em9010_write(em,7,0x40);
+    em9010_write(em,8,0x80);
+    em9010_write(em,0xc,0x8c);
+    em9010_write(em,9,0);
+
+    write_ucregister(DICOM_Kmin,0x447);
+
+    em9010_write(em,7,0x80);
+    em9010_write(em,9,0);
+    
     write_register(0x1f47,0x18);
     write_register(0x1f5e,0x9afe);
     write_ucregister(DICOM_Control,0x9afe);
@@ -132,6 +168,8 @@ int em8300_video_setup(struct em8300_s *em) {
 	DEBUG( printk("em8300: mpegvideo_command(0x11) failed\n"));
 	return -ETIME;
     }
+
+    DEBUG(printk("DICOM display data: 0x%x\n",read_ucregister(DICOM_Display_Data)));
 
     displaybuffer = read_ucregister(DICOM_DisplayBuffer)+0x1000;
 
@@ -210,21 +248,25 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos)
 {
     unsigned flags=0;
+    long scrptsdiff,scr; 
     //    em->video_ptsvalid=0;
     if(em->video_ptsvalid) {
 	int ptsfifoptr=0;
 	em->video_pts>>=1;
 	//	printk("em8300_video.o: video_write %x,%x %x\n",count,em->video_pts,em->video_offset);
-	/*
-	if(em->video_first) {
+	scr = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);
+	scrptsdiff = em->video_pts+em->videodelay-scr;
+	if((scrptsdiff > 90000) || (scrptsdiff < -90000)) {
 	    unsigned startpts;
+
+	    em8300_fifo_sync(em->mvfifo);	    
+	    
 	    startpts = em->video_pts + em->videodelay;
 	    write_ucregister(MV_SCRlo, startpts & 0xffff);
 	    write_ucregister(MV_SCRhi, (startpts >> 16) & 0xffff);
 	    printk("Setting SCR: %d\n",startpts);
-	    em->video_first = 0;
 	} 
-	*/
+
 	flags = 0x40000000;
 	ptsfifoptr = ucregister(MV_PTSFifo) + 4*em->video_ptsfifo_ptr;
 

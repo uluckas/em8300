@@ -176,12 +176,12 @@ void eeprom_dec_use (struct i2c_client *client)
 /* ----------------------------------------------------------------------- */
 
 
-int __init adv717x_eeprom_init(void)
+int adv717x_eeprom_init(void)
 {
 	return i2c_add_driver(&eeprom_driver);
 }
 
-void __exit adv717x_eeprom_cleanup(void)
+void adv717x_eeprom_cleanup(void)
 {
 	i2c_del_driver(&eeprom_driver);
 }

@@ -981,7 +981,7 @@ void bt865_dec_use (struct i2c_client *client)
 /* ----------------------------------------------------------------------- */
 
 
-int __init bt865_init(void)
+int bt865_init(void)
 {
 	int bars;
 	
@@ -1003,7 +1003,7 @@ int __init bt865_init(void)
 	return i2c_add_driver(&bt865_driver);
 }
 
-void __exit bt865_cleanup(void)
+void bt865_cleanup(void)
 {
 	i2c_del_driver(&bt865_driver);
 }

@@ -504,7 +504,7 @@ void adv717x_dec_use (struct i2c_client *client)
 /* ----------------------------------------------------------------------- */
 
 
-int __init adv717x_init(void)
+int adv717x_init(void)
 {
 	int pp_ntsc;
 	int pp_pal;
@@ -560,7 +560,7 @@ int __init adv717x_init(void)
 	return i2c_add_driver(&adv717x_driver);
 }
 
-void __exit adv717x_cleanup(void)
+void adv717x_cleanup(void)
 {
 	i2c_del_driver(&adv717x_driver);
 }

@@ -1,3 +1,9 @@
+2001-04-19  Rick Haines  <rick@kuroyi.net>
+
+	* overlay/autocal.c:
+	fix another hardcoded resolution
+	NUM_MONITORS needs to go somewhere better
+	
 2001-04-18  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_audio.c:

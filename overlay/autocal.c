@@ -18,6 +18,8 @@
 
 #include <linux/em8300.h>
 
+#define NUM_MONITORS 1
+
 int xsize=1280;
 int ysize=1024;
 int depth=24;
@@ -50,7 +52,7 @@ int main( int   argc,
     if (!dpy) exit(1);
 
     xscrn=ScreenOfDisplay(dpy, 0);
-    xsize=WidthOfScreen(xscrn);
+    xsize=WidthOfScreen(xscrn)/NUM_MONITORS;
     ysize=HeightOfScreen(xscrn);
     depth=PlanesOfScreen(xscrn);
     fprintf(stderr, "Width: %d, Height: %d, Depth: "
@@ -66,7 +68,7 @@ int main( int   argc,
 
     ov = overlay_init(dev);
 
-    overlay_set_screen(ov,1280,1024,16);
+    overlay_set_screen(ov,xsize,ysize,depth);
 
     overlay_read_state(ov,NULL);
 

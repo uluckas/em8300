@@ -1,6 +1,11 @@
 # where the kernel sources are located
 KERNEL_LOCATION=/usr/src/linux
 
+# If your I2C stuff is builtin to kernel leave this blank
+# otherwise change to the location of the I2C headers
+#I2C_LOCATION=/usr/local/include
+I2C_LOCATION=
+
 #################################################
 # some magic for using linux kernel settings
 # when compiling module(s)
@@ -28,6 +33,9 @@ I2CALGO_MODULE=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep " 
 
 CFLAGS=-D__KERNEL__ -DMODULE $(EM8300_DEBUG) -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer $(EXTRA_CFLAGS)
 
+IS22=NO
+IS22=$(patsubst 2.2.%,YES,$(KERNVER))
+
 ifeq "$(MODVERS)" "1"
 	CFLAGS+=-DMODVERSIONS -include $(KERNEL_LOCATION)/include/linux/modversions.h
 endif
@@ -45,8 +53,18 @@ ifeq "$(I2CALGO_BUILTIN)" "1"
 else
 	ifeq "$(I2CALGO_MODULE)" "1"
 		CFLAGS+=-DI2C_BITBANGING
+	else
+		ifeq "$(IS22)" "YES"
+			ifeq "$(I2C_LOCATION)" ""
+				CFLAGS+=-DI2C_BITBANGING
+			else
+				CFLAGS+=-I$(I2C_LOCATION) -DI2C_BITBANGING
+			endif
+		endif
 	endif
 endif
+
+
 
 all : $(MODULES)
 
@@ -57,11 +75,19 @@ em8300.o : $(EM8300_OBJS)
 	$(LD) $(EXTRA_LDFLAGS) -r -o $@ $(EM8300_OBJS)
 
 install : $(MODULES)
-	@for module in $^ ;\
-	do \
-	install -D $$module $(prefix)/lib/modules/`uname -r`/kernel/drivers/video/$$module ;\
-	echo $$module ;\
-	done
+	if [ `uname -r | awk -F '.' '{ print $$2 }'` -eq 4 ]; then \
+	     for module in $^ ;\
+	     do \
+	     	install -D $$module $(prefix)/lib/modules/`uname -r`/kernel/drivers/video/$$module ;\
+	    	echo "2.4: " $$module ;\
+	     done \
+	else \
+	    for modules in $^ ;\
+	    do \
+	     	install -D $$module $(prefix)/lib/modules/`uname -r`/misc/$$module ;\
+	    	echo "2.2: " $$module ;\
+	    done \
+	fi
 	@depmod -a
 	@echo em8300.h
 	@install -D ../include/linux/em8300.h \

@@ -1,3 +1,11 @@
+em8300 (0.8.1-1) unstable; urgency=high
+
+  * Major debian-fixes, splitted up into two packages
+  
+  * We've reached 0.8.1 status
+ 
+ -- Jonas Birme <jonas@birme.se>  Tue, 28 Aug 2001 10:04:02 +0200
+ 
 em8300 (0.8.1pre1-2) unstable; urgency=high
 
   * Minor debian-fixes

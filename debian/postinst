@@ -35,15 +35,15 @@ if [ "$1" = "configure" ]; then
 	cd /tmp/
 
         if [ -f /tmp/enc2dev.vx_ ]; then
-            /usr/sbin/msexpand.pl /tmp/enc2dev.vx_ ;
+            /usr/share/em8300/msexpand.pl /tmp/enc2dev.vx_ ;
         elif [ -f /tmp/rmquasar.vx: ]; then
-            /usr/sbin/msexpand.pl /tmp/rmquasar.vx_ ;
+            /usr/share/em8300/msexpand.pl /tmp/rmquasar.vx_ ;
         fi
 
         if [ -f /tmp/enc2dev.vxd ]; then
-            /usr/sbin/microcode_extract.pl /tmp/enc2dev.vxd ;
+            /usr/share/em8300/microcode_extract.pl /tmp/enc2dev.vxd ;
         elif [ -f /tmp/rmquasar.vxd ]; then
-            /usr/sbin/microcode_extract.pl /tmp/rmquasar.vxd ;
+            /usr/share/em8300/microcode_extract.pl /tmp/rmquasar.vxd ;
         fi
 
         if [ -f microcode0.bin ]; then

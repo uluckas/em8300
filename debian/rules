@@ -1,126 +1,120 @@
 #!/usr/bin/make -f
-# -*- makefile -*-
-# debian/rules file - for em8300
-# Copyright 2001 by Jonas Birme (jonas@birme.se)
-# Patterned after the hello package by Ian Jackson and 
-# the pcmcia-cs package by Brian Mays
+# Made with the aid of debmake, by Christoph Lameter,
+# based on the sample debian/rules file for GNU hello by Ian Jackson.
 
 package=em8300
-KSRC?=/usr/src/linux
 kvers=`uname -r`
-MOD_DIR?='.'
 
-# Automatically (non-interactively) configures the package using the
-# kernel source tree
-.prereq.ok:
-	   debian/do_configure
-	$(RM) build
-	$(RM) -r *~ */*~ debian/tmp debian/tmp-modules debian/*~ \
-	  debian/files debian/control.tmp debian/substvars \
-	  debian/KVERS
-
-.prereq.modules:
-	   debian/makefile.sh
-	   rm -rf build-modules
-	rm -rf debian/tmp-modules
-	cd modules
-	-$(MAKE) clean
-	cd ..
-
-build:	.prereq.ok
+build:
 	$(checkdir)
-	sh -v debian/make-tarball.sh
+	./configure --prefix=/usr
 	$(MAKE)
 	touch build
-	   
-build-modules: .prereq.modules
-	   $(checkdir)
-	   touch build-modules
 
-kdist_clean clean: .prereq.ok
+build-modules:
 	$(checkdir)
-	$(RM) build build-modules
-	cat debian/source.control debian/em8300.control \
-	  > debian/control
-	$(MAKE) clean
-	$(RM) -r *~ */*~ debian/tmp debian/tmp-modules debian/*~ \
-	  debian/files debian/control.tmp debian/substvars \
-	  debian/KVERS
+	cd modules ;\
+	$(MAKE) ;\
+	cd ..
+	touch build-modules
+	
+clean:
+	$(checkdir)
+	-rm -f build
+	-$(MAKE) clean
+	-rm -f `find . -name "*~"`
+	-rm -rf debian/tmp debian/files* core debian/substvars
 
 clean-modules:
 	$(checkdir)
-	rm -f build-modules
-	cd modules
-	-$(MAKE) clean
+	-rm -f build-modules
+	-cd modules ;\
+	$(MAKE) clean ;\
 	cd ..
-	rm -rf build-modules
-
-binary-indep: checkroot build
-	      $(checkdir)
-
-binary-lib:	checkroot build
+	
+binary-indep: binary-source
 	$(checkdir)
-	$(RM) -rf debian/tmp
-	install -d debian/tmp debian/tmp/DEBIAN
-	install debian/em8300.config	debian/tmp/DEBIAN/config
-	install debian/em8300.preinst	debian/tmp/DEBIAN/preinst
-	install debian/em8300.postinst	debian/tmp/DEBIAN/postinst
-	install debian/em8300.prerm	debian/tmp/DEBIAN/prerm
-	install debian/em8300.postrm	debian/tmp/DEBIAN/postrm
-	install -m644 debian/em8300.templates debian/tmp/DEBIAN/templates
-	$(MAKE) \
-	  prefix=$$(pwd)/debian/tmp/usr install
-	strip `ls debian/tmp/usr/bin/* 2>/dev/null`
-	
-	install -d debian/tmp/usr/sbin/
-	install -m755 scripts/microcode* scripts/msexpand.pl \
-	  debian/tmp/usr/sbin/
-	
-	install -d debian/tmp/usr/src	
-	install -m644 debian/em8300.tar.gz debian/tmp/usr/src/
-	
-	debstd ChangeLog NEWS README AUTHORS
 
-	dpkg-gencontrol -isp
+binary-arch: checkroot build
+	$(checkdir)
+	-rm -rf debian/tmp
+	install -d debian/tmp
+	cd debian/tmp && install -d `cat ../dirs`
+	$(MAKE) install DESTDIR=`pwd`/debian/tmp
+# Must have debmake installed for this to work. Otherwise please copy
+# /usr/bin/debstd into the debian directory and change debstd to debian/debstd
+	debstd ChangeLog NEWS README 
+	install debian/templates debian/tmp/DEBIAN/templates
+	dpkg-gencontrol -pem8300 -isp
 	chown -R root.root debian/tmp
-	chmod -R g-ws debian/tmp
+	chmod -R go=rX debian/tmp
 	dpkg --build debian/tmp ..
 
 binary-modules: checkroot build-modules
-	     rm -rf debian/tmp-modules
-	     install -d debian/tmp-modules debian/tmp-modules/DEBIAN
-	     install -d "debian/tmp-modules/usr/share/doc/em8300-modules-$(kvers)"
-	     install debian/modules.postinst debian/tmp-modules/DEBIAN/postinst
-	     install debian/modules.prerm debian/tmp-modules/DEBIAN/prerm
-	     install debian/modules.postrm debian/tmp-modules/DEBIAN/postrm
-	     KVERS="$(kvers)" \
-	       sh -v debian/setvers.sh
-	     cd modules ;\
-	     $(MAKE) prefix=`pwd`/../debian/tmp-modules/ install ;\
-	     cd .. ;\
-	     install -d debian/tmp-modules/etc/init.d
-	     install -m755 debian/em8300.initd debian/tmp-modules/etc/init.d/em8300
-	     install -m644 debian/changelog \
-	       debian/tmp-modules/usr/share/doc/em8300-modules-$(kvers)/changelog.Debian
-	     gzip -9v debian/tmp-modules/usr/share/doc/em8300-modules-*/*
-	     install -m644 debian/copyright \
-	       debian/tmp-modules/usr/share/doc/em8300-modules-$(kvers)/copyright
-	     cat COPYING \
-	       >> debian/tmp-modules/usr/share/doc/em8300-modules-$(kvers)/copyright
-	     chown -R root.root debian/tmp-modules
-	     chmod -R g-ws debian/tmp-modules
-	     if test -d debian/tmp-modules/lib/modules; then \
-	       dpkg-deb --build debian/tmp-modules $(MOD_DIR)/..; fi
-	     
+	$(checkdir)
+	-rm -rf debian/tmp-modules
+	install -d debian/tmp-modules debian/tmp-modules/DEBIAN
+	install -d "debian/tmp-modules/usr/share/doc/em8300-modules-$(kvers)"
+	install debian/em8300-modules.postinst debian/tmp-modules/DEBIAN/postinst
+	install debian/em8300-modules.prerm debian/tmp-modules/DEBIAN/prerm
+	install debian/em8300-modules.postrm debian/tmp-modules/DEBIAN/postrm
+	install debian/templates debian/tmp-modules/DEBIAN/templates
+	cd modules ;\
+	$(MAKE) prefix=`pwd`/../debian/tmp-modules/ install ;\
+	cd ..
+	install -d debian/tmp-modules/etc/init.d
+	install -m755 debian/em8300-modules.initd debian/tmp-modules/etc/init.d/em8300
+	sh -v debian/setvers.sh
+	chown -R root.root debian/tmp-modules
+	chmod -R go=rX debian/tmp-modules
+	dpkg --build debian/tmp-modules ..
+
+binary-source: checkroot
+	$(checkdir)
+	-rm -rf debian/tmp-src
+	install -d debian/tmp-src debian/tmp-src/DEBIAN
+	install debian/em8300-source.postinst debian/tmp-src/DEBIAN/postinst
+	install debian/em8300-source.prerm debian/tmp-src/DEBIAN/prerm
+	install -d debian/tmp-src/usr/src/modules/$(package)
+	install -d debian/tmp-src/usr/share/doc/em8300-source
+	
+	find . \( -path ./debian/tmp-src -o -name 'tmp*' \) -prune -o -print | \
+	  cpio -admp debian/tmp-src/usr/src/modules/$(package)
+	cd debian/tmp-src/usr/src/modules/$(package) && \
+	  $(MAKE) -f debian/rules clean-modules clean
+	chown -R root.root debian/tmp-src
+	find debian/tmp-src -type d | xargs chmod 755
+	find debian/tmp-src -type f -perm -100 | xargs chmod 755
+	find debian/tmp-src -type f -not -perm -100 | xargs chmod 644
+	cd debian/tmp-src/usr/src && \
+	  tar cf $(package).tar modules && \
+	  $(RM) -r modules/$(package)
+	gzip -9 debian/tmp-src/usr/src/$(package).tar
+	chmod 644 debian/tmp-src/usr/src/$(package).tar.gz
+	
+	install -m 644 ChangeLog \
+	  debian/tmp-src/usr/share/doc/em8300-source/changelog
+	install -m 644 debian/README.debian \
+	  debian/tmp-src/usr/share/doc/em8300-source/README.debian
+	install -m 644 debian/changelog \
+	  debian/tmp-src/usr/share/doc/em8300-source/changelog.Debian
+	gzip -9v debian/tmp-src/usr/share/doc/em8300-source/*
+	install -m 644 debian/copyright \
+	  debian/tmp-src/usr/share/doc/em8300-source/copyright
+	  
+	dpkg-gencontrol -pem8300-source -Pdebian/tmp-src
+	dpkg-deb --build debian/tmp-src ..
+
+
 define checkdir
-       test -f modules/Makefile.2.4 -a -f debian/rules
+	test -f debian/rules
 endef
 
-checkroot:
-	  $(checkdir)
-	  test root = "`whoami`"
-	  
-binary:	  clean binary-lib
+binary: binary-indep binary-arch
 
-.PHONY: binary-arch binary-indep binary-modules \
-	clean-modules checkroot
+checkroot:
+	$(checkdir)
+	test root = "`whoami`"
+
+.PHONY: binary binary-arch binary-indep clean checkroot \
+	binary-modules clean-modules

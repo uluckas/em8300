@@ -1,8 +1,9 @@
 Template: em8300/install_note
 Type: text
 Description: em8300 installed.
- The em8300-package has been installed, but you have to compile the module.
- Untar /usr/src/em8300.tar.gz in /usr/src.
+ The em8300-package has been installed, but you have to install the
+ em8300-source package to compile the module. After installing the 
+ em8300-source package, untar /usr/src/em8300.tar.gz in /usr/src.
  Then go to /usr/src/modules/em8300/ and run debian/rules binary-modules, and
  when finished just dpkg -i ../em8300-modules-<kvers>_0.8-1.deb and the
  modules will be installed.

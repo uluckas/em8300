@@ -1,5 +1,14 @@
 2001-09-02  Rick Haines  <rick@kuroyi.net>
 
+	* debian/*
+	big updates from Jonas and Graeme
+	
+	* modules/Makefile:
+	new Makefile from Jonas/Graeme to
+	work with both 2.2 and 2.4 kernels
+	
+2001-09-02  Rick Haines  <rick@kuroyi.net>
+
 	* include/linux/em8300.h,
 	  modules/em8300_audio.c,
 	  modules/em8300_dicom.c,

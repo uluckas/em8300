@@ -1,0 +1,14 @@
+#!/bin/sh -e
+
+movedoc()
+{
+   PKG=em8300-source
+   OLD=/usr/doc/$PKG
+   if test -h $OLD; then
+       rm -f $OLD
+   fi
+}
+
+if [ "$1" = remove ]; then
+    movedoc
+fi

@@ -1,0 +1,9 @@
+# Create compatibility link for em8300
+REGISTER	video/em8300-0 CFUNCTION GLOBAL symlink video/em8300-0 em8300
+REGISTER	video/em8300_ma-0 CFUNCTION GLOBAL symlink video/em8300_ma-0 em8300_ma
+REGISTER	video/em8300_mv-0 CFUNCTION GLOBAL symlink video/em8300_mv-0 em8300_mv
+REGISTER	video/em8300_sp-0 CFUNCTION GLOBAL symlink video/em8300_sp-0 em8300_sp
+UNREGISTER	video/em8300-0 CFUNCTION GLOBAL unlink em8300
+UNREGISTER	video/em8300_ma-0 CFUNCTION GLOBAL unlink em8300_ma
+UNREGISTER	video/em8300_mv-0 CFUNCTION GLOBAL unlink em8300_mv
+UNREGISTER	video/em8300_sp-0 CFUNCTION GLOBAL unlink em8300_sp

@@ -502,11 +502,11 @@ int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
 
 	switch (cmd) {
 	case ENCODER_CMD_SETMODE:
-		adv717x_setmode((int) arg, client);
+		adv717x_setmode((long int) arg, client);
 		adv717x_update(client);
 		break;
 	case ENCODER_CMD_ENABLEOUTPUT:
-		data->enableoutput = (int) arg;
+		data->enableoutput = (long int) arg;
 		adv717x_update(client);
 		break;
 	default:

@@ -179,7 +179,7 @@ static void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 
 	if (irqstatus & 0x8000) {
 		write_ucregister(Q_IrqMask, 0x0);
-		em->mem[EM8300_INTERRUPT_ACK] = 2;
+		writel(2, &em->mem[EM8300_INTERRUPT_ACK]);
 
 		write_ucregister(Q_IrqStatus, 0x8000);
 
@@ -230,7 +230,7 @@ static void release_em8300(int max)
 
 		write_ucregister(Q_IrqMask, 0);
 		write_ucregister(Q_IrqStatus, 0);
-		em->mem[0x2000] = 0;
+		writel(0, &em->mem[0x2000]);
 
 		em8300_fifo_free(em->mvfifo);
 		em8300_fifo_free(em->mafifo);
@@ -401,7 +401,7 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 	return(0);
 }
 
-static int em8300_io_write(struct file *file, const char * buf,	size_t count, loff_t *ppos)
+static ssize_t em8300_io_write(struct file *file, const char * buf, size_t count, loff_t *ppos)
 {
 	struct em8300_s *em = file->private_data;
 	int subdevice = EM8300_MINOR(file->f_dentry->d_inode);
@@ -646,7 +646,7 @@ static int em8300_dsp_open(struct inode* inode, struct file* filp)
 	return(0);
 }
 
-static int em8300_dsp_write(struct file *file, const char * buf, size_t count, loff_t *ppos)
+static ssize_t em8300_dsp_write(struct file *file, const char * buf, size_t count, loff_t *ppos)
 {
 	struct em8300_s *em = file->private_data;
 	return em8300_audio_write(em, buf, count, ppos);
@@ -706,8 +706,8 @@ int em8300_proc_read(char *page, char **start, off_t off, int count, int *eof, v
 		len += sprintf(page + len, "Card revision %d\n", em->pci_revision);
 		len += sprintf(page + len, "Chip revision %d\n", em->chip_revision);
 		len += sprintf(page + len, "Video encoder: %s at address 0x%02x on %s\n", (em->encoder_type == ENCODER_BT865) ? "BT865" : (em->encoder_type == ENCODER_ADV7170) ? "ADV7170" : (em->encoder_type == ENCODER_ADV7175) ? "ADV7175" : "unknown", em->encoder->addr, em->encoder->adapter->name);
-		len += sprintf(page + len, "Memory mapped at addressrange 0x%0x->0x%0x%s\n", (unsigned int) em->mem,
-				(unsigned int) em->mem + (unsigned int) em->memsize, (em->mtrr_reg ? " (FIFOs using MTRR)" : ""));
+		len += sprintf(page + len, "Memory mapped at addressrange 0x%0lx->0x%0lx%s\n", (unsigned long int) em->mem,
+				(unsigned long int) em->mem + (unsigned long int) em->memsize, (em->mtrr_reg ? " (FIFOs using MTRR)" : ""));
 		len += sprintf(page + len, "Displaybuffer resolution: %dx%d\n", em->dbuf_info.xsize, em->dbuf_info.ysize);
 		len += sprintf(page + len, "Dicom set to %s\n", (em->dicom_tvout?"TV-out":"overlay"));
 		if (em->dicom_tvout) {

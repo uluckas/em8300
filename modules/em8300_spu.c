@@ -72,7 +72,7 @@ void em8300_spu_check_ptsfifo(struct em8300_s *em)
 		}
 	}
 
-int em8300_spu_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
+ssize_t em8300_spu_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
 {
 	int flags = 0;
 	unsigned int safe_jiff = jiffies;

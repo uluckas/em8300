@@ -7,23 +7,23 @@
 #define FIFOTYPE_VIDEO 2
 
 struct video_fifoslot_s {
-	unsigned flags;
-	unsigned physaddress_hi;
-	unsigned physaddress_lo;
-	unsigned slotsize;
+	uint32_t flags;
+	uint32_t physaddress_hi;
+	uint32_t physaddress_lo;
+	uint32_t slotsize;
 };
 
 struct audio_fifoslot_s {
-	unsigned physaddress_hi;
-	unsigned physaddress_lo;
-	unsigned slotsize;
+	uint32_t physaddress_hi;
+	uint32_t physaddress_lo;
+	uint32_t slotsize;
 };
 
 struct pts_fifoslot_s {
-	unsigned streamoffset_hi;
-	unsigned streamoffset_lo;
-	unsigned pts_hi;
-	unsigned pts_lo;
+	uint32_t streamoffset_hi;
+	uint32_t streamoffset_lo;
+	uint32_t pts_hi;
+	uint32_t pts_lo;
 };
 
 struct em8300_s;

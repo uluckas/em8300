@@ -11,6 +11,14 @@ I2C_LOCATION?=
 # some magic for using linux kernel settings
 # when compiling module(s)
 
+ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/arm/ -e s/sa110/arm/)
+
+ifeq "$(ARCH)" "alpha"
+ARCH_CFLAGS = -mno-fp-regs -ffixed-8
+else
+ARCH_CFLAGS =
+endif
+
 EXTRA_CFLAGS = -g -I ../include -I $(KERNEL_LOCATION)/include/ \
 		-O2 -fomit-frame-pointer -Wall \
 		-DEM8300_VIDEOMODE_DEFAULT=EM8300_VIDEOMODE_PAL \
@@ -30,7 +38,7 @@ MODVERS:=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep "CONFIG_
 KERNVER?=$(shell cat $(KERNEL_LOCATION)/include/linux/version.h | grep "UTS" | sed -e 's/.*"\(.*\)"/\1/')
 RKERNVER:=$(shell uname -r)
 
-CFLAGS=-D__KERNEL__ -DMODULE $(EM8300_DEBUG) -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer $(EXTRA_CFLAGS)
+CFLAGS=-D__KERNEL__ -DMODULE $(EM8300_DEBUG) -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer $(ARCH_CFLAGS) $(EXTRA_CFLAGS)
 
 # Check the kernel version compiled and running
 IS22:=$(patsubst 2.2.%,YES,$(KERNVER))

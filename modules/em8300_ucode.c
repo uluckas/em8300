@@ -31,21 +31,21 @@ static int upload_block(struct em8300_s *em, int blocktype, int offset, int len,
 	switch (blocktype) {
 	case 4:
 		offset *= 2;
-		em->mem[0x1c11] = offset & 0xffff;
-		em->mem[0x1c12] = (offset >> 16) & 0xffff;
-		em->mem[0x1c13] = len;
-		em->mem[0x1c14] = len;
-		em->mem[0x1c15] = 0;
-		em->mem[0x1c16] = 1;
-		em->mem[0x1c17] = 1;
-		em->mem[0x1c18] = offset & 0xffff;
-		em->mem[0x1c19] = (offset >> 16) & 0xffff;
+		writel(offset & 0xffff, &em->mem[0x1c11]);
+		writel((offset >> 16) & 0xffff, &em->mem[0x1c12]);
+		writel(len, &em->mem[0x1c13]);
+		writel(len, &em->mem[0x1c14]);
+		writel(0, &em->mem[0x1c15]);
+		writel(1, &em->mem[0x1c16]);
+		writel(1, &em->mem[0x1c17]);
+		writel(offset & 0xffff, &em->mem[0x1c18]);
+		writel((offset >> 16) & 0xffff, &em->mem[0x1c19]);
 
-		em->mem[0x1c1a] = 1;
+		writel(1, &em->mem[0x1c1a]);
 
 		for (i = 0; i < len; i += 4) {
 			val = (buf[i + 2] << 24) | (buf[i + 3] << 16) | (buf[i] << 8) | buf[i + 1];
-			em->mem[0x11800] = val;
+			writel(val, &em->mem[0x11800]);
 		}
 
 		if (em8300_waitfor(em, 0x1c1a, 0, 1)) {
@@ -55,13 +55,13 @@ static int upload_block(struct em8300_s *em, int blocktype, int offset, int len,
 	case 1:
 		for (i = 0; i < len; i += 4) {
 			val = (buf[i + 1] << 24) | (buf[i] << 16) | (buf[i + 3] << 8) | buf[i + 2];
-			em->mem[offset / 2 + i / 4] = val;
+			writel(val, &em->mem[offset / 2 + i / 4]);
 		}
 		break;
 	case 2:
 		for (i = 0; i < len; i += 2) {
 			val = (buf[i + 1] << 8) | buf[i];
-			em->mem[0x1000 + offset + i / 2] = val;
+			writel(val, &em->mem[0x1000 + offset + i / 2]);
 		}
 		break;
 	}
@@ -72,44 +72,44 @@ static int upload_block(struct em8300_s *em, int blocktype, int offset, int len,
 static
 int upload_prepare(struct em8300_s *em)
 {
-	em->mem[0x30000] = 0x1ff00;
-	em->mem[0x1f50] = 0x123;
+	writel(0x1ff00, &em->mem[0x30000]);
+	writel(0x123, &em->mem[0x1f50]);
 
-	em->mem[0x20001] = 0x0;
-	em->mem[0x2000] = 0x2;
-	em->mem[0x2000] = 0x0;
-	em->mem[0x1ff8] = 0xffff;
-	em->mem[0x1ff9] = 0xffff;
-	em->mem[0x1ff8] = 0xff00;
-	em->mem[0x1ff9] = 0xff00;
+	writel(0x0, &em->mem[0x20001]);
+	writel(0x2, &em->mem[0x2000]);
+	writel(0x0, &em->mem[0x2000]);
+	writel(0xffff, &em->mem[0x1ff8]);
+	writel(0xffff, &em->mem[0x1ff9]);
+	writel(0xff00, &em->mem[0x1ff8]);
+	writel(0xff00, &em->mem[0x1ff9]);
 
 	if (em->chip_revision == 1) {
-		em->mem[0x1c04] = 0x8c7;
-		em->mem[0x1c00] = 0x80;
-		em->mem[0x1c04] = 0xc7;
+		writel(0x8c7, &em->mem[0x1c04]);
+		writel(0x80, &em->mem[0x1c00]);
+		writel(0xc7, &em->mem[0x1c04]);
 	}
-	em->mem[0x1c04] = em->var_ucode_reg3;
-	em->mem[0x1c00] = em->var_ucode_reg1;
-	em->mem[0x1c04] = em->var_ucode_reg2;
+	writel(em->var_ucode_reg3, &em->mem[0x1c04]);
+	writel(em->var_ucode_reg1, &em->mem[0x1c00]);
+	writel(em->var_ucode_reg2, &em->mem[0x1c04]);
 
-	em->mem[0x1c08];
-	em->mem[0x1c10] = 0x8;
-	em->mem[0x1c20] = 0x8;
-	em->mem[0x1c30] = 0x8;
-	em->mem[0x1c40] = 0x8;
-	em->mem[0x1c50] = 0x8;
-	em->mem[0x1c60] = 0x8;
-	em->mem[0x1c70] = 0x8;
-	em->mem[0x1c80] = 0x8;
-	em->mem[0x1c90] = 0x10;
-	em->mem[0x1ca0] = 0x10;
-	em->mem[0x1cb0] = 0x8;
-	em->mem[0x1cc0] = 0x8;
-	em->mem[0x1cd0] = 0x8;
-	em->mem[0x1ce0] = 0x8;
-	em->mem[0x1c01] = 0x5555;
-	em->mem[0x1c02] = 0x55a;
-	em->mem[0x1c03] = 0x0;
+	/* em->mem[0x1c08]; */
+	writel(0x8, &em->mem[0x1c10]);
+	writel(0x8, &em->mem[0x1c20]);
+	writel(0x8, &em->mem[0x1c30]);
+	writel(0x8, &em->mem[0x1c40]);
+	writel(0x8, &em->mem[0x1c50]);
+	writel(0x8, &em->mem[0x1c60]);
+	writel(0x8, &em->mem[0x1c70]);
+	writel(0x8, &em->mem[0x1c80]);
+	writel(0x10, &em->mem[0x1c90]);
+	writel(0x10, &em->mem[0x1ca0]);
+	writel(0x8, &em->mem[0x1cb0]);
+	writel(0x8, &em->mem[0x1cc0]);
+	writel(0x8, &em->mem[0x1cd0]);
+	writel(0x8, &em->mem[0x1ce0]);
+	writel(0x5555, &em->mem[0x1c01]);
+	writel(0x55a, &em->mem[0x1c02]);
+	writel(0x0, &em->mem[0x1c03]);
 
 	return 0;
 }

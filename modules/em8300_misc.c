@@ -27,7 +27,7 @@ int em8300_waitfor(struct em8300_s *em, int reg, int val, int mask)
 	int tries;
 
 	for (tries = 0; tries < 100; tries++) {
-		if ((em->mem[reg] & mask) == val) {
+		if ((readl(&em->mem[reg]) & mask) == val) {
 			return 0;
 		}
 		mdelay(10);
@@ -41,7 +41,7 @@ int em8300_waitfor_not(struct em8300_s *em, int reg, int val, int mask)
 	int tries;
 
 	for (tries = 0; tries < 100; tries++) {
-		if ((em->mem[reg] & mask) != val) {
+		if ((readl(&em->mem[reg]) & mask) != val) {
 			return 0;
 		}
 		mdelay(10);
@@ -66,31 +66,31 @@ int em8300_setregblock(struct em8300_s *em, int offset, int val, int len)
 	val = val | (val << 8) | (val << 16) | (val << 24);
 #endif
 
-	em->mem[0x1c11] = offset & 0xffff;
-	em->mem[0x1c12] = (offset >> 16) & 0xffff;
-	em->mem[0x1c13] = len;
-	em->mem[0x1c14] = len;
-	em->mem[0x1c15] = 0;
-	em->mem[0x1c16] = 1;
-	em->mem[0x1c17] = 1;
-	em->mem[0x1c18] = offset & 0xffff;
-	em->mem[0x1c19] = 0;
+	writel(offset & 0xffff, &em->mem[0x1c11]);
+	writel((offset >> 16) & 0xffff, &em->mem[0x1c12]);
+	writel(len, &em->mem[0x1c13]);
+	writel(len, &em->mem[0x1c14]);
+	writel(0, &em->mem[0x1c15]);
+	writel(1, &em->mem[0x1c16]);
+	writel(1, &em->mem[0x1c17]);
+	writel(offset & 0xffff, &em->mem[0x1c18]);
+	writel(0, &em->mem[0x1c19]);
 
-	em->mem[0x1c1a] = 1;
+	writel(1, &em->mem[0x1c1a]);
 
 	for (i = 0; i < len / 4; i++) {
-		em->mem[0x11800] = val;
+		writel(val, &em->mem[0x11800]);
 	}
 
 	switch (len % 4) {
 	case 1:
-		em->mem[0x10000] = val;
+		writel(val, &em->mem[0x10000]);
 		break;
 	case 2:
-		em->mem[0x10800] = val;
+		writel(val, &em->mem[0x10800]);
 		break;
 	case 3:
-		em->mem[0x11000] = val;
+		writel(val, &em->mem[0x11000]);
 		break;
 	}
 
@@ -115,20 +115,20 @@ int em8300_writeregblock(struct em8300_s *em, int offset, unsigned *buf, int len
 {
 	int i;
 
-	em->mem[0x1c11] = offset & 0xffff;
-	em->mem[0x1c12] = (offset >> 16) & 0xffff;
-	em->mem[0x1c13] = len;
-	em->mem[0x1c14] = len;
-	em->mem[0x1c15] = 0;
-	em->mem[0x1c16] = 1;
-	em->mem[0x1c17] = 1;
-	em->mem[0x1c18] = offset & 0xffff;
-	em->mem[0x1c19] = (offset >> 16) & 0xffff;
+	writel(offset & 0xffff, &em->mem[0x1c11]);
+	writel((offset >> 16) & 0xffff, &em->mem[0x1c12]);
+	writel(len, &em->mem[0x1c13]);
+	writel(len, &em->mem[0x1c14]);
+	writel(0, &em->mem[0x1c15]);
+	writel(1, &em->mem[0x1c16]);
+	writel(1, &em->mem[0x1c17]);
+	writel(offset & 0xffff, &em->mem[0x1c18]);
+	writel((offset >> 16) & 0xffff, &em->mem[0x1c19]);
 
-	em->mem[0x1c1a] = 1;
+	writel(1, &em->mem[0x1c1a]);
 
 	for (i = 0; i < len / 4; i++) {
-		em->mem[0x11800] = *buf++;
+		writel(*buf++, &em->mem[0x11800]);
 	}
 
 	if (em8300_waitfor(em, 0x1c1a, 0, 1)) {

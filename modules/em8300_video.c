@@ -127,7 +127,7 @@ int em8300_video_flush(struct em8300_s *em)
 	write_ucregister(MV_Wrptr_Hi, 0);
 	write_ucregister(MV_RdPtr_Lo, 0);
 	write_ucregister(MV_RdPtr_Hi, 0);
-	*em->mvfifo->writeptr = *em->mvfifo->readptr;
+	writel(readl(em->mvfifo->readptr), em->mvfifo->writeptr);
 
 	em->video_ptsvalid = 0;
 	em->video_pts = 0;
@@ -138,7 +138,7 @@ int em8300_video_flush(struct em8300_s *em)
 	write_ucregister(SP_Wrptr_Hi, 0);
 	write_ucregister(SP_RdPtr_Lo, 0);
 	write_ucregister(SP_RdPtr_Hi, 0);
-	*em->spfifo->writeptr = *em->spfifo->readptr;
+	writel(readl(em->spfifo->readptr), em->spfifo->writeptr);
  
 	em->sp_ptsfifo_ptr = 0;
 	em->sp_ptsvalid = 0;
@@ -325,7 +325,7 @@ void em8300_video_check_ptsfifo(struct em8300_s *em)
 	}
 }
 
-int em8300_video_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
+ssize_t em8300_video_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
 {
 	unsigned flags = 0;
 	int written;

@@ -462,7 +462,7 @@ void em8300_ioctl_getstatus(struct em8300_s *em, char *usermsg)
 
 int em8300_ioctl_setvideomode(struct em8300_s *em, int mode)
 {
-	int encoder;
+	long int encoder;
 
 	switch (mode) {
 	case EM8300_VIDEOMODE_PAL:
@@ -496,7 +496,7 @@ void em8300_ioctl_enable_videoout(struct em8300_s *em, int mode)
 	em8300_dicom_disable(em);
 
 	if (em->encoder) {
-		em->encoder->driver->command(em->encoder, ENCODER_CMD_ENABLEOUTPUT, (void *) mode);
+		em->encoder->driver->command(em->encoder, ENCODER_CMD_ENABLEOUTPUT, (void *)(long int)mode);
 	}
 	em8300_dicom_enable(em);
 }

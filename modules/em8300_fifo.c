@@ -103,18 +103,18 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 #endif
 
 	for (i = 0; i < f->nslots; i++) {
-		phys = virt_to_phys(f->fifobuffer + i * f->slotsize);
+		phys = virt_to_bus(f->fifobuffer + i * f->slotsize);
 		switch (f->type) {
 		case FIFOTYPE_AUDIO:
-			f->slots.a[i].physaddress_hi = phys >> 16;
-			f->slots.a[i].physaddress_lo = phys & 0xffff;
-			f->slots.a[i].slotsize = f->slotsize;
+			writel(phys >> 16, &f->slots.a[i].physaddress_hi);
+			writel(phys & 0xffff, &f->slots.a[i].physaddress_lo);
+			writel(f->slotsize, &f->slots.a[i].slotsize);
 			break;
 		case FIFOTYPE_VIDEO:
-			f->slots.v[i].flags = 0;
-			f->slots.v[i].physaddress_hi = phys >> 16;
-			f->slots.v[i].physaddress_lo = phys & 0xffff;
-			f->slots.v[i].slotsize = f->slotsize;
+			writel(0, &f->slots.v[i].flags);
+			writel(phys >> 16, &f->slots.v[i].physaddress_hi);
+			writel(phys & 0xffff, &f->slots.v[i].physaddress_lo);
+			writel(f->slotsize, &f->slots.v[i].slotsize);
 		}
 	}
 
@@ -167,7 +167,7 @@ int em8300_fifo_sync(struct fifo_s *fifo)
 {
 	unsigned int safe_jiff = jiffies;
 
-	while (*fifo->writeptr != *fifo->readptr) {
+	while (readl(fifo->writeptr) != readl(fifo->readptr)) {
 		interruptible_sleep_on_timeout(&fifo->wait, 3 * HZ);
 		if (time_after_eq(jiffies, safe_jiff + (3 * HZ))) {
 			printk(KERN_ERR "em8300.o: FIFO sync timeout during sync\n");
@@ -192,17 +192,17 @@ int em8300_fifo_write_nolock(struct fifo_s *fifo, int n, const char *userbuffer,
 	}
 
 	freeslots = em8300_fifo_freeslots(fifo);
-	writeindex = (*fifo->writeptr - fifo->start) / fifo->slotptrsize;
+	writeindex = (readl(fifo->writeptr) - fifo->start) / fifo->slotptrsize;
 	for (i = 0; i < freeslots && n; i++) {
 		copysize = n < fifo->slotsize / fifo->preprocess_ratio ? n : fifo->slotsize / fifo->preprocess_ratio;
 
 		switch (fifo->type) {
 		case FIFOTYPE_AUDIO:
-			fifo->slots.a[writeindex].slotsize = copysize * fifo->preprocess_ratio;
+			writel(copysize * fifo->preprocess_ratio, &fifo->slots.a[writeindex].slotsize);
 			break;
 		case FIFOTYPE_VIDEO:
-			fifo->slots.v[writeindex].flags = flags;
-			fifo->slots.v[writeindex].slotsize = copysize * fifo->preprocess_ratio;
+			writel(flags, &fifo->slots.v[writeindex].flags);
+			writel(copysize * fifo->preprocess_ratio, &fifo->slots.v[writeindex].slotsize);
 			break;
 		}
 
@@ -219,7 +219,7 @@ int em8300_fifo_write_nolock(struct fifo_s *fifo, int n, const char *userbuffer,
 		bytes_transferred += copysize;
 		fifo->bytes += copysize;
 	}
-	*fifo->writeptr = fifo->start + writeindex * fifo->slotptrsize;
+	writel(fifo->start + writeindex * fifo->slotptrsize, fifo->writeptr);
 
 	return bytes_transferred;
 }
@@ -301,7 +301,7 @@ int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer
 
 int em8300_fifo_freeslots(struct fifo_s *fifo)
 {
-	return ((*fifo->readptr - *fifo->writeptr) / fifo->slotptrsize + fifo->nslots - 1) % fifo->nslots;
+	return ((readl(fifo->readptr) - readl(fifo->writeptr)) / fifo->slotptrsize + fifo->nslots - 1) % fifo->nslots;
 }
 
 void em8300_fifo_statusmsg(struct fifo_s *fifo, char *str)
@@ -314,17 +314,17 @@ int em8300_fifo_calcbuffered(struct fifo_s *fifo)
 {
 	int readindex, writeindex, i, n;
 
-	writeindex = (*fifo->writeptr - fifo->start) / fifo->slotptrsize;
-	readindex = (*fifo->readptr - fifo->start) / fifo->slotptrsize;
+	writeindex = (readl(fifo->writeptr) - fifo->start) / fifo->slotptrsize;
+	readindex = (readl(fifo->readptr) - fifo->start) / fifo->slotptrsize;
 	n = 0;
 	i = readindex;
 	while (i != writeindex) {
 		switch (fifo->type) {
 		case FIFOTYPE_AUDIO:
-			n += fifo->slots.a[i].slotsize;
+			n += readl(&fifo->slots.a[i].slotsize);
 			break;
 		case FIFOTYPE_VIDEO:
-			n += fifo->slots.v[i].slotsize;
+			n += readl(&fifo->slots.v[i].slotsize);
 			break;
 		}
 		i++;
@@ -336,5 +336,5 @@ int em8300_fifo_calcbuffered(struct fifo_s *fifo)
 
 int em8300_fifo_isempty(struct fifo_s *fifo)
 {
-	return !(*fifo->writeptr - *fifo->readptr);
+	return !(readl(fifo->writeptr) - readl(fifo->readptr));
 }

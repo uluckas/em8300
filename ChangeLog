@@ -1,3 +1,22 @@
+2003-12-05  David Holm  <dholm@gentoo.org>
+	* include/linux/em8300.h,
+	  modules/Makefile,
+	  modules/adv717x.c,
+	  modules/bt865.c,
+	  modules/em8300_audio.c,
+	  modules/em8300_fifo.c,
+	  modules/em8300_fifo.h,
+	  modules/em8300_i2c.c,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_main.c,
+	  modules/em8300_misc.c,
+	  modules/em8300_reg.h,
+	  modules/em8300_spu.c,
+	  modules/em8300_ucode.c,
+	  modules/em8300_video.c:
+	Applied patch from Nicolas Boullis <Nicolas Boullis at free fr> which
+	effectively adds Alpha support.
+
 2003-11-22  David Holm  <dholm@gentoo.org>
 	* modules/em8300_main.c,
 	  modules/em8300_video.c:

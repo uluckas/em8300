@@ -392,7 +392,7 @@ int em8300_audio_flush(struct em8300_s *em);
 int em8300_audio_open(struct em8300_s *em);
 int em8300_audio_release(struct em8300_s *em);
 int em8300_audio_setup(struct em8300_s *em);
-int em8300_audio_write(struct em8300_s *em, const char * buf,
+ssize_t em8300_audio_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos);
 int mpegaudio_command(struct em8300_s *em, int cmd);
 
@@ -423,13 +423,13 @@ int em8300_video_flush(struct em8300_s *em);
 int em8300_video_setup(struct em8300_s *em);
 int em8300_video_release(struct em8300_s *em);
 void em8300_video_setspeed(struct em8300_s *em, int speed);
-int em8300_video_write(struct em8300_s *em, const char * buf,
+ssize_t em8300_video_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos);
 int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg);
 void em8300_video_check_ptsfifo(struct em8300_s *em);
 
 /* em8300_spu.c */
-int em8300_spu_write(struct em8300_s *em, const char * buf,
+ssize_t em8300_spu_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos);
 int em8300_spu_open(struct em8300_s *em);
 int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg);
@@ -447,7 +447,7 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc);
 void em8300_ioctl_enable_videoout(struct em8300_s *em, int mode);
 int em8300_ioctl_setplaymode(struct em8300_s *em, int mode);
 int em8300_ioctl_setaudiomode(struct em8300_s *em, int mode);
-int em8300_ioctl_getaudiomode(struct em8300_s *em, int mode);
+int em8300_ioctl_getaudiomode(struct em8300_s *em, long int mode);
 int em8300_ioctl_overlay_calibrate(struct em8300_s *em, em8300_overlay_calibrate_t *c);
 int em8300_ioctl_overlay_setwindow(struct em8300_s *em,em8300_overlay_window_t *w);
 int em8300_ioctl_overlay_setscreen(struct em8300_s *em,em8300_overlay_screen_t *s);

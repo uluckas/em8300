@@ -477,7 +477,7 @@ int em8300_audio_flush(struct em8300_s *em)
 {
 	int pcirdptr = read_ucregister(MA_PCIRdPtr);
 	write_ucregister(MA_PCIWrPtr, pcirdptr);
-	*em->mafifo->writeptr = *em->mafifo->readptr;
+	writel(readl(em->mafifo->readptr), em->mafifo->writeptr);
 	em8300_fifo_sync(em->mafifo);
 	return 0;
 }
@@ -610,7 +610,7 @@ int em8300_audio_calcbuffered(struct em8300_s *em)
 		em->mafifo->preprocess_ratio;
 }
 
-int em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
+ssize_t em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
 {
 	if (em->nonblock[1]) {
 		return em8300_fifo_write(em->mafifo, count, buf, 0);
@@ -631,7 +631,7 @@ int em8300_ioctl_setaudiomode(struct em8300_s *em, int mode)
 	return 0;
 }
 
-int em8300_ioctl_getaudiomode(struct em8300_s *em, int mode)
+int em8300_ioctl_getaudiomode(struct em8300_s *em, long int mode)
 {
 	int a = em->audio_mode;
 	copy_to_user((void *) mode, &a, sizeof(int));

@@ -3,6 +3,10 @@
 	Improve em8300setup's usage message. Thanks to Ville Skyttä for
 	the rephrasing.
 
+	* include/linux/Makefile.am:
+	Nuke extraneous creation of the /usr/include/linux
+	directory. Thanks to Ville Skyttä.
+
 2005-03-07  Nicolas Boullis  <nboullis@debian.org>
 	* modules/adv717x.c,
 	  modules/bt865.c:

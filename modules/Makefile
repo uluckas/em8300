@@ -78,6 +78,9 @@ ifeq "$(IS22)" "YES"
 	endif
 else
 	SMODINST:=kernel/drivers/video
+	ifneq "$(I2C_LOCATION)" ""
+		CFLAGS+=-I$(I2C_LOCATION) -DCONFIG_I2C_ALGOBIT
+	endif
 endif
 
 # Change the modules path depending on kernel version

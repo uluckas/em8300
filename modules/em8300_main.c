@@ -51,6 +51,9 @@
 #include <asm/mtrr.h>
 #endif
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,48)
+#include <linux/interrupt.h>
+#endif
 #include <asm/uaccess.h>
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>

@@ -57,6 +57,10 @@ typedef struct {
 #define EM8300_IOCTL_OVERLAY_SETSCREEN _IOWR('C',13,em8300_overlay_screen_t)
 #define EM8300_IOCTL_OVERLAY_GET_ATTRIBUTE _IOR('C',14,em8300_attribute_t)
 #define EM8300_IOCTL_OVERLAY_SET_ATTRIBUTE _IOW('C',14,em8300_attribute_t)
+#define EM8300_IOCTL_OVERLAY_SIGNALMODE _IOW('C',15,em8300_attribute_t)
+
+#define EM8300_OVERLAY_SIGNAL_ONLY 1
+#define EM8300_OVERLAY_SIGNAL_WITH_VGA 2
 
 #define EM8300_IOCTL_VIDEO_SETPTS 1
 #define EM8300_IOCTL_SPU_SETPTS 1
@@ -417,6 +421,8 @@ int em8300_ioctl_overlay_calibrate(struct em8300_s *em, em8300_overlay_calibrate
 int em8300_ioctl_overlay_setwindow(struct em8300_s *em,em8300_overlay_window_t *w);
 int em8300_ioctl_overlay_setscreen(struct em8300_s *em,em8300_overlay_screen_t *s);
 int em8300_ioctl_overlay_setmode(struct em8300_s *em,int val);
+int em8300_ioctl_overlay_signalmode(struct em8300_s *em,int val);
+ 
 
 /* em9010.c */
 int em9010_cabledetect(struct em8300_s *em);

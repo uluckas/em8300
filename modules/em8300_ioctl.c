@@ -133,6 +133,14 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		return -EINVAL;
 	}
 	break;
+    case _IOC_NR(EM8300_IOCTL_OVERLAY_SIGNALMODE):
+	if (_IOC_DIR(cmd) & _IOC_WRITE) {
+	    int val;
+	    get_user(val, (int *)arg);
+	    if(!em8300_ioctl_overlay_signalmode(em,val))
+		return -EINVAL;
+	}
+	break;
     case _IOC_NR(EM8300_IOCTL_OVERLAY_SETWINDOW):
 	{
 	    em8300_overlay_window_t val;
@@ -388,6 +396,22 @@ int em8300_ioctl_overlay_setmode(struct em8300_s *em,int val) {
 	return 0;
     }
     return 1;
+}
+
+
+int em8300_ioctl_overlay_signalmode(struct em8300_s *em,int val) {
+	switch(val) {
+	case EM8300_OVERLAY_SIGNAL_ONLY:
+	   em9010_write(em,7,8);
+	    break;
+	case EM8300_OVERLAY_SIGNAL_WITH_VGA:
+	   em9010_write(em,7,0x40);
+	   break;
+	default:
+	    return 0;
+	}
+	DEBUG(printk("em8300: overlay reg 7 = %x \n",em9010_read(em,7)));
+	return 1;
 }
 
 int em8300_ioctl_overlay_setwindow(struct em8300_s *em,em8300_overlay_window_t *w) {

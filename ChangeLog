@@ -1,5 +1,16 @@
 2001-02-25  Rick Haines  <rick@kuroyi.net>
 
+	* modules/em8300.h,
+	  modules/em8300_ioctl.c,
+	  overlay/dxr3view.c,
+	  overlay/overlay.h,
+	  overlay/overlay.c:
+	merged patch from Edward Salley,
+	adds overlay_signalmode ioctl to set fullscreen overlay,
+	fixes bug in ratio switching.
+	
+2001-02-25  Rick Haines  <rick@kuroyi.net>
+
 	* modules/em8300_main.c
 	merge patch from Frédéric Crozat,
 	"A cast is needed in switch, otherwise em8300.o

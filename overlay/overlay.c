@@ -483,3 +483,12 @@ int overlay_autocalibrate(overlay_t *o, pattern_drawer_cb pd, void *arg)
 
     return 0;
 }
+
+
+int overlay_signalmode(overlay_t *o, int mode) {
+	if(ioctl(o->dev, EM8300_IOCTL_OVERLAY_SIGNALMODE, &mode) ==-1) {
+	    perror("Failed set signal mix");
+	    return -1;
+	}
+	return 0;
+}

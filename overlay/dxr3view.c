@@ -426,8 +426,8 @@ update_ajwindow_cb(GtkObject *adjust, dxr3view_globals *g)
 
     if (g->ratiolist[0] != gtk_spin_button_get_value_as_float(g->aj->ratio)) {
 	    g->ratiolist[0] = gtk_spin_button_get_value_as_float(g->aj->ratio);
-	    g->ratiotoggle = -1;
-	    ratio_cb(NULL, g);
+	//    g->ratiotoggle = -1;
+	//    ratio_cb(NULL, g);
     } else {
 	    gtk_widget_queue_draw(g->area);
     }
@@ -520,6 +520,8 @@ fullscreen_cb(GtkMenuItem *item, dxr3view_globals *g)
 		g->ypos = (g->scr_hei-(g->scr_wid/g->ratio))/2;
 		gdk_window_move_resize(g->window->window, g->xpos, g->ypos,
 				       g->width, (g->width/g->ratio)-10);
+		rectangle_mode_cb(NULL,g->ov);
+		overlay_signalmode(g->ov,EM8300_OVERLAY_SIGNAL_ONLY );
 		g->fullscreen = TRUE;
 	} else {
 		g->width = g->oldw;
@@ -527,6 +529,8 @@ fullscreen_cb(GtkMenuItem *item, dxr3view_globals *g)
 		g->ypos = g->oldy;
 		gdk_window_move_resize(g->window->window, g->xpos, g->ypos,
 				       g->width, (g->width/g->ratio)-10);
+		overlay_mode_cb(NULL,g->ov);
+		overlay_signalmode(g->ov,EM8300_OVERLAY_SIGNAL_WITH_VGA );
 		g->fullscreen = FALSE;
 	}
 	

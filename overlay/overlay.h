@@ -50,4 +50,5 @@ int overlay_set_window(overlay_t *o, int xpos,int ypos,int width,int height);
 
 int overlay_autocalibrate(overlay_t *o, pattern_drawer_cb pd, void *arg);
 void overlay_update_params(overlay_t *o);
+int overlay_signalmode(overlay_t *o, int mode);
 

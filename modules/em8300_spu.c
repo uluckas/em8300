@@ -90,7 +90,9 @@ int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
     
     switch(cmd) {
     case EM8300_IOCTL_SPU_SETPTS:
-	em->sp_pts = (int)arg / 2;
+	if (get_user(em->sp_pts, (int *)arg))
+	    return -EFAULT;
+	em->sp_pts >>= 1;
 	em->sp_ptsvalid = 1;
 	break;
     case EM8300_IOCTL_SPU_SETPALETTE:

@@ -320,7 +320,8 @@ int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 {
     switch(cmd) {
     case EM8300_IOCTL_VIDEO_SETPTS:
-	em->video_pts = (int)arg;
+	if (get_user(em->video_pts, (int *)arg))
+	    return -EFAULT;
 	em->video_ptsvalid = 1;
 	break;
     default:

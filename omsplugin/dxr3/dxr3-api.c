@@ -115,12 +115,12 @@ int dxr3_audio_write(const char *buf, int n)
 
 int dxr3_video_set_pts(long pts)
 {
-	return ioctl(state.fd_video, EM8300_IOCTL_VIDEO_SETPTS, pts);
+	return ioctl(state.fd_video, EM8300_IOCTL_VIDEO_SETPTS, &pts);
 }
 
 int dxr3_subpic_set_pts(long pts)
 {
-	return ioctl(state.fd_spu, EM8300_IOCTL_SPU_SETPTS, pts);
+	return ioctl(state.fd_spu, EM8300_IOCTL_SPU_SETPTS, &pts);
 }
 
 int dxr3_audio_set_pts(long pts)
@@ -132,18 +132,17 @@ int dxr3_audio_set_pts(long pts)
 int dxr3_audio_set_mode(mode)
 {
 	state.audiomode = mode;
-	return 0;
+	return ioctl(state.fd_control, EM8300_IOCTL_SET_AUDIOMODE, &state.audiomode);
 }
 
 int dxr3_audio_get_mode()
 {
-	ioctl(state.fd_control, EM8300_IOCTL_GET_AUDIOMODE, &state.audiomode);
-	return 0;
+        return ioctl(state.fd_control, EM8300_IOCTL_GET_AUDIOMODE, &state.audiomode);
 }
 
 int dxr3_audio_set_stereo(int val)
 {
-	if(state.audiomode != DXR3_AUDIOMODE_ANALOG)
+	if(state.audiomode == DXR3_AUDIOMODE_DIGITALAC3)
 		return -1;
 
 	return ioctl(state.fd_audio,SNDCTL_DSP_STEREO, &val);

@@ -1,0 +1,25 @@
+original reverse engineering, project
+
+  Henrik Johansson <lhj@users.sourceforge.net>
+  Ze'ev Maor <zeev@users.sourceforge.net>
+
+maintaining, updating oms plugin, xine patch
+
+  Rick Haines <rick@kuroyi.net>
+
+kernel 2.4 makefile stuff
+
+  Anton Altaparmakov <aia21@cam.ac.uk>
+
+Contributions
+
+  Ralph Zimmermann <rz@ooe.net>
+    bt865 initialization
+
+  Edward Salley <drawdeyellas@hotmail.com>
+    dxr3view patches
+
+  Jeffrey H. Ingber <jhingber@ix.netcom.com>
+    rev1 overlay patches
+
+If you aren't here and should be, send us a diff.

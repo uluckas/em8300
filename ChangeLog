@@ -1,0 +1,10 @@
+2001-02-12  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_video.c, modules/em8300_spu.c: change
+	the setpts ioctls to use get_user for consistency.
+	
+	* omsplugin/dxr3/dxr3-api.c: updated to match ioctl changes.
+	dxr3_audio_set_mode should now actually set the mode.
+
+	* ChangeLog: started.
+	* AUTHORS: started.

@@ -354,3 +354,4 @@ void em9010_write16(struct em8300_s *em, int reg, int value)
     em9010_write(em,2,value & 0xff);
     em9010_write(em,1,value >> 8);
 }
+

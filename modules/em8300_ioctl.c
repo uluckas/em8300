@@ -201,6 +201,45 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		}
 	break;
 
+	case _IOC_NR(EM8300_IOCTL_SCR_GET):
+		if (_IOC_DIR(cmd) & _IOC_WRITE) {
+			unsigned scr;
+			if (get_user(val,(unsigned*)arg))
+				return -EFAULT;
+			scr = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);
+			
+			if (scr > val) scr = scr - val;
+			else           scr = val - scr;
+				
+			if (scr > 2*1800) { /* Tolerance: 2 frames */
+				pr_info("adjusting scr: %i\n", val);
+				write_ucregister(MV_SCRlo, val & 0xffff);
+				write_ucregister(MV_SCRhi, (val >> 16) & 0xffff);
+			}
+		}
+		if (_IOC_DIR(cmd) & _IOC_READ) {
+			val = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);
+			copy_to_user((void *)arg, &val, sizeof(unsigned));
+		}
+	break;
+
+	case _IOC_NR(EM8300_IOCTL_SCR_GETSPEED):
+		if (_IOC_DIR(cmd) & _IOC_WRITE) {
+			get_user(val, (int*)arg);
+			val &= 0xFFFF;
+
+			write_ucregister(MV_SCRSpeed,
+			 read_ucregister(MicroCodeVersion) >= 0x29 ? val : val >> 8);
+		}
+		if (_IOC_DIR(cmd) & _IOC_READ) {
+			val = read_ucregister(MV_SCRSpeed);
+			if (! read_ucregister(MicroCodeVersion) >= 0x29)
+				val <<= 8;
+
+			copy_to_user((void *)arg, &val, sizeof(unsigned));
+		}
+	break;
+
 	default:
 		return -ETIME;
 	}

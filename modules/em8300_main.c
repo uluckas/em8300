@@ -83,7 +83,9 @@ static int em8300_cards,clients;
 static unsigned int remap[EM8300_MAX]={};
 #endif
 static struct em8300_s em8300[EM8300_MAX];
+#ifdef REGISTER_DSP
 static int dsp_num_table[16];
+#endif
 
 static void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 {
@@ -391,6 +393,7 @@ static struct file_operations em8300_fops = {
 	release: em8300_io_release,
 };
 
+#ifdef REGISTER_DSP
 static int em8300_dsp_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, unsigned long arg)
 {
 	struct em8300_s *em = filp->private_data;
@@ -457,12 +460,16 @@ static struct file_operations em8300_dsp_audio_fops = {
 	open: em8300_dsp_open,
 	release: em8300_dsp_release,
 };
+#endif
 
-void cleanup_module(void) {
+void cleanup_module(void)
+{
+#ifdef REGISTER_DSP
 	int card;
 	for (card = 0; card < em8300_cards; card++) {
 		unregister_sound_dsp(em8300[card].dsp_num);
 	}
+#endif
 	unregister_chrdev(EM8300_MAJOR, EM8300_LOGNAME);
 	release_em8300(em8300_cards);
 }
@@ -518,7 +525,9 @@ int init_module(void)
 	struct em8300_s *em = NULL;
 
 	memset(&em8300, 0, sizeof(em8300));
+#ifdef REGISTER_DSP
 	memset(&dsp_num_table, 0, sizeof(dsp_num_table));
+#endif
 
 	/* Find EM8300 cards */
 	em8300_cards = find_em8300();
@@ -536,12 +545,14 @@ int init_module(void)
 		
 		em8300_init(em);
 
+#ifdef REGISTER_DSP
 		if ((em8300[card].dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, -1)) < 0) {
 			printk(KERN_ERR "e8300: cannot register oss audio device!\n");
 			goto err_audio_dsp;
 		}
 		dsp_num_table[em8300[card].dsp_num >> 4 & 0x0f] = card+1;
 	        pr_debug("em8300: registered dsp %i for device %i\n", em8300[card].dsp_num >> 4 & 0x0f, card);
+#endif
 	}
 
 	if (register_chrdev(EM8300_MAJOR, EM8300_LOGNAME, &em8300_fops)) {
@@ -551,11 +562,15 @@ int init_module(void)
     
 	return 0;
 
+#ifdef REGISTER_DSP
  err_audio_dsp:
+#endif
  err_chrdev:
+#ifdef REGISTER_DSP
 	while (card-- > 0) {
 		unregister_sound_dsp(em[card].dsp_num);
 	}
+#endif
 	release_em8300(em8300_cards);
 	return -ENODEV;
 }

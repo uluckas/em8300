@@ -1,3 +1,15 @@
+2001-08-03  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_main.c,
+	  modules/Makefile,
+	  modules/README-2.4:
+	Add REGISTER_DSP to enable registering /dev/dsp
+
+	* include/linux/em8300.h,
+	  modules/em8300_ioctl.c:
+	Eduard added EM8300_IOCTL_SCR_GET/SET and
+	EM8300_IOCTL_SCR_GETSPEED/SETSPEED
+	
 2001-08-02  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_audio.c:

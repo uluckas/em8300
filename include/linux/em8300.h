@@ -62,6 +62,10 @@ typedef struct {
 #define EM8300_IOCTL_OVERLAY_GET_ATTRIBUTE _IOR('C',14,em8300_attribute_t)
 #define EM8300_IOCTL_OVERLAY_SET_ATTRIBUTE _IOW('C',14,em8300_attribute_t)
 #define EM8300_IOCTL_OVERLAY_SIGNALMODE _IOW('C',15,em8300_attribute_t)
+#define EM8300_IOCTL_SCR_GET _IOR('C',16,unsigned)
+#define EM8300_IOCTL_SCR_SET _IOW('C',16,unsigned)
+#define EM8300_IOCTL_SCR_GETSPEED _IOR('C',17,unsigned)
+#define EM8300_IOCTL_SCR_SETSPEED _IOW('C',17,unsigned)
  
 #define EM8300_OVERLAY_SIGNAL_ONLY 1
 #define EM8300_OVERLAY_SIGNAL_WITH_VGA 2

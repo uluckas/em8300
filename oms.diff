@@ -1,0 +1,505 @@
+diff --recursive -u --new-file oms/include/plugin/plugin.h.in oms.mod/include/plugin/plugin.h.in
+--- oms/include/plugin/plugin.h.in	Wed Mar  8 01:23:34 2000
++++ oms.mod/include/plugin/plugin.h.in	Sun May  7 22:40:47 2000
+@@ -36,6 +36,7 @@
+ #define DL_DECAPS_DUMMY	"@PLUGIN_DIRECTORY@/decaps/decaps_dummy.so"
+ 
+ #define DL_CODEC_DXR2	"@PLUGIN_DIRECTORY@/decode/codec_dxr2.so"
++#define DL_CODEC_DXR3	"@PLUGIN_DIRECTORY@/decode/codec_dxr3.so"
+ #define DL_CODEC_TS	"@PLUGIN_DIRECTORY@/decode/codec_ts.so"
+ #define DL_CODEC_SW	"@PLUGIN_DIRECTORY@/decode/codec_sw.so"
+ #define DL_CODEC_MGADVD	"@PLUGIN_DIRECTORY@/decode/codec_mgadvd.so"
+diff --recursive -u --new-file oms/src/plugin/decode/Makefile.am oms.mod/src/plugin/decode/Makefile.am
+--- oms/src/plugin/decode/Makefile.am	Mon Apr 10 04:30:16 2000
++++ oms.mod/src/plugin/decode/Makefile.am	Sat May  6 21:06:23 2000
+@@ -4,7 +4,7 @@
+ 
+ AUTOMAKE_OPTIONS = no-dependencies foreign
+ 
+-SUBDIRS = sw ts avp dxr2 mgadvd
++SUBDIRS = sw ts avp dxr2 dxr3 mgadvd
+ 
+ EXTRA_DIST = $(EXTRA_buf_FILES)
+ 
+diff --recursive -u --new-file oms/src/plugin/decode/dxr3/.cvsignore oms.mod/src/plugin/decode/dxr3/.cvsignore
+--- oms/src/plugin/decode/dxr3/.cvsignore	Thu Jan  1 01:00:00 1970
++++ oms.mod/src/plugin/decode/dxr3/.cvsignore	Thu Apr 27 18:10:59 2000
+@@ -0,0 +1,25 @@
++.*.sw?
++*~
++*.diff
++*.patch
++*.la
++*.lo
++*.so
++Makefile
++Makefile.in
++config.cache
++config.guess
++config.h
++config.log
++config.status
++config.sub
++configure
++install-sh
++missing
++mkinstalldirs
++stamp-h
++stamp-h.in
++.deps
++.libs
++aclocal.m4
++config.h.in
+diff --recursive -u --new-file oms/src/plugin/decode/dxr3/CVS/Entries oms.mod/src/plugin/decode/dxr3/CVS/Entries
+--- oms/src/plugin/decode/dxr3/CVS/Entries	Thu Jan  1 01:00:00 1970
++++ oms.mod/src/plugin/decode/dxr3/CVS/Entries	Thu Apr 27 18:10:59 2000
+@@ -0,0 +1,4 @@
++/.cvsignore/1.2/Thu Jan 27 01:21:22 2000//
++/Makefile.am/1.11/Mon Apr 24 21:01:08 2000//
++/codec.c/1.11/Mon Apr 24 21:02:28 2000//
++D
+diff --recursive -u --new-file oms/src/plugin/decode/dxr3/CVS/Repository oms.mod/src/plugin/decode/dxr3/CVS/Repository
+--- oms/src/plugin/decode/dxr3/CVS/Repository	Thu Jan  1 01:00:00 1970
++++ oms.mod/src/plugin/decode/dxr3/CVS/Repository	Thu Apr 27 18:10:59 2000
+@@ -0,0 +1 @@
++oms/src/plugin/decode/sw
+diff --recursive -u --new-file oms/src/plugin/decode/dxr3/CVS/Root oms.mod/src/plugin/decode/dxr3/CVS/Root
+--- oms/src/plugin/decode/dxr3/CVS/Root	Thu Jan  1 01:00:00 1970
++++ oms.mod/src/plugin/decode/dxr3/CVS/Root	Thu Apr 27 18:10:59 2000
+@@ -0,0 +1 @@
++:pserver:anonymous@cvs.linuxvideo.org:/cvs/livid
+diff --recursive -u --new-file oms/src/plugin/decode/dxr3/Makefile.am oms.mod/src/plugin/decode/dxr3/Makefile.am
+--- oms/src/plugin/decode/dxr3/Makefile.am	Thu Jan  1 01:00:00 1970
++++ oms.mod/src/plugin/decode/dxr3/Makefile.am	Fri May  5 14:21:35 2000
+@@ -0,0 +1,36 @@
++##
++## Process this file with automake to produce Makefile.in
++##
++
++AUTOMAKE_OPTIONS = no-dependencies foreign
++
++##
++DEFS = -fPIC $(CFLAGS) $(GLIB_CFLAGS) @DEFS@
++INCLUDES = -I$(top_builddir)/include
++
++libdir = $(OMS_PLUGINDIR)
++
++## Lib
++lib_LTLIBRARIES = codec_dxr3.la
++codec_dxr3_la_SOURCES = codec.c
++#codec_dxr3_la_DEPENDENCIES = libsdeps
++codec_dxr3_la_LDFLAGS = -avoid-version -module -Wl,-soname,codec_dxr3.so\
++	-lac3
++#	-L$(top_builddir)/src/plugin/codec/mpeg2dec/.libs -lmpeg2\
++#	-L$(top_builddir)/src/plugin/codec/spudec/.libs -lspu\
++#	-L$(top_builddir)/src/plugin/codec/mpg123/.libs -lmp3
++
++
++#libsdeps:
++#	@cd $(top_builddir)/src/plugin/codec/spudec; $(MAKE) libspu.la
++#	@cd $(top_builddir)/src/plugin/codec/mpeg2dec; $(MAKE) libmpeg2.la
++
++
++mostlyclean-generic:
++	-rm -f *~ \#* .*~ .\#*
++
++
++maintainer-clean-generic:
++	-@echo "This command is intended for maintainers to use;"
++	-@echo "it deletes files that may require special tools to rebuild."
++	-rm -f Makefile.in
+diff --recursive -u --new-file oms/src/plugin/decode/dxr3/codec.c oms.mod/src/plugin/decode/dxr3/codec.c
+--- oms/src/plugin/decode/dxr3/codec.c	Thu Jan  1 01:00:00 1970
++++ oms.mod/src/plugin/decode/dxr3/codec.c	Sun May  7 22:08:08 2000
+@@ -0,0 +1,391 @@
++
++/*
++ *
++ * Copyright (C) 1999, 2000  Thomas Mirlacher
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *
++ * The author may be reached as dent@cosy.sbg.ac.at, or
++ * Thomas Mirlacher, Jakob-Haringerstr. 2, A-5020 Salzburg,
++ * Austria
++ *
++ *------------------------------------------------------------
++ *
++ */
++
++
++//#define TOAST_SPU
++//#define TOAST_SYNC 1
++#define DEBUG
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <fcntl.h>
++#include <sys/types.h>
++
++#include <oms/oms.h>
++#include <oms/plugin.h>
++
++#include <ac3.h>
++#include <mpeg2.h>
++
++#include <linux/em8300.h>
++
++#include <errno.h>
++#if defined(__OpenBSD__)
++#include <soundcard.h>
++#elif defined(__FreeBSD__)
++#include <machine/soundcard.h>
++#else
++#include <sys/soundcard.h>
++#endif
++#include <sys/ioctl.h>
++#define AUDIO_CHUNK_SIZE 2048
++#define AUDIO_BUF_SIZE 2*AUDIO_CHUNK_SIZE
++
++uint_8 audio_buf[AUDIO_BUF_SIZE];
++uint_8 *audio_buf_current, *audio_buf_next;
++uint_8 *video_buf_current, *video_buf_next;
++int audio_played = 1;
++#define TEMP_BUF_SIZE 1024*1024
++uint_8 tempbuf[TEMP_BUF_SIZE];
++long long audio_pts,audio_ts = 0, video_ts = 0;
++int sound_started = 0;
++
++unsigned int video_bytes = 0, audio_bytes = 0;
++
++#include "../../codec/mpg123/mpg123.h"
++#include "../../codec/mpg123/mpglib.h"
++
++static int _dxr3_init (plugin_codec_t *plugin, buf_t *buf, char *output_path);
++static int _dxr3_open (plugin_codec_t *plugin);
++static int _dxr3_read (plugin_codec_t *plugin, buf_t *buf, buf_entry_t *buf_entry);
++static int _dxr3_set_status (plugin_codec_t *plugin, u_int status);
++static int _dxr3_set_attributes (plugin_codec_t *plugin, u_int id, void *attr);
++
++
++static struct dxr3_priv_struct {
++    int fd_video;
++    int fd_audio;
++    int fd_other;
++#ifndef TOAST_SPU
++    int fd_spu;
++#endif
++    buf_t *buf;
++} dxr3_priv;
++
++
++static plugin_codec_t codec_dxr3 = {
++    &dxr3_priv,
++    _dxr3_init,	// init
++    NULL,		// exit
++    _dxr3_open,	// open
++    NULL,		// close
++    _dxr3_read,	// read
++    NULL,		// write
++    _dxr3_set_status,
++    _dxr3_set_attributes,
++}; 
++
++
++static ac3_config_t ac3_config;
++
++
++/**
++ *
++ **/
++
++plugin_codec_t *plugin_init ()
++{
++    return &codec_dxr3;
++}
++
++
++/**
++ *
++ **/
++
++static int _dxr3_open (plugin_codec_t *plugin)
++{
++    return 0;
++}
++static int decode_blocks()
++{
++  unsigned int fragmentsize, leftover;
++  uint_8 *start, *end;
++  
++  if (audio_bytes >= AUDIO_CHUNK_SIZE)
++    {
++      //      printf("video buffer (%i/%i)\n", video_bytes, VIDEO_BUF_SIZE);
++      //      printf("video_ts %li audio_ts %li (%li)\n", (long)video_ts, (long)audio_ts, (long)audio_ts - video_ts);
++      if (audio_buf_current+AUDIO_CHUNK_SIZE > audio_buf + AUDIO_BUF_SIZE)
++	{
++	  fragmentsize = audio_buf + AUDIO_BUF_SIZE - audio_buf_current;
++	  leftover = AUDIO_CHUNK_SIZE - (audio_buf + AUDIO_BUF_SIZE - audio_buf_current);
++	  if (fragmentsize + leftover > TEMP_BUF_SIZE)
++	    {
++	      fprintf(stderr, "oops, audio tempbuf too small, %i < %i\n", fragmentsize + leftover, TEMP_BUF_SIZE);
++	      exit(0);
++	    }
++	  memcpy(tempbuf, audio_buf_current, fragmentsize);
++	  memcpy(tempbuf + fragmentsize, audio_buf, leftover); 
++	  start = tempbuf;
++	  audio_buf_current = audio_buf + leftover;
++	  end = tempbuf + fragmentsize + leftover;
++	}
++      else
++	{
++	  start = audio_buf_current;
++	  audio_buf_current += AUDIO_CHUNK_SIZE;
++	  end = start + AUDIO_CHUNK_SIZE;
++	}	
++      
++      audio_bytes -= (end - start);
++      //  printf("audio out %i\n", (end - start));
++      //      printf("audio ts %li\n", audio_ts);
++      ac3_decode_data(start, end);  
++      audio_ts = 0;
++    }	
++}
++
++
++static int insert_audio_block(uint_8 *data, int data_len, long long clock)
++{
++  int i;
++
++  //  printf("audio in %i\n", data_len);
++  //if (audio_played)
++  //  {
++  //    printf("set audio ts %li\n", clock);
++  audio_ts = clock;
++  //    audio_played = 0;
++  // }
++  
++  audio_bytes += data_len;
++
++  if (audio_buf_next + data_len > audio_buf + AUDIO_BUF_SIZE)
++    i = (audio_buf + AUDIO_BUF_SIZE) - audio_buf_next;
++  else
++    i = data_len;
++  memcpy(audio_buf_next, data, i);
++  audio_buf_next += i;
++  if (i != data_len)
++    {
++      audio_buf_next = audio_buf;
++      memcpy(audio_buf_next, data+i, data_len - i);
++      audio_buf_next += data_len - i;
++    }
++  return 0;
++}
++
++
++/**
++ *
++ **/
++
++static int _dxr3_read (plugin_codec_t *plugin, buf_t *buf, buf_entry_t *buf_entry)
++{
++    long tmp;
++    struct dxr3_priv_struct *priv = plugin->priv;
++
++    switch (buf_entry->buf_id) {
++    case BUF_AUDIO: {
++	if(buf_entry->flags & BUF_FLAG_PTS_VALID) {
++	    tmp = buf_entry->pts;
++	    ioctl(priv->fd_audio, EM8300_IOCTL_AUDIO_SETPTS, &tmp);
++	}
++	switch (buf_entry->type) {
++	default:
++	    while ((AUDIO_BUF_SIZE - audio_bytes) < buf_entry->data_len)
++		decode_blocks(); // if we dont have room, decode some more blocks
++		insert_audio_block(buf_entry->data, buf_entry->data_len, (buf_entry->clock * 300 + buf_entry->clock_ext)/27); 
++	}
++    }
++    break;	
++    case BUF_OTHER:
++	if (priv->fd_other >= 0) {
++	    fprintf (stderr, "other %d",  buf_entry->data_len);
++	    write (priv->fd_other, buf_entry->data, buf_entry->data_len);
++	}
++
++	break;
++    case BUF_SUBPIC: {
++	if(buf_entry->flags & BUF_FLAG_PTS_VALID) {
++	    printf("Spu: %d\n",buf_entry->pts);
++	    ioctl(priv->fd_spu, EM8300_IOCTL_SPU_SETPTS,buf_entry->pts);
++	}
++	
++	if (priv->fd_spu >= 0) {
++	    write (priv->fd_spu, buf_entry->data-3, buf_entry->data_len+3);
++	}	
++	break;
++    }
++    case BUF_VIDEO: {
++	if(buf_entry->flags & BUF_FLAG_PTS_VALID) {
++	    printf("video: %d\n",buf_entry->pts);
++	    ioctl(priv->fd_video, EM8300_IOCTL_VIDEO_SETPTS,buf_entry->pts);
++	}
++	if (priv->fd_video >= 0) 
++	    write (priv->fd_video, buf_entry->data, buf_entry->data_len);
++	break;
++    }
++    default:
++	//		fprintf (stderr, "codec_dxr3: unhandled stream type\n");
++    }
++
++    //	ExitMP3 (&mp);
++
++    return 0;
++}
++
++    static int fd_audio;
++
++void output_close(void) {
++}
++
++ uint_32 output_open(uint_32 bits, uint_32 rate, uint_32 channels)
++{
++  int tmp;
++  
++  /*
++   * Open the device driver
++   */
++
++  tmp = channels == 2 ? 1 : 0;
++  ioctl(fd_audio,SNDCTL_DSP_STEREO,&tmp);
++
++  tmp = bits;
++  ioctl(fd_audio,SNDCTL_DSP_SAMPLESIZE,&tmp);
++
++  tmp = rate;
++  ioctl(fd_audio,SNDCTL_DSP_SPEED, &tmp);
++  
++  return 1;
++}
++
++/*
++ * play the sample to the already opened file descriptor
++ */
++void output_play(sint_16* output_samples, uint_32 num_bytes)
++{
++//	if(fd < 0)
++//		return;
++
++  if (write(fd_audio,output_samples,num_bytes * 2) == EAGAIN)
++    {
++      fprintf(stderr, "woops, audio full!\n");
++    }
++}
++
++
++/**
++ *
++ **/
++
++static int _dxr3_init (plugin_codec_t *plugin, buf_t *_buf, char *output_path)
++{
++    struct dxr3_priv_struct *priv = plugin->priv;
++    ao_functions_t ao_funcs =
++    {
++	output_open,
++	output_play,
++	output_close
++    };
++
++    priv->buf = _buf;
++	
++    fprintf (stderr, "trying to open /tmp/video...");
++    if ((priv->fd_video = open ("/dev/em8300_mv", O_WRONLY)) < 0)
++	fprintf (stderr, "WARNING: no /tmp/video found\n");
++    else
++	fprintf (stderr, "done\n");
++
++    fprintf (stderr, "trying to open /dev/em8300_ma...");
++    if ((priv->fd_audio = open ("/dev/em8300_ma", O_WRONLY)) < 0)
++	fprintf (stderr, "WARNING: no /dev/em8300_ma found\n");
++    else {
++	fprintf (stderr, "done\n");
++	fd_audio=priv->fd_audio;
++    }
++    
++
++    if ((priv->fd_other = open ("/tmp/other", O_WRONLY)) < 0)
++	fprintf (stderr, "WARNING: no /tmp/other found\n");
++
++    if ((priv->fd_spu = open ("/dev/em8300_sp", O_WRONLY)) < 0)
++	fprintf (stderr, "WARNING: no /tmp/spu found\n");
++
++    ac3_config.num_output_ch = 2;
++    ac3_config.flags = 0;
++     
++    audio_buf_current = audio_buf_next = audio_buf;
++    sound_started = 0;
++
++    ac3_init(&ac3_config, &ao_funcs);
++
++    return 0;
++}
++
++
++/**
++ *
++ **/
++
++static int _dxr3_set_status (plugin_codec_t *plugin, u_int status)
++{
++    switch (status) {
++    case STATUS_PLAY:
++    case STATUS_PAUSE:
++    case STATUS_STOP:
++	break;
++    default:
++	fprintf (stderr, "DecoderSetStatus: unhandled status %d\n", status);
++	return -1;
++    }
++
++    return 0;
++}
++
++/**
++ *
++ **/
++
++static int _dxr3_set_attributes (plugin_codec_t *plugin, u_int id, void *attr)
++{
++    struct dxr3_priv_struct *priv = plugin->priv;
++#ifdef DEBUG
++    fprintf (stderr, "setting CLUT\n");
++#endif
++    switch (id) {
++    case BUF_SUBPIC: {	
++	plugin_codec_attr_spu_t *spu = attr;
++	unsigned char clut[16*4];
++	int i;
++
++	if(spu->clut) {
++	    for (i=0; i<16; i++) {
++		clut[i*4+0] = spu->clut[i*4+3];
++		clut[i*4+1] = spu->clut[i*4+2];
++		clut[i*4+2] = spu->clut[i*4+1];
++		clut[i*4+3] = spu->clut[i*4+0];
++	    }
++	    ioctl(priv->fd_spu, EM8300_IOCTL_SPU_SETPALETTE,clut);
++	}
++	break;
++    }	
++    }
++    return 0;
++}

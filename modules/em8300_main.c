@@ -127,11 +127,6 @@ static struct em8300_s em8300[EM8300_MAX];
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
 static int dsp_num_table[16];
 #endif
-#ifdef CONFIG_DEVFS_FS
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,70)
-devfs_handle_t em8300_handle[EM8300_MAX*4];
-#endif
-#endif
 
 /* structure to keep track of the memory that has been allocated by
    the user via mmap() */
@@ -496,7 +491,7 @@ int em8300_io_release(struct inode* inode, struct file *filp)
 	return(0);
 }
 
-static struct file_operations em8300_fops = {
+struct file_operations em8300_fops = {
 	owner: THIS_MODULE,
 	write: em8300_io_write,
 	ioctl: em8300_io_ioctl,
@@ -650,7 +645,6 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 {
 	unsigned char revision;
 	struct em8300_s *em;
-	char devname[64];
 	int result;
 
 	em = &em8300[em8300_cards];
@@ -689,36 +683,6 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 
 	init_em8300(em);
 
-#ifdef CONFIG_DEVFS_FS
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,70)
-	sprintf(devname, "%s-%d", EM8300_LOGNAME, em8300_cards );
-	em8300_handle[(em8300_cards * 4) + 0] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
-							       (em8300_cards * 4) + 0, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
-	sprintf(devname, "%s_mv-%d", EM8300_LOGNAME, em8300_cards );
-	em8300_handle[(em8300_cards * 4) + 1] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
-							       (em8300_cards * 4) + 1, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
-	sprintf(devname, "%s_ma-%d", EM8300_LOGNAME, em8300_cards );
-	em8300_handle[(em8300_cards * 4) + 2] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
-							       (em8300_cards * 4) + 2, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
-	sprintf(devname, "%s_sp-%d", EM8300_LOGNAME, em8300_cards );
-	em8300_handle[(em8300_cards * 4) + 3] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
-							       (em8300_cards * 4) + 3, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
-#else
-	devfs_mk_cdev(MKDEV(EM8300_MAJOR, (em8300_cards * 4)),
-		      S_IFCHR | S_IRUGO | S_IWUGO,
-		      "%s-%d", EM8300_LOGNAME, em8300_cards);
-	devfs_mk_cdev(MKDEV(EM8300_MAJOR, (em8300_cards * 4) + 1),
-		      S_IFCHR | S_IRUGO | S_IWUGO,
-		      "%s_mv-%d", EM8300_LOGNAME, em8300_cards);
-	devfs_mk_cdev(MKDEV(EM8300_MAJOR, (em8300_cards * 4) + 2),
-		      S_IFCHR | S_IRUGO | S_IWUGO,
-		      "%s_ma-%d", EM8300_LOGNAME, em8300_cards);
-	devfs_mk_cdev(MKDEV(EM8300_MAJOR, (em8300_cards * 4) + 3),
-		      S_IFCHR | S_IRUGO | S_IWUGO,
-		      "%s_sp-%d", EM8300_LOGNAME, em8300_cards);
-#endif
-#endif
-
 	em8300_register_card(em);
 
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
@@ -737,25 +701,11 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 static void __devexit em8300_remove(struct pci_dev *pci)
 {
 	struct em8300_s *em = pci_get_drvdata(pci);
-	char devname[64];
 
 	if (em) {
 		if (em->ucodeloaded == 1)
 			em8300_disable_card(em);
 
-#ifdef CONFIG_DEVFS_FS
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,69)
-		devfs_unregister(em8300_handle[(em->card_nr * 4) + 3]);
-		devfs_unregister(em8300_handle[(em->card_nr * 4) + 2]);
-		devfs_unregister(em8300_handle[(em->card_nr * 4) + 1]);
-		devfs_unregister(em8300_handle[(em->card_nr * 4) + 0]);
-#else
-		devfs_remove("%s-%d", EM8300_LOGNAME, em->card_nr);
-		devfs_remove("%s_mv-%d", EM8300_LOGNAME, em->card_nr);
-		devfs_remove("%s_ma-%d", EM8300_LOGNAME, em->card_nr);
-		devfs_remove("%s_sp-%d", EM8300_LOGNAME, em->card_nr);
-#endif
-#endif
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
 		unregister_sound_dsp(em->dsp_num);
 #endif
@@ -782,11 +732,7 @@ static void __exit em8300_exit(void)
 
 	pci_unregister_driver(&em8300_driver);
 
-#if defined(CONFIG_DEVFS_FS) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
-	devfs_unregister_chrdev(EM8300_MAJOR, EM8300_LOGNAME);
-#else
 	unregister_chrdev(EM8300_MAJOR, EM8300_LOGNAME);
-#endif
 
 	em8300_unregister_driver();
 }
@@ -802,11 +748,7 @@ static int __init em8300_init(void)
 
 	em8300_register_driver();
 
-#if defined(CONFIG_DEVFS_FS) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
-	if (devfs_register_chrdev(EM8300_MAJOR, EM8300_LOGNAME, &em8300_fops)) {
-#else
 	if (register_chrdev(EM8300_MAJOR, EM8300_LOGNAME, &em8300_fops)) {
-#endif
 		printk(KERN_ERR "em8300: unable to get major %d\n", EM8300_MAJOR);
 		err = -ENODEV;
 		goto err_chrdev;
@@ -826,11 +768,7 @@ static int __init em8300_init(void)
 	return 0;
 
  err_init:
-#if defined(CONFIG_DEVFS_FS) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
-	devfs_unregister_chrdev(EM8300_MAJOR, EM8300_LOGNAME);
-#else
 	unregister_chrdev(EM8300_MAJOR, EM8300_LOGNAME);
-#endif
 
  err_chrdev:
 	em8300_unregister_driver();

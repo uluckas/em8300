@@ -15,6 +15,13 @@
 	  modules/em8300_registration.c:
 	Convert all the procfs stuff to that new interface.
 
+	* modules/Makefile,
+	  modules/em8300_devfs.c,
+	  modules/em8300_devfs.h,
+	  modules/em8300_main.c,
+	  modules/em8300_registration.c:
+	Also convert all the devfs stuff to that new interface.
+
 2004-04-14  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_compat24.h,
 	  modules/em8300_main.c:

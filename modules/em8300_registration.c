@@ -22,10 +22,12 @@
 #include "em8300_registration.h"
 
 #include "em8300_procfs.h"
+#include "em8300_devfs.h"
 
 static struct em8300_registrar_s *registrars[] =
 {
 	&em8300_procfs_registrar,
+	&em8300_devfs_registrar,
 	NULL
 };
 

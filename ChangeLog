@@ -1,3 +1,7 @@
+2002-02-25  David Holm  <dholm@iname.com>
+	* modules/em8300_main.c:
+	2.2 kernel fix (argh, ppl stop using this kernel ;)
+
 2002-02-23  Jonas Birme  <jonas@birme.se>
 	* modules/Makefile
 	Removed the installation of em8300.h in install-newkern.

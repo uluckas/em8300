@@ -249,7 +249,7 @@ static int find_em8300(void)
 #endif	
 		em->memsize = 1024 * 1024;
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,2,0)
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,3,0)
 		pci_enable_device(dev);
 #endif
 		pci_read_config_byte(dev, PCI_CLASS_REVISION, &revision);

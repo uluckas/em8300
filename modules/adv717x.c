@@ -261,7 +261,7 @@ int adv717x_update(struct i2c_client *client) {
     tmpconfig[1] |= data->bars ? 0x80:0;
 
     switch(data->chiptype) {
-    case CHIP_ADV7175:
+    case CHIP_ADV7175A:
 	if(data->rgbmode) 
 	    tmpconfig[0] |= 0x40;
 	break;

@@ -324,7 +324,7 @@ ssize_t em8300_video_write(struct em8300_s *em, const char * buf, size_t count, 
 {
 	unsigned flags = 0;
 	int written;
-	unsigned int safe_jiff = jiffies;
+	unsigned long safe_jiff = jiffies;
 
 	if (em->video_ptsvalid) {
 		int ptsfifoptr = 0;

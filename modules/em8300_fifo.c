@@ -161,7 +161,7 @@ int em8300_fifo_check(struct fifo_s *fifo)
 
 int em8300_fifo_sync(struct fifo_s *fifo)
 {
-	unsigned int safe_jiff = jiffies;
+	unsigned long safe_jiff = jiffies;
 
 	while (readl(fifo->writeptr) != readl(fifo->readptr)) {
 		interruptible_sleep_on_timeout(&fifo->wait, 3 * HZ);

@@ -1,3 +1,11 @@
+2004-02-16  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_fifo.c,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_spu.c,
+	  modules/em8300_video.c:
+	The variable jiffies has type unsigned long, not unsigned int;
+	thanks to Håkon Skjelten for pointing this.
+
 2004-03-14  Nicolas Boullis  <nboullis@debian.org>
 	* modules/Makefile:
 	When building modules, if $(I2C_LOCATION) is set, ensure that 

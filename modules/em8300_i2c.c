@@ -131,6 +131,8 @@ int em8300_i2c_init(struct em8300_s *em)
 	int ret;
 	struct private_data_s *pdata;
 
+	//request_module("i2c-algo-bit");
+	
 	switch (em->chip_revision) {
 	case 2:
 		em->i2c_oe_reg = EM8300_I2C_OE;

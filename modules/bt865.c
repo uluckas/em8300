@@ -58,6 +58,8 @@ MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be d
 MODULE_LICENSE("GPL");
 #endif
 
+EXPORT_NO_SYMBOLS;
+
 #define i2c_is_isa_client(clientptr) \
 		((clientptr)->adapter->algo->id == I2C_ALGO_ISA)
 #define i2c_is_isa_adapter(adapptr) \
@@ -997,6 +999,7 @@ int __init bt865_init(void)
 	PAL_CONFIG_BT865[23] = (PAL_CONFIG_BT865[23] & ~0x10) | bars;
 	PALNC_CONFIG_BT865[23] = (PALNC_CONFIG_BT865[23] & ~0x10) | bars;
 
+	//request_module("i2c-algo-bit");
 	return i2c_add_driver(&bt865_driver);
 }
 

@@ -89,6 +89,8 @@ MODULE_PARM(remap, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_LICENSE("GPL");
 #endif
 
+EXPORT_NO_SYMBOLS;
+
 static unsigned int use_bt865[EM8300_MAX]={};
 MODULE_PARM(use_bt865, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(use_bt865, "Set this to 1 if you have a bt865. It changes some internal register values. Defaults to 0.");
@@ -694,7 +696,7 @@ int init_em8300(struct em8300_s *em)
 	return 0;
 }
 
-void em8300_exit(void)
+void __exit em8300_exit(void)
 {
 	int card;
 #ifdef CONFIG_DEVFS_FS
@@ -725,7 +727,7 @@ void em8300_exit(void)
 	release_em8300(em8300_cards);
 }
 
-int em8300_init(void)
+int __init em8300_init(void)
 {
 	int card = 0;
 	int frame = 3;
@@ -755,6 +757,10 @@ int em8300_init(void)
 	em8300_proc->owner = THIS_MODULE;
 #endif
 #endif
+#ifdef CONFIG_SOUND_MODULE
+	//request_module("soundcore");
+#endif
+
 	/* Find EM8300 cards */
 	em8300_cards = find_em8300();
 

@@ -56,6 +56,7 @@ MODULE_SUPPORTED_DEVICE("adv717x");
 MODULE_LICENSE("GPL");
 #endif
 
+EXPORT_NO_SYMBOLS;
 
 #ifdef CONFIG_ADV717X_PIXELPORT16BIT
 int pixelport_16bit = 1;
@@ -568,6 +569,7 @@ int __init adv717x_init(void)
 	PAL60_config_7175[1] = (PAL60_config_7175[1] & ~0x80) | bars;
 	NTSC_config_7175[1] = (NTSC_config_7175[1] & ~0x80) | bars;
 
+	//request_module("i2c-algo-bit");
 	return i2c_add_driver(&adv717x_driver);
 }
 

@@ -419,30 +419,6 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 	static uint32_t rollover_lastpts = 0;
 	static uint32_t rollover_startpts = 0;
 	static uint32_t lastpts_count = 0;
-	static uint32_t dropped_last = 0;
-	static uint32_t pts = 0;
-
-#if 1
-	if (em->audio_ptsvalid) {
-		/* pts has gone backwards, but not far enough to be a rollover */
-		dropped_last = 0;
-		if (em->audio_pts < em->video_lastpts) {
-			if ((em->audio_lastpts - em->audio_pts) < 90000) {
-				em->audio_lastpts += lastpts_count;
-				em->audio_lag -= lastpts_count;
-				lastpts_count = 0;
-				dropped_last = 1;
-				pts = em->audio_pts;
-			}
-		}
-	}
-
-	if (dropped_last) {
-		pr_debug("em8300_audio.o: dropping data, pts: %u lastpts: %u\n",
-			 pts, em->audio_lastpts);
-		return 0;
-	}
-#endif
 
 	if(em->audio_ptsvalid) {
 		em->audio_ptsvalid=0;
@@ -456,8 +432,8 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 			em->audio_lastpts = em->audio_pts;
 		}
 
-		/* backwards by more than a sec probably means rollover */
-		if ((int)(em->audio_lastpts - em->audio_pts) > 90000) {
+		/* rollover detected */
+		if (em->audio_pts < em->audio_lastpts) {
 			pr_debug("em8300_audio.o: ROLLOVER DETECTED! lastpts: %u pts: %u\n", em->audio_lastpts, em->audio_pts);
 			rollover = 1;
 			rollover_pts = 0;

@@ -265,22 +265,6 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos)
 {
     unsigned flags=0;
-    static uint32_t pts;
-
-    if (em->video_ptsvalid) {
-	    pts = em->video_pts;
-    }
-
-#if 0
-    /* pts has gone backwards, but not far enough to be a rollover */
-    if (pts < em->video_lastpts) {
-	    if ((em->video_lastpts - pts) < 90000) {
-		    pr_debug("em8300_video.o: dropping data, pts: %u lastpts: %u\n",
-			   pts, em->video_lastpts);
-		    return 0;
-	    }
-    }
-#endif
 
     if(em->video_ptsvalid) {
 	int ptsfifoptr=0;

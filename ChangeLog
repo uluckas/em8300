@@ -1,5 +1,15 @@
 2001-04-22  Rick Haines  <rick@kuroyi.net>
 
+	* modules/em8300_audio.c,
+	  modules/em8300_video.c:
+	remove the 1 sec requirement for rollover.
+	Now if we get any pts lower than the lastpts
+	we'll consider it a rollover.  I was attempting
+	to work around broken mpeg's but it's not worth
+	doing it in the driver.  So much for my eva #4 fix..
+	
+2001-04-22  Rick Haines  <rick@kuroyi.net>
+
 	* m4/gtk.m4,
 	  configure.in,
 	  Makefile.am,

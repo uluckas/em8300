@@ -1,6 +1,6 @@
 MODULE_VERSION="0.11.0.cvs"
 # where the kernel sources are located
-KERNEL_LOCATION=/lib/modules/$(shell uname -r)/build
+KERNEL_LOCATION?=/lib/modules/$(shell uname -r)/build
 
 # If your I2C stuff is builtin to kernel leave this blank
 # otherwise change to the location of the I2C headers
@@ -129,7 +129,7 @@ uninstall : $(MODULES)
 install-newkern : $(MODULES)
 	@for module in $^ ;\
 	do \
-	install -D $$module /lib/modules/$(KERNVER)/kernel/drivers/video/$$module ;\
+	install -D $$module $(prefix)/lib/modules/$(KERNVER)/kernel/drivers/video/$$module ;\
 	echo $$module ;\
 	@echo em8300.h
 	@install -D ../include/linux/em8300.h \

@@ -71,6 +71,20 @@ int em9010_cabledetect(struct em8300_s *em)
   a = [ebp-8]
 */
 
+/* computes `a - b'  and write the result in `result', assumes `a >= b' */
+static inline void
+my_timeval_less(struct timeval a, struct timeval b, struct timeval * result)
+{
+        if (a.tv_usec < b.tv_usec)
+        {
+                a.tv_sec--;
+                a.tv_usec += 1000000;
+        }
+
+        result->tv_sec = a.tv_sec - b.tv_sec;
+        result->tv_usec = a.tv_usec - b.tv_usec;
+}
+
 static 
 int sub_2AC2D(struct em8300_s *em)
 {
@@ -82,7 +96,7 @@ int sub_2AC2D(struct em8300_s *em)
     while(em9010_read(em,0x0) & 0x20) {
 	if(!a--) {
 	    do_gettimeofday(&t2);
-	    timeval_less(t2,t,&tr);
+	    my_timeval_less(t2,t,&tr);
 	    if(tr.tv_usec >= 50*1000)
 		return(0);
 	    a=1000;
@@ -94,7 +108,7 @@ int sub_2AC2D(struct em8300_s *em)
     while(!(em9010_read(em,0x0) & 0x20)) {
 	if(!a--) {
 	    do_gettimeofday(&t2);
-	    timeval_less(t2,t,&tr);
+	    my_timeval_less(t2,t,&tr);
 	    if(tr.tv_usec >= 50*1000)
 		return(0);
 	    a=1000;

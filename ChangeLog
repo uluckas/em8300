@@ -1,6 +1,7 @@
 2003-07-25  David Holm  <david@realityrift.com>
 	* modules/adv717x.c,
 	  modules/bt865.c,
+	  modules/em8300-i2c-2.8.0.patch,
 	  modules/em8300_audio.c,
 	  modules/em8300_dicom.c,
 	  modules/em8300_fifo.c,
@@ -12,8 +13,8 @@
 	  modules/em8300_ucode.c,
 	  modules/em8300_video.c,
 	  modules/em9010.c:
-	Reversed the patch from SuSE, they forgot to tell me it only works if
-	your kernel is patched with i2c 2.8.0.
+	Reversed the patch from SuSE and added it as a patch. They forgot to
+	tell me it only works if your kernel is patched with i2c 2.8.0.
 
 2003-07-17  David Holm  <david@realityrift.com>
 	* modules/adv717x.c,

@@ -1,0 +1,356 @@
+diff -aur modules.old/adv717x.c modules/adv717x.c
+--- modules.old/adv717x.c	Wed Jan  8 12:11:38 2003
++++ modules/adv717x.c	Fri Jul 25 14:12:45 2003
+@@ -41,6 +41,7 @@
+ #include <linux/version.h>
+ #include <asm/uaccess.h>
+ 
++#include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ #include <linux/video_encoder.h>
+ 
+@@ -100,8 +101,6 @@
+ static int adv717x_attach_adapter(struct i2c_adapter *adapter);
+ int adv717x_detach_client(struct i2c_client *client);
+ int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg);
+-void adv717x_inc_use (struct i2c_client *client);
+-void adv717x_dec_use (struct i2c_client *client);
+ 
+ #define CHIP_ADV7175A 1
+ #define CHIP_ADV7170  2
+@@ -119,14 +118,13 @@
+ 
+ /* This is the driver that will be inserted */
+ static struct i2c_driver adv717x_driver = {
++  /* owner */           THIS_MODULE,
+   /* name */		"ADV717X video encoder driver",
+   /* id */		I2C_DRIVERID_ADV717X,
+   /* flags */		I2C_DF_NOTIFY,
+   /* attach_adapter */  &adv717x_attach_adapter,
+   /* detach_client */   &adv717x_detach_client,
+-  /* command */		&adv717x_command,
+-  /* inc_use */		&adv717x_inc_use,
+-  /* dec_use */		&adv717x_dec_use
++  /* command */		&adv717x_command
+ };
+ 
+ int adv717x_id = 0;
+@@ -509,22 +507,6 @@
+ 	return 0;
+ }
+ 
+-/* Nothing here yet */
+-void adv717x_inc_use (struct i2c_client *client)
+-{
+-#ifdef MODULE
+-	MOD_INC_USE_COUNT;
+-#endif
+-}
+-
+-/* Nothing here yet */
+-void adv717x_dec_use (struct i2c_client *client)
+-{
+-#ifdef MODULE
+-	MOD_DEC_USE_COUNT;
+-#endif
+-}
+-
+ /* ----------------------------------------------------------------------- */
+ 
+ 
+@@ -535,6 +517,7 @@
+ 	int pd_adj_ntsc;
+ 	int pd_adj_pal;
+ 	int bars;
++	int ret;
+ 
+ 	if (pixelport_16bit) {
+ 		pp_ntsc = pp_pal = 0x40;
+@@ -588,11 +571,21 @@
+ 	NTSC_config_7175[1] = (NTSC_config_7175[1] & ~0x80) | bars;
+ 
+ 	//request_module("i2c-algo-bit");
+-	return i2c_add_driver(&adv717x_driver);
++	ret = i2c_add_driver(&adv717x_driver);
++	if (!ret) {
++#ifdef MODULE
++	MOD_INC_USE_COUNT;
++#endif
++	}
++
++	return ret;
+ }
+ 
+ void __exit adv717x_cleanup(void)
+ {
++#ifdef MODULE
++	MOD_DEC_USE_COUNT;
++#endif
+ 	i2c_del_driver(&adv717x_driver);
+ }
+ 
+diff -aur modules.old/bt865.c modules/bt865.c
+--- modules.old/bt865.c	Wed Jan  8 11:18:57 2003
++++ modules/bt865.c	Fri Jul 25 14:12:45 2003
+@@ -45,6 +45,7 @@
+ #include <linux/version.h>
+ #include <asm/uaccess.h>
+ 
++#include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ #include <linux/video_encoder.h>
+ 
+@@ -76,8 +77,6 @@
+ static int bt865_attach_adapter(struct i2c_adapter *adapter);
+ int bt865_detach_client(struct i2c_client *client);
+ int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg);
+-void bt865_inc_use (struct i2c_client *client);
+-void bt865_dec_use (struct i2c_client *client);
+ static int bt865_setup(struct i2c_client *client);
+ 
+ struct bt865_data_s {
+@@ -93,14 +92,13 @@
+ 
+ /* This is the driver that will be inserted */
+ static struct i2c_driver bt865_driver = {
++  /* owner */           THIS_MODULE,
+   /* name */		"BT865 video encoder driver",
+   /* id */		I2C_DRIVERID_BT865,
+   /* flags */		I2C_DF_NOTIFY,
+   /* attach_adapter */  &bt865_attach_adapter,
+   /* detach_client */   &bt865_detach_client,
+-  /* command */		&bt865_command,
+-  /* inc_use */		&bt865_inc_use,
+-  /* dec_use */		&bt865_dec_use
++  /* command */		&bt865_command
+ };
+ 
+ int bt865_id = 0;
+@@ -968,28 +966,13 @@
+ 	return 0;
+ }
+ 
+-/* Nothing here yet */
+-void bt865_inc_use (struct i2c_client *client)
+-{
+-#ifdef MODULE
+-	MOD_INC_USE_COUNT;
+-#endif
+-}
+-
+-/* Nothing here yet */
+-void bt865_dec_use (struct i2c_client *client)
+-{
+-#ifdef MODULE
+-	MOD_DEC_USE_COUNT;
+-#endif
+-}
+-
+ /* ----------------------------------------------------------------------- */
+ 
+ 
+ int __init bt865_init(void)
+ {
+ 	int bars;
++	int ret;
+ 	
+         if (color_bars) {
+ 		bars = 0x10;
+@@ -1014,11 +997,21 @@
+ 	PALNC_CONFIG_BT865[23] = (PALNC_CONFIG_BT865[23] & ~0x10) | bars;
+ 
+ 	//request_module("i2c-algo-bit");
+-	return i2c_add_driver(&bt865_driver);
++	ret = i2c_add_driver(&bt865_driver);
++	if (!ret) {
++#ifdef MODULE
++	MOD_INC_USE_COUNT;
++#endif
++	}
++
++	return ret;
+ }
+ 
+ void __exit bt865_cleanup(void)
+ {
++#ifdef MODULE
++	MOD_DEC_USE_COUNT;
++#endif
+ 	i2c_del_driver(&bt865_driver);
+ }
+ 
+diff -aur modules.old/em8300_audio.c modules/em8300_audio.c
+--- modules.old/em8300_audio.c	Fri Nov 29 22:34:03 2002
++++ modules/em8300_audio.c	Fri Jul 25 14:12:45 2003
+@@ -15,6 +15,7 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ 
++#include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ 
+ #include "em8300_reg.h"
+diff -aur modules.old/em8300_dicom.c modules/em8300_dicom.c
+--- modules.old/em8300_dicom.c	Fri Apr 12 17:53:41 2002
++++ modules/em8300_dicom.c	Fri Jul 25 14:12:46 2003
+@@ -14,6 +14,7 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ 
++#include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ 
+ #include "em8300_reg.h"
+diff -aur modules.old/em8300_fifo.c modules/em8300_fifo.c
+--- modules.old/em8300_fifo.c	Sat Jun 14 09:53:16 2003
++++ modules/em8300_fifo.c	Fri Jul 25 14:12:46 2003
+@@ -41,6 +41,7 @@
+ #include <linux/version.h>
+ #include <asm/uaccess.h>
+ 
++#include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ 
+ #include "em8300_reg.h"
+diff -aur modules.old/em8300_i2c.c modules/em8300_i2c.c
+--- modules.old/em8300_i2c.c	Mon Nov  4 17:21:42 2002
++++ modules/em8300_i2c.c	Fri Jul 25 14:12:46 2003
+@@ -14,6 +14,7 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ 
++#include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ 
+ #include "em8300_reg.h"
+@@ -115,14 +116,6 @@
+ 	return 0;
+ }
+ 
+-static void em8300_i2c_inc(struct i2c_adapter *adapter)
+-{	
+-}
+-
+-static void em8300_i2c_dec(struct i2c_adapter *adapter)
+-{	
+-}
+-
+ /* ----------------------------------------------------------------------- */
+ /* I2C functions							   */
+ /* ----------------------------------------------------------------------- */
+@@ -176,8 +169,6 @@
+ 	em->i2c_ops_1.id = I2C_HW_B_EM8300;
+ 	em->i2c_ops_1.algo = NULL;
+ 	em->i2c_ops_1.algo_data = &em->i2c_data_1;
+-	em->i2c_ops_1.inc_use = em8300_i2c_inc;
+-	em->i2c_ops_1.dec_use = em8300_i2c_dec;
+ 	em->i2c_ops_1.client_register = em8300_i2c_reg;
+ 	em->i2c_ops_1.client_unregister = em8300_i2c_unreg;
+ 	em->i2c_ops_1.data = em;
+@@ -211,13 +202,16 @@
+ 	em->i2c_ops_2.id = I2C_HW_B_EM8300;
+ 	em->i2c_ops_2.algo = NULL;
+ 	em->i2c_ops_2.algo_data = &em->i2c_data_2;
+-	em->i2c_ops_2.inc_use = em8300_i2c_inc;
+-	em->i2c_ops_2.dec_use = em8300_i2c_dec;
+ 	em->i2c_ops_2.client_register = em8300_i2c_reg;
+ 	em->i2c_ops_2.client_unregister = em8300_i2c_unreg;
+ 	em->i2c_ops_2.data = em;
+ 	
+ 	ret = i2c_bit_add_bus(&em->i2c_ops_2);
++
++#ifdef MODULE
++	MOD_INC_USE_COUNT;
++#endif
++
+ 	return ret;
+ }
+ 
+@@ -228,6 +222,10 @@
+ 	kfree(em->i2c_data_2.data);
+ 	i2c_bit_del_bus(&em->i2c_ops_1);
+ 	i2c_bit_del_bus(&em->i2c_ops_2);
++
++#ifdef MODULE
++	MOD_DEC_USE_COUNT;
++#endif
+ }
+ 
+ void em8300_clockgen_write(struct em8300_s *em, int abyte)
+diff -aur modules.old/em8300_ioctl.c modules/em8300_ioctl.c
+--- modules.old/em8300_ioctl.c	Sat Jun 14 09:53:16 2003
++++ modules/em8300_ioctl.c	Fri Jul 25 14:12:46 2003
+@@ -14,6 +14,7 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ 
++#include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ 
+ #include "em8300_reg.h"
+diff -aur modules.old/em8300_main.c modules/em8300_main.c
+--- modules.old/em8300_main.c	Wed Jan  8 12:11:38 2003
++++ modules/em8300_main.c	Fri Jul 25 14:12:47 2003
+@@ -57,6 +57,7 @@
+ #endif
+ 
+ #include <asm/uaccess.h>
++#include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ 
+ #include "encoder.h"
+diff -aur modules.old/em8300_misc.c modules/em8300_misc.c
+--- modules.old/em8300_misc.c	Sat Jan 12 21:49:55 2002
++++ modules/em8300_misc.c	Fri Jul 25 14:12:48 2003
+@@ -14,6 +14,7 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ 
++#include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ 
+ #include "em8300_reg.h"
+diff -aur modules.old/em8300_spu.c modules/em8300_spu.c
+--- modules.old/em8300_spu.c	Sat Jun 14 09:53:16 2003
++++ modules/em8300_spu.c	Fri Jul 25 14:12:48 2003
+@@ -14,6 +14,7 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ 
++#include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ 
+ #include "em8300_reg.h"
+diff -aur modules.old/em8300_ucode.c modules/em8300_ucode.c
+--- modules.old/em8300_ucode.c	Sat Jan 12 21:49:55 2002
++++ modules/em8300_ucode.c	Fri Jul 25 14:12:48 2003
+@@ -14,6 +14,7 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ 
++#include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ 
+ #include "em8300_reg.h"
+diff -aur modules.old/em8300_video.c modules/em8300_video.c
+--- modules.old/em8300_video.c	Sat Jun 14 09:53:16 2003
++++ modules/em8300_video.c	Fri Jul 25 14:12:48 2003
+@@ -14,6 +14,7 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ 
++#include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ 
+ #include "em8300_reg.h"
+diff -aur modules.old/em9010.c modules/em9010.c
+--- modules.old/em9010.c	Sat Jan 12 21:49:55 2002
++++ modules/em9010.c	Fri Jul 25 14:12:48 2003
+@@ -14,6 +14,7 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ 
++#include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ #include <linux/time.h>
+ 

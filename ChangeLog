@@ -1,3 +1,11 @@
+2003-06-14  David Holm  <david@realityrift.com>
+	* modules/em8300_fifo.c,
+	  modules/em8300_spu.c,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_video.c:
+	Added patch from Stefan Schluenss <stefan dot schluenss at gmx dot de>
+	to prevent the driver from blocking on some calls.
+
 2003-01-09  David Holm  <david@realityrift.com>
 	* bootstrap:
 	Tried to hack around broken (?) autoconf.

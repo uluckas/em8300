@@ -31,6 +31,7 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 	em8300_overlay_screen_t ov_scr;
 	em8300_overlay_calibrate_t ov_cal;
 	em8300_attribute_t attr;
+	unsigned int safe_jiff = jiffies;
 	
 	if (_IOC_DIR(cmd) != 0) {
 		len = _IOC_SIZE(cmd);
@@ -101,7 +102,10 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		write_ucregister(Q_IrqMask, em->irqmask);
 
 		/* go to sleep */
-		interruptible_sleep_on(&em->vbi_wait);
+		// interruptible_sleep_on(&em->vbi_wait);
+		interruptible_sleep_on_timeout(&em->vbi_wait, HZ);
+		if (jiffies - safe_jiff >= HZ) return -EINTR;
+        
 		/* check if signal arrived */
 		if (signal_pending(current)) {
 			return -EINTR;

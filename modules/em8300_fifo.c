@@ -166,9 +166,13 @@ int em8300_fifo_check(struct fifo_s *fifo)
 
 int em8300_fifo_sync(struct fifo_s *fifo)
 {
+	unsigned int safe_jiff = jiffies;
+
 	while (*fifo->writeptr != *fifo->readptr) {
 		fifo->waiting = 1;
-		interruptible_sleep_on(&fifo->wait);
+		// interruptible_sleep_on(&fifo->wait);
+		interruptible_sleep_on_timeout(&fifo->wait, HZ);
+		if (jiffies - safe_jiff >= HZ) return -EINTR;
 		fifo->waiting = 0;
 
 		if (signal_pending(current)) {
@@ -228,6 +232,7 @@ int em8300_fifo_write(struct fifo_s *fifo, int n, const char *userbuffer, int fl
 int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer, int flags)
 {
 	int total_bytes_written = 0, copy_size;
+	unsigned int safe_jiff = jiffies;
 
 	if (!fifo->valid) {
 		return -EPERM;
@@ -246,7 +251,12 @@ int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer
 
 		if (!copy_size) {
 			fifo->waiting = 1;
+
+			interruptible_sleep_on_timeout(&fifo->wait, HZ);
+			if (jiffies - safe_jiff >= HZ) return -EINTR;
+/*
 			interruptible_sleep_on(&fifo->wait);
+*/
 		}
 	
 		if (signal_pending(current)) {
@@ -259,6 +269,8 @@ int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer
 
 	}
 
+	// printk(KERN_ERR "em8300.o: count = %d\n", total_bytes_written);		
+	// printk(KERN_ERR "em8300.o: time  = %d\n", jiffies - safe_jiff);		
 	return total_bytes_written;
 }
 

@@ -300,7 +300,8 @@ int em8300_video_write(struct em8300_s *em, const char * buf, size_t count, loff
 {
 	unsigned flags = 0;
 	int written;
-	
+	unsigned int safe_jiff = jiffies;	
+
 	if (em->video_ptsvalid) {
 		int ptsfifoptr = 0;
 		em->video_lastpts = em->video_pts;
@@ -311,7 +312,12 @@ int em8300_video_write(struct em8300_s *em, const char * buf, size_t count, loff
 		
 		if (read_register(ptsfifoptr+3) & 1) {
 			em->video_ptsfifo_waiting = 1;
-			interruptible_sleep_on(&em->video_ptsfifo_wait);
+			// interruptible_sleep_on(&em->video_ptsfifo_wait);
+			interruptible_sleep_on_timeout(&em->video_ptsfifo_wait, HZ);
+			if (jiffies - safe_jiff >= HZ) {
+				return -EINTR;
+			}
+
 			em->video_ptsfifo_waiting = 0;
 			if (signal_pending(current)) {
 				return -EINTR;
@@ -346,7 +352,7 @@ int em8300_video_write(struct em8300_s *em, const char * buf, size_t count, loff
 
 int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 {
-    unsigned scr,val;
+	unsigned scr, val;
 	switch (_IOC_NR(cmd)) {
 	case _IOC_NR(EM8300_IOCTL_VIDEO_SETPTS):
 		if (get_user(em->video_pts, (int *) arg)) {

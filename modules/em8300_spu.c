@@ -78,6 +78,8 @@ void em8300_spu_check_ptsfifo(struct em8300_s *em)
 int em8300_spu_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
 {
 	int flags = 0;
+	unsigned int safe_jiff = jiffies;
+    
 	if (!(em->sp_mode)) return 0;
 //	em->sp_ptsvalid=0;
 	if (em->sp_ptsvalid) {
@@ -87,7 +89,12 @@ int em8300_spu_write(struct em8300_s *em, const char * buf, size_t count, loff_t
 	
 		if (read_register(ptsfifoptr + 1) & 1) {
 			em->sp_ptsfifo_waiting = 1;
-			interruptible_sleep_on(&em->sp_ptsfifo_wait);
+			// interruptible_sleep_on(&em->sp_ptsfifo_wait);
+			interruptible_sleep_on_timeout(&em->sp_ptsfifo_wait, HZ);
+    			if (jiffies - safe_jiff >= HZ) {
+				return -EINTR;
+			}
+
 			em->sp_ptsfifo_waiting = 0;
 			if (signal_pending(current)) {
 				return -EINTR;

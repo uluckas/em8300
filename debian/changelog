@@ -1,3 +1,9 @@
+em8300 (0.8.1pre1-2) unstable; urgency=high
+
+  * Minor debian-fixes
+
+ -- Jonas Birme <jonas@birme.se>  Sun, 12 Aug 2001 19:00:59 +0100
+ 
 em8300 (0.8.1pre1-1) unstable; urgency=high
 
   * Fix of autocal-problem. This may warrant a 0.8.1 release

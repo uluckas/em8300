@@ -31,6 +31,7 @@ build:	.prereq.ok
 	$(checkdir)
 	sh -v debian/make-tarball.sh
 	$(MAKE)
+	touch build
 	   
 build-modules: .prereq.modules
 	   $(checkdir)
@@ -59,9 +60,8 @@ binary-indep: checkroot build
 
 binary-lib:	checkroot build
 	$(checkdir)
-	$(RM) -r debian/tmp
+	$(RM) -rf debian/tmp
 	install -d debian/tmp debian/tmp/DEBIAN
-	install -d debian/tmp/usr/share/doc/$(package)
 	install debian/em8300.config	debian/tmp/DEBIAN/config
 	install debian/em8300.preinst	debian/tmp/DEBIAN/preinst
 	install debian/em8300.postinst	debian/tmp/DEBIAN/postinst
@@ -71,34 +71,20 @@ binary-lib:	checkroot build
 	$(MAKE) \
 	  prefix=$$(pwd)/debian/tmp/usr install
 	strip `ls debian/tmp/usr/bin/* 2>/dev/null`
+	
 	install -d debian/tmp/usr/sbin/
 	install -m755 scripts/microcode* scripts/msexpand.pl \
 	  debian/tmp/usr/sbin/
-	install -d debian/tmp/usr/src
+	
+	install -d debian/tmp/usr/src	
 	install -m644 debian/em8300.tar.gz debian/tmp/usr/src/
-	install -m644 README NEWS AUTHORS \
-	  debian/tmp/usr/share/doc/$(package)/.
-	install -m644 ChangeLog debian/tmp/usr/share/doc/$(package)/changelog
-	install -m644 debian/README \
-	  debian/tmp/usr/share/doc/$(package)/README.Debian
-	install -m644 debian/changelog \
-	  debian/tmp/usr/share/doc/$(package)/changelog.Debian
-	gzip -9v debian/tmp/usr/share/doc/$(package)/*
-	install -m644 debian/copyright \
-	  debian/tmp/usr/share/doc/$(package)/copyright
-	install -d debian/tmp/usr/share/man/man1
-	install -m644 debian/man/*.1 debian/tmp/usr/share/man/man1/
-	gzip -9v debian/tmp/usr/share/man/man1/*
-	dpkg-shlibdeps `ls 2>/dev/null dhc/dhc overlay/autocal overlay/dxr3view libdxr3/.libs/libdxr3.so.0.0.0`
-	dpkg-gencontrol -pem8300
-	sed '/:/s/, *$$//' debian/tmp/DEBIAN/control \
-	  > debian/tmp/DEBIAN/control.new
-	mv debian/tmp/DEBIAN/control.new debian/tmp/DEBIAN/control
-	chmod 644 debian/tmp/usr/lib/libdxr3.la
-	chmod 644 debian/tmp/usr/share/em8300/em8300.pm
+	
+	debstd ChangeLog NEWS README AUTHORS
+
+	dpkg-gencontrol -isp
 	chown -R root.root debian/tmp
 	chmod -R g-ws debian/tmp
-	dpkg-deb --build debian/tmp ..
+	dpkg --build debian/tmp ..
 
 binary-modules: checkroot build-modules
 	     rm -rf debian/tmp-modules

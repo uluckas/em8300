@@ -2,7 +2,6 @@ Package: em8300
 Architecture: i386
 Pre-Depends: debconf (>= 0.2.17)
 Depends: ${shlibs:Depends}, gcc, make
-Suggests: ${shlibs:Suggests}
 Description: H+ / DXR3 device driver for Linux.
  For further information, visit the webpage at http://dxr3.sourceforge.net/
  .

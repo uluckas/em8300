@@ -105,31 +105,37 @@ static void preprocess_analog(struct em8300_s *em, unsigned char *outbuf, const 
 {
 	int i;
 
-#ifdef __BIG_ENDIAN
-	if (em->audio.format == AFMT_S16_BE) {
-#else /* __LITTLE_ENDIAN */
-	if (em->audio.format == AFMT_S16_LE ||
-	    em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3) {
-#endif
+	if (em->audio.format == AFMT_S16_LE) {
 		if (em->audio.channels == 2) {
 			for (i = 0; i < inlength; i += 4) {
 				get_user(outbuf[i + 3], inbuf_user++);
 				get_user(outbuf[i + 2], inbuf_user++);
 				get_user(outbuf[i + 1], inbuf_user++);
-				get_user(outbuf[i], inbuf_user++);
+				get_user(outbuf[i + 0], inbuf_user++);
 			}
 		} else {
 			for (i = 0; i < inlength; i += 2) {
 				get_user(outbuf[2 * i + 1], inbuf_user++);
-				get_user(outbuf[2 * i], inbuf_user++);
+				get_user(outbuf[2 * i + 0], inbuf_user++);
 				outbuf[2 * i + 3] = outbuf[2 * i + 1];
-				outbuf[2 * i + 2] = outbuf[2 * i];
+				outbuf[2 * i + 2] = outbuf[2 * i + 0];
 			}
 		}
 	} else {
-		for (i = 0; i < inlength / 2; i++) {
-			outbuf[2 * i] = inbuf_user[i];
-			outbuf[2 * i + 1] = inbuf_user[i];
+		if (em->audio.channels == 2) {
+			for (i = 0; i < inlength; i += 4) {
+				get_user(outbuf[i + 2], inbuf_user++);
+				get_user(outbuf[i + 3], inbuf_user++);
+				get_user(outbuf[i + 0], inbuf_user++);
+				get_user(outbuf[i + 1], inbuf_user++);
+			}
+		} else {
+			for (i = 0; i < inlength; i += 2) {
+				get_user(outbuf[2 * i + 0], inbuf_user++);
+				get_user(outbuf[2 * i + 1], inbuf_user++);
+				outbuf[2 * i + 2] = outbuf[2 * i + 0];
+				outbuf[2 * i + 3] = outbuf[2 * i + 1];
+			}
 		}
 	}
 }
@@ -142,28 +148,34 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
 	if (!em->mafifo->preprocess_buffer)
 		return;
 
-#ifdef __BIG_ENDIAN
-	if (em->audio.format == AFMT_S16_BE) {
-#else /* __LITTLE_ENDIAN */
         if (em->audio.format == AFMT_S16_LE ||
-	    em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3) {
-#endif
+	    em->audio.format == AFMT_AC3) {
 		if (em->audio.channels == 2) {
 			for(i = 0; i < inlength; i += 2) {
 				get_user(em->mafifo->preprocess_buffer[i + 1], inbuf_user++);
-				get_user(em->mafifo->preprocess_buffer[i], inbuf_user++);
+				get_user(em->mafifo->preprocess_buffer[i + 0], inbuf_user++);
 			}
 		} else {
 			for(i = 0; i < inlength; i += 2) {
 				get_user(em->mafifo->preprocess_buffer[2 * i + 1], inbuf_user++);
-				get_user(em->mafifo->preprocess_buffer[2 * i], inbuf_user++);
+				get_user(em->mafifo->preprocess_buffer[2 * i + 0], inbuf_user++);
 				em->mafifo->preprocess_buffer[2 * i + 3] = em->mafifo->preprocess_buffer[2 * i + 1];
-				em->mafifo->preprocess_buffer[2 * i + 2] = em->mafifo->preprocess_buffer[2 * i];
+				em->mafifo->preprocess_buffer[2 * i + 2] = em->mafifo->preprocess_buffer[2 * i + 0];
 			}
 			inlength *= 2; /* ensure correct size for sub_prepare_SPDIF */
 		}
 	} else {
-		copy_from_user(em->mafifo->preprocess_buffer, inbuf_user, inlength);
+		if (em->audio.channels == 2) {
+			copy_from_user(em->mafifo->preprocess_buffer, inbuf_user, inlength);
+		} else {
+			for(i = 0; i < inlength; i += 2) {
+				get_user(em->mafifo->preprocess_buffer[2 * i + 0], inbuf_user++);
+				get_user(em->mafifo->preprocess_buffer[2 * i + 1], inbuf_user++);
+				em->mafifo->preprocess_buffer[2 * i + 2] = em->mafifo->preprocess_buffer[2 * i + 0];
+				em->mafifo->preprocess_buffer[2 * i + 3] = em->mafifo->preprocess_buffer[2 * i + 1];
+			}
+			inlength *= 2; /* ensure correct size for sub_prepare_SPDIF */
+		}
 	}
 
 	sub_prepare_SPDIF(em,outbuf, em->mafifo->preprocess_buffer, inlength);

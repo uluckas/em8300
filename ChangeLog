@@ -1,3 +1,14 @@
+2001-02-19  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_video.c (em8300_video_setup):
+	move write_register(0x1f47,0x18) to fix microcode
+	uploading with bt865 cards.
+
+	* modules/em8300_dicom.c,
+	  modules/em8300_main.c:
+	added activate_loopback module parameter for people
+	who get blank screen after uploading microcode.
+	
 2001-02-18  Rick Haines  <rick@kuroyi.net>
 
 	* modules/adv717x.c: remove #define DEBUG since

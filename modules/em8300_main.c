@@ -65,7 +65,8 @@ MODULE_PARM(dicom_control, "i");
 static int use_bt865 = 0;
 MODULE_PARM(use_bt865, "i");
 
-
+int activate_loopback = 0;
+MODULE_PARM(activate_loopback, "i");
 
 static int em8300_cards,clients;
 
@@ -422,9 +423,8 @@ int em8300_init(struct em8300_s *em) {
        em->var_ucode_reg3 = 0x8c7;
     }
 
-    printk("em8300_main.o: use_bt865: %d\n", use_bt865);
     printk("em8300_main.o: Chip revision: %d\n",em->chip_revision);
-    
+    printk("em8300_main.o: use_bt865: %d\n", use_bt865);
     em8300_i2c_init(em);
 
     return 0;

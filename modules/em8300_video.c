@@ -167,12 +167,12 @@ int em8300_video_setup(struct em8300_s *em) {
 
     em9010_write(em,7,0x80);
     em9010_write(em,9,0);
-    write_register(0x1f47,0x18); 
 
     if(em->encoder_type == ENCODER_BT865) {
        write_register(0x1f5e,0x9efe);
        write_ucregister(DICOM_Control,0x9efe);
     } else {
+       write_register(0x1f47,0x18);
        write_register(0x1f5e,0x9afe);
        write_ucregister(DICOM_Control,0x9afe);
     }

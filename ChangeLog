@@ -1,3 +1,10 @@
+2001-07-28  Rick Haines  <rick@kuroyi.net>
+
+	* include/linux/em8300.h,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_audio.c:
+	add more CLOCKGEN defines
+	
 2001-07-27  Rick Haines  <rick@kuroyi.net>
 
 	* modules/bt865.c,

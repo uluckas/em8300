@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <inttypes.h>
 
 #include <libdxr3/api.h>
 #if defined(__OpenBSD__)
@@ -18,7 +19,7 @@ dxr3_state_t state = { -1,-1,-1,-1,0,0 };
 
 static int _dxr3_install_microcode (char *ucode);
 
-extern int output_spdif (uint8_t *data_start, *data_end, int fd);
+extern int output_spdif (uint8_t *data_start, uint8_t *data_end, int fd);
 
 int dxr3_open(char *devname, char *ucodefile)
 { 
@@ -112,7 +113,7 @@ int dxr3_audio_write(const char *buf, int n)
 {
 	// TODO: Add DIGITALPCM support
 
-  	if (audiomode == DXR3_AUDIOMODE_DIGITALAC3) {
+  	if (state.audiomode == DXR3_AUDIOMODE_DIGITALAC3) {
 	  return output_spdif(buf, buf+n, state.fd_audio);
 	} else {
 	  return write(state.fd_audio, buf, n);

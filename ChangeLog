@@ -35,6 +35,11 @@
 	Since kernel 2.5.48, request_irq is in linux/interrupt.h . Thanks
 	again to Håkon Skjelten.
 
+	* modules/em8300_main.c:
+	Since kernel 2.5.69, the handler provided to request_irq
+	(em8300_irq) must return an irqreturn_t value. Thanks again to
+	Håkon Skjelten.
+
 2004-03-14  Nicolas Boullis  <nboullis@debian.org>
 	* modules/Makefile:
 	When building modules, if $(I2C_LOCATION) is set, ensure that 

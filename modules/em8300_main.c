@@ -164,7 +164,11 @@ struct memory_info
 	char *ptr;
 };
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,69)
+static irqreturn_t em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
+#else
 static void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
+#endif
 {
 	struct em8300_s *em = (struct em8300_s *) dev_id;
 	int irqstatus;
@@ -200,7 +204,13 @@ static void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 
 		write_ucregister(Q_IrqMask, em->irqmask);
 		write_ucregister(Q_IrqStatus, 0x0000);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,69)
+		return IRQ_HANDLED;
+#endif
 	}
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,69)
+	return IRQ_NONE;
+#endif
 }
 
 static void release_em8300(int max)

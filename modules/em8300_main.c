@@ -727,6 +727,7 @@ static void __devexit em8300_remove(struct pci_dev *pci)
 	}
 
 	pci_set_drvdata(pci, NULL);
+	pci_disable_device(pci);
 }
 
 static struct pci_driver em8300_driver = {

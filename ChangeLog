@@ -3,6 +3,10 @@
 	Replace remap_page_range with remap_pfn_range for kernels 2.6.10
 	and above, as spotted by Christian Gmeiner. Thanks to him.
 
+	* modules/em8300_main.c:
+	Call pci_disable_device when a card is unregistered, as suggested
+	by Christian Gmeiner. Thanks again.
+
 2004-10-27  Nicolas Boullis  <nboullis@debian.org>
 	* include/linux/em8300.h,
 	  modules/em8300_devfs.c,

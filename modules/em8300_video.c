@@ -33,29 +33,32 @@ int mpegvideo_command(struct em8300_s *em, int cmd) {
     return em8300_waitfor(em,ucregister(MV_Command), 0xffff, 0xffff);
 }
 
-int em8300_video_stop(struct em8300_s *em) {
-    em->irqmask &= ~IRQSTATUS_VIDEO_FIFO;
-    write_ucregister(Q_IrqMask, em->irqmask);
-    return mpegvideo_command(em,MVCOMMAND_STOP);
-}
-
-int em8300_video_start(struct em8300_s *em) {
-    em->irqmask |= IRQSTATUS_VIDEO_FIFO | IRQSTATUS_VIDEO_VBL;
-    write_ucregister(Q_IrqMask, em->irqmask);
-
-    if(mpegvideo_command(em,0x11))
-	return -ETIME;
-
-    if(mpegvideo_command(em,0x10))
-	return -ETIME;
-
-    em8300_video_setspeed(em,0x900);
-
-    write_ucregister(MV_FrameEventLo,0xffff);
-    write_ucregister(MV_FrameEventHi,0x7fff);
-
-    em->video_first = 1;
-    return mpegvideo_command(em,MVCOMMAND_START);
+int em8300_video_setplaymode(struct em8300_s *em, int mode)
+{
+    if(em->video_playmode != mode) {
+	switch(mode) {
+	case EM8300_PLAYMODE_STOPPED:
+	    em->video_ptsfifo_ptr = 0;
+	    em->video_offset = 0;
+	    mpegvideo_command(em,MVCOMMAND_STOP);
+	    break;
+	case EM8300_PLAYMODE_PLAY:
+	    if(em->video_playmode == EM8300_PLAYMODE_STOPPED) {
+		write_ucregister(MV_FrameEventLo,0xffff);
+		write_ucregister(MV_FrameEventHi,0x7fff);
+	    }
+	    mpegvideo_command(em,MVCOMMAND_START);
+	    break;
+	case EM8300_PLAYMODE_PAUSED:
+	    mpegvideo_command(em,MVCOMMAND_PAUSE);
+	    break;
+	default:
+	    return -1;
+	}
+	em->video_playmode=mode;
+	return 0;
+    }
+    return -1;
 }
 
 int em8300_video_sync(struct em8300_s *em) {
@@ -71,7 +74,7 @@ int em8300_video_sync(struct em8300_s *em) {
 	if(rdptr != wrptr)
 	    schedule_timeout(HZ/10);
 	if(signal_pending(current)) {
-	    printk("em8300.o: FIFO sync interrupted\n");
+	    printk("em8300_video.o: Video sync interrupted\n");
 	    return -EINTR;
 	}
     } while(rdptr != wrptr);
@@ -82,7 +85,13 @@ int em8300_video_sync(struct em8300_s *em) {
 int em8300_video_setup(struct em8300_s *em) {
     int displaybuffer;
     int val;
-    
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
+    init_waitqueue(&em->video_ptsfifo_wait);
+#else
+    init_waitqueue_head(&em->video_ptsfifo_wait);
+#endif	
+
     write_register(0x1f47,0x0);
     write_register(0x1f5e,0x9afe);
     write_ucregister(DICOM_Control,0x9afe);
@@ -218,9 +227,11 @@ int em8300_video_setup(struct em8300_s *em) {
 	return -ETIME;
     }
     
+    em->video_playmode = -1;
+    em8300_video_setplaymode(em,EM8300_PLAYMODE_STOPPED);
+
     return 0;
 }
-
 
 void em8300_video_setspeed(struct em8300_s *em, int speed)
 {
@@ -231,13 +242,14 @@ void em8300_video_setspeed(struct em8300_s *em, int speed)
     }
 }
 
-void em8300_video_check_ptsfifo(struct em8300_s *em) {
+void em8300_video_check_ptsfifo(struct em8300_s *em)
+{
     int ptsfifoptr;
     
     if(em->video_ptsfifo_waiting) {
 	em->video_ptsfifo_waiting=0;
 
-	ptsfifoptr = ucregister(MV_PTSFifo) + 2*em->video_ptsfifo_ptr;
+	ptsfifoptr = ucregister(MV_PTSFifo) + 4*em->video_ptsfifo_ptr;
 
 	if(!(read_register(ptsfifoptr+1) & 1))
 	    wake_up_interruptible(&em->video_ptsfifo_wait);
@@ -248,29 +260,42 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos)
 {
     unsigned flags=0;
-    long scrptsdiff,scr; 
+    long scrptsdiff,scr;
+    int savedplaymode;
     //    em->video_ptsvalid=0;
     if(em->video_ptsvalid) {
 	int ptsfifoptr=0;
 	em->video_pts>>=1;
 	//	printk("em8300_video.o: video_write %x,%x %x\n",count,em->video_pts,em->video_offset);
 	scr = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);
-	scrptsdiff = em->video_pts+em->videodelay-scr;
+	scrptsdiff = em->video_pts + em->videodelay - scr;
 	if((scrptsdiff > 90000) || (scrptsdiff < -90000)) {
 	    unsigned startpts;
 
-	    em8300_fifo_sync(em->mvfifo);	    
+	    /* Do coarse sync to video timestamp just to avoid pauses in the playback
+	       until next timestamp arrives to the audio device.
+	    */
 	    
+	    printk("em8300_video.o: Video out of sync. Resyncing\n");
+
+	    savedplaymode = em->video_playmode;
+	    em8300_video_setplaymode(em,EM8300_PLAYMODE_STOPPED);
+
 	    startpts = em->video_pts + em->videodelay;
 	    write_ucregister(MV_SCRlo, startpts & 0xffff);
 	    write_ucregister(MV_SCRhi, (startpts >> 16) & 0xffff);
 	    printk("Setting SCR: %d\n",startpts);
+
+	    em8300_video_setplaymode(em,savedplaymode);
+
+	    /* Force resync to audio timestamp */
+	    em->audio_sync = AUDIO_SYNC_REQUESTED;
 	} 
 
 	flags = 0x40000000;
 	ptsfifoptr = ucregister(MV_PTSFifo) + 4*em->video_ptsfifo_ptr;
 
-	if(read_register(ptsfifoptr+1) & 1) {
+	if(read_register(ptsfifoptr+3) & 1) {
 	    em->video_ptsfifo_waiting=1;
 	    interruptible_sleep_on(&em->video_ptsfifo_wait);
 	    em->video_ptsfifo_waiting=0;
@@ -306,6 +331,12 @@ int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
     return 0;
 }
 
+void em8300_video_open(struct em8300_s *em)
+{
+    em->irqmask |= IRQSTATUS_VIDEO_FIFO | IRQSTATUS_VIDEO_VBL;
+    write_ucregister(Q_IrqMask, em->irqmask);
+}
+
 int em8300_video_release(struct em8300_s *em)
 {
     em->video_ptsfifo_ptr=0;
@@ -313,5 +344,9 @@ int em8300_video_release(struct em8300_s *em)
     em->video_ptsvalid=0;
     em8300_fifo_sync(em->mvfifo);
     em8300_video_sync(em);
-    return em8300_video_stop(em);    
+
+    em->irqmask &= ~(IRQSTATUS_VIDEO_FIFO | IRQSTATUS_VIDEO_VBL);
+    write_ucregister(Q_IrqMask, em->irqmask);
+
+    return em8300_video_setplaymode(em,EM8300_PLAYMODE_STOPPED);
 }

@@ -6,14 +6,14 @@ KERNEL_LOCATION=/usr/src/linux
 # when compiling module(s)
 
 
-EXTRA_CFLAGS = -Werror -I/usr/local/include \
+EXTRA_CFLAGS = -g -Werror -I/usr/local/include \
 	       -DEM8300_VIDEOMODE_DEFAULT=EM8300_VIDEOMODE_PAL \
 		-DEM8300_AUDIOMODE_DEFAULT=EM8300_AUDIOMODE_ANALOG
 O_TARGET 	= em8300.o
 O_OBJS 		= em8300_main.o em8300_i2c.o em8300_audio.o em8300_fifo.o \
 		  em8300_video.o em8300_misc.o em8300_dicom.o em8300_ucode.o \
 		  em8300_ioctl.o em8300_spu.o
-M_OBJS 		= em8300.o adv717x.o eeprom.o
+M_OBJS 		= em8300.o adv717x.o eeprom.o bt865.o
 MX_OBJS      	= 
 
 here:

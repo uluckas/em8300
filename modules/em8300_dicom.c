@@ -29,7 +29,7 @@ struct dicom_tvmode {
 
 struct dicom_tvmode tvmodematrix[EM8300_VIDEOMODE_LAST+1][2] = {
     { {576, 720, 46, 130},	// PAL 4:3 
-      {480, 720, 40, 130}},	// PAL 16:9
+      {480, 720, 76, 130}},	// PAL 16:9
     { {480, 720, 46, 138},	// PAL60 4:3 
       {480, 720, 46, 138}},	// PAL60 16:9
     { {480, 720, 46, 138},	// NTSC 4:3 

@@ -334,14 +334,14 @@ sub sub_237e0 {
   sub_23660($arg2,1);
 }
 
-sub myst_in {
+sub I2C_e9010_in {
   my $bits = shift;
   my $data;
   
   for(my $i=$bits-1; $i >= 0; $i--) {
     $data |= I2C_read_data() << $i;
-    I2C_clk(0);
     I2C_clk(1);
+    I2C_clk(0);
   }
   return $data;
 }
@@ -351,13 +351,29 @@ sub sub_23780 {
 
   sub_236f0($arg1,0,0);
   I2C_drivedata(0);
-  my $val = myst_in(8);
+  my $val = I2C_em9010_in(8);
   I2C_drivedata(1);
   I2C_clk(0);
   I2C_data(1);
   I2C_clk(1);
   return $val;
   
+}
+
+sub resolve_register
+{
+  local $reg = shift;
+  local $uc = shift;
+  
+  if($reg =~ /^[0-9a-fx]+$/) {
+    $$uc = 0;
+    return hex($reg);
+  } elsif($microcode_registers{$reg} ne '') {
+    $$uc = 1;
+    return $microcode_registers{$reg};
+  } else {
+    return "error";
+  }
 }
 
 sub usage {
@@ -401,18 +417,25 @@ while(<>) {
   if(/^e/) { last; }
   elsif(/^sw /) { 
     s/sw ([0-9a-f]+)/ write_myst(hex($1));/e;
-  }
-  elsif(/^wu (\w+) [0-9a-f]+/) {
-    s/wu (\w+) ([0-9a-f]+)/
-      if($microcode_registers{$1} ne '') {
-	em8300_write($microcode_registers{$1},hex($2),1);
+  } elsif(/^w (\w+) [0-9a-f]+/) {
+    s/w (\w+) ([0-9a-f]+)/
+      $reg = resolve_register($1,\$uc);
+      if($reg ne 'error') {
+	em8300_write($reg,hex($2),$uc);
+      } else {
+	print "Unknown register $1\n";
       }
     /e;
-  } 
-  elsif(/^w /) {
-    s/w ([0-9a-f]+) ([0-9a-f]+)/ em8300_write(hex($1),hex($2),0);/e;
-  } 
-  elsif(/^win [0-9]+ [0-9]+ [0-9]+ [0-9]+/) {
+  } elsif(/^r \w+/) {
+    s/r (\w+)/
+      $reg = resolve_register($1,\$uc);
+      if($reg ne 'error') {
+	printf("0x%x\n", em8300_read($reg,$uc));
+      } else {
+	print "Unknown register $1.\n";
+      }
+    /e;
+  } elsif(/^win [0-9]+ [0-9]+ [0-9]+ [0-9]+/) {
     s/^win ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+)/
       $width=$1;$height=$2;
       $xpos=$3;$ypos=$4;
@@ -426,18 +449,8 @@ while(<>) {
     em8300_write($microcode_registers{dicom_framebottom}, $ypos+$height,1);
     em8300_write($microcode_registers{dicom_visiblebottom}, $ypos+$height,1); 
     em8300_write($microcode_registers{dicom_updateflag}, 1,1); 
- } elsif(/^r [0-9a-f]+/) {
     s/r ([0-9a-f]+)/ printf ("0x%x\n",em8300_read(hex($1),0));/e;
- } elsif(/^ru \w+/) {
-    s/ru (\w+)/ 
-      if($microcode_registers{$1} ne '') {
-	printf ("0x%x\n",em8300_read($microcode_registers{$1},1));
-      } else {
-	print "Unknown register: $1\n";
-      }
-    /e;
-  } 
-  elsif(/^status/) {
+  } elsif(/^status/) {
     $status = &em8300_getstatus;
     $tmp = $status;
     $tmp =~ s/Time elapsed: ([0-9]+) us/$time=$1/e;
@@ -453,7 +466,7 @@ while(<>) {
       print "SCRPS: ", $scrdiff / ($time * 1e-6), "\n";
     }
     print "\n";
-  } 
+  }
   elsif(/^ma/) { 
     printf "MA_Status  : %04x\n", em8300_read(0x111f);
     printf "MA_RdPtr   : %04x\n", em8300_read(0x1124) | (em8300_read(0x1125) << 16);
@@ -477,7 +490,7 @@ while(<>) {
   } elsif(/^ow [0-9a-f]+ [0-9a-f]+/) {
     s/^ow ([0-9a-f]+) ([0-9a-f]+)/sub_237e0(hex($1),hex($2))/e;
   } elsif(/^or [0-9a-f]+/) {
-    s/^or ([0-9a-f]+)/printf "%02x\n",sub_23780($1)/e;
+    s/^or ([0-9a-f]+)/printf "%02x\n",sub_23780(hex($1))/e;
   } elsif(/^x/) {
     
     $displaybuffer=em8300_read($microcode_registers{dicom_displaybuffer},1) + 0x1000;

@@ -24,6 +24,8 @@ typedef struct {
 #define EM8300_IOCTL_GETBCS	_IOR('C',4,em8300_bcs_t)
 #define EM8300_IOCTL_SET_ASPECTRATIO _IOW('C',5,int)
 #define EM8300_IOCTL_GET_ASPECTRATIO _IOR('C',5,int)
+#define EM8300_IOCTL_SET_VIDEOMODE _IOW('C',6,int)
+#define EM8300_IOCTL_SET_PLAYMODE _IOW('C',7,int)
 
 #define EM8300_IOCTL_VIDEO_SETPTS 1
 #define EM8300_IOCTL_SPU_SETPTS 1
@@ -148,6 +150,8 @@ struct em8300_s
     volatile unsigned *mem;
     ulong memsize;
 
+    int playmode;
+
     /* Fifos */
     struct fifo_s *mvfifo;
     struct fifo_s *mafifo;
@@ -202,6 +206,7 @@ struct em8300_s
     int audio_pts;
     int audio_rate;
     int audio_lag;
+    int audio_autosync;
     int audio_sync,audio_syncpts;
     int audio_first;
     int dword_DB4;
@@ -209,6 +214,7 @@ struct em8300_s
 
     /* Video */
     int video_mode;
+    int video_playmode;
     int videodelay;
     int max_videodelay;
     int aspect_ratio;
@@ -278,9 +284,10 @@ int em8300_dicom_update(struct em8300_s *em);
 void em8300_dicom_init(struct em8300_s *em);
 
 /* em8300_video.c */
-int em8300_video_start(struct em8300_s *em);
+
+void em8300_video_open(struct em8300_s *em);
+int em8300_video_setplaymode(struct em8300_s *em, int mode);
 int em8300_video_setup(struct em8300_s *em);
-int em8300_video_stop(struct em8300_s *em);
 int em8300_video_release(struct em8300_s *em);
 void em8300_video_setspeed(struct em8300_s *em, int speed);
 int em8300_video_write(struct em8300_s *em, const char * buf,
@@ -304,5 +311,6 @@ int em8300_ioctl_setaspectratio(struct em8300_s *em, int ratio);
 void em8300_ioctl_getstatus(struct em8300_s *em, char *usermsg);
 int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc);
 void em8300_ioctl_enable_videoout(struct em8300_s *em, int mode);
+int em8300_ioctl_setplaymode(struct em8300_s *em, int mode);
 
 #endif

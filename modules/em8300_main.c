@@ -224,8 +224,9 @@ int em8300_io_open(struct inode* inode, struct file* filp)
     if(card >= em8300_cards)
 	return -ENODEV;
 
-    if(em8300[card].inuse[subdevice])
-	return -EBUSY;
+    if(subdevice != EM8300_SUBDEVICE_CONTROL)
+	if(em8300[card].inuse[subdevice])
+	    return -EBUSY;
   
     filp->private_data = &em8300[card];
 
@@ -238,7 +239,11 @@ int em8300_io_open(struct inode* inode, struct file* filp)
     case EM8300_SUBDEVICE_VIDEO:
 	if(!em->ucodeloaded)
 	    return -ENODEV;
-    	err = em8300_video_start(em);
+	em8300_video_open(em);
+
+	em8300_ioctl_enable_videoout(em,1);
+
+    	em8300_video_setplaymode(em,EM8300_PLAYMODE_PLAY);
 	break;
     case EM8300_SUBDEVICE_SUBPICTURE:
 	if(!em->ucodeloaded)
@@ -253,7 +258,7 @@ int em8300_io_open(struct inode* inode, struct file* filp)
     if(err)
 	return err;
     
-    em8300[card].inuse[subdevice] = 1;
+    em8300[card].inuse[subdevice]++;
 
     clients++;
     printk("em8300_main.o: Opening device %d, Clients:%d\n",subdevice,clients);
@@ -333,12 +338,13 @@ int em8300_io_release(struct inode* inode, struct file* filp)
 	break;
     case EM8300_SUBDEVICE_VIDEO:
 	em8300_video_release(em);
+	em8300_ioctl_enable_videoout(em,0);	
 	break;
     case EM8300_SUBDEVICE_SUBPICTURE:
 	break;
     }
     
-    em->inuse[subdevice]=0;
+    em->inuse[subdevice]--;
 
     clients--;
     printk("em8300_main.o: Releasing device %d, clients:%d\n",subdevice,clients);
@@ -362,8 +368,9 @@ void cleanup_module(void) {
 
 int em8300_init(struct em8300_s *em) {
     /* Setup parameters */
-    em->videodelay = 0x3000;
+    em->videodelay = 0x3000 / 2;
     em->max_videodelay = 90000*4;    
+    em->audio_autosync = 0;
     
     write_register(0x30000, read_register(0x30000));
 

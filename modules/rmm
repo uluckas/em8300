@@ -5,3 +5,4 @@ fuser -k /dev/em8300_ma
 rmmod eeprom
 rmmod em8300
 rmmod adv717x
+rmmod bt865

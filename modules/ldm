@@ -4,5 +4,6 @@ modprobe i2c-algo-bit
 
 insmod eeprom.o
 insmod adv717x.o
+insmod bt865.o
 insmod em8300.o
 

@@ -72,6 +72,7 @@ struct adv717x_data_s {
     int chiptype;
     int mode;
     int bars;
+    int rgbmode;
     int enableoutput;
 
     unsigned char config[32];
@@ -169,9 +170,9 @@ static unsigned char PAL_M_config_7175[16] = {   //These need to be tested
     0x00,       // Pedestal Control Register 1
 };
 
-static unsigned char PAL_config_7175[16] = {
+static unsigned char PAL_config_7175[17] = {
     0x01,       // Mode Register 0
-    0x6,        // Mode Register 1
+    0x06,        // Mode Register 1
     0xcb,       // Subcarrier Frequency Register 0
     0x8a,       // Subcarrier Frequency Register 1
     0x09,       // Subcarrier Frequency Register 2
@@ -186,6 +187,7 @@ static unsigned char PAL_config_7175[16] = {
     0x08,       // Mode Register 2
     0x00,       // Pedestal Control Register 0
     0x00,       // Pedestal Control Register 1
+    0x00,       // Mode Register 3
 };
 
 static unsigned char PAL60_config_7175[16] = {
@@ -256,8 +258,11 @@ int adv717x_update(struct i2c_client *client) {
     memcpy(tmpconfig,data->config,data->configlen);
 
     tmpconfig[1] &= ~0x80;
-    tmpconfig[1] = data->bars ? 0x80:0;
+    tmpconfig[1] |= data->bars ? 0x80:0;
 
+    if(data->rgbmode) 
+	tmpconfig[0] |= 0x40;
+    
     if(!data->enableoutput)
 	tmpconfig[1] |= 0x7f;
     
@@ -349,6 +354,7 @@ int adv717x_setup(struct i2c_client *client) {
     memset(data->config, 0, sizeof(data->config));
 
     data->bars=0;
+    data->rgbmode=1;
     data->enableoutput=0;
 
     adv717x_setmode(ENCODER_MODE_PAL60,client);

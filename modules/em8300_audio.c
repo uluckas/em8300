@@ -288,6 +288,8 @@ int em8300_audio_flush(struct em8300_s *em) {
     audiobufsize = read_ucregister(MA_BuffSize) |
 		       (read_ucregister(MA_BuffSize_Hi) << 16);
 
+    mpegaudio_command(em,MACOMMAND_PAUSE);
+
     return em8300_setregblock(em, audiobuf, 0, audiobufsize);
 }
 
@@ -405,9 +407,11 @@ int em8300_audio_calcbuffered(struct em8300_s *em) {
 int em8300_audio_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos)
 {
-
-    if( ((em->audio_sync == AUDIO_SYNC_REQUESTED) || em->audio_first) && (em->audio_ptsvalid)) {
+    int newscr;
+    
+    if( !em->audio_autosync && ((em->audio_sync == AUDIO_SYNC_REQUESTED) || em->audio_first) && (em->audio_ptsvalid)) {
 	int ret;
+
 
 	if(!em->audio_first) {
 	    em8300_fifo_sync(em->mafifo);
@@ -416,18 +420,20 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 
 	ret = em8300_fifo_writeblocking(em->mafifo, count, buf,0);
 
-	write_ucregister(MV_SCRlo, em->audio_pts & 0xffff);
-	write_ucregister(MV_SCRhi, em->audio_pts >> 16);
+	newscr = em->audio_pts;
+	
+	write_ucregister(MV_SCRlo, newscr & 0xffff);
+	write_ucregister(MV_SCRhi, newscr >> 16);
 
 	mpegaudio_command(em,MACOMMAND_PLAY);
 
-	printk("Setting SCR: %d\n",em->audio_pts);
+	printk("Setting SCR: %d\n",newscr);
 
 	em->audio_sync = AUDIO_SYNC_INACTIVE;
 	em->audio_ptsvalid = 0;
 	em->audio_first=0;
 	return ret;
-    }
+    } 
 
     if(em->audio_ptsvalid) {
 	long scr;
@@ -437,24 +443,21 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 	if(em->audio_rate) {
 	    em->audio_lag = scr - (em->audio_pts -
 		45000/4 * em8300_audio_calcbuffered(em)
-		/ (em->audio_rate));
-	    if(em->audio_sync == AUDIO_SYNC_INACTIVE &&
-	       (em->audio_lag > AUDIO_LAG_LIMIT))
-		{
-		    em->audio_sync = AUDIO_SYNC_REQUESTED;
-		    DEBUG(printk("em8300_audio.o: Audio out of sync (%d). Resyncing.\n",				em->audio_lag	));
-		}		
-	}
-	/*
-	if(em->audio_sync == AUDIO_SYNC_REQUESTED) {
-	    if(em->audio_pts > scr) {
-		em8300_audio_flush(em);
-		mpegaudio_command(em,MACOMMAND_PAUSE);
-		em->audio_syncpts=em->audio_pts;
-		em->audio_sync=AUDIO_SYNC_INPROGRESS;
+		/ (em->audio_rate)) - em->videodelay;
+
+	    if(em->audio_autosync) {
+		newscr = ((read_ucregister(MV_SCRhi) << 16) | read_ucregister(MV_SCRlo)) - em->audio_lag;
+		write_ucregister(MV_SCRlo, newscr & 0xffff);
+		write_ucregister(MV_SCRhi, newscr >> 16);
+	    } else {
+		if(em->audio_sync == AUDIO_SYNC_INACTIVE &&
+		   ((em->audio_lag > AUDIO_LAG_LIMIT) || (em->audio_lag < -AUDIO_LAG_LIMIT)) ) 
+		    {
+			em->audio_sync = AUDIO_SYNC_REQUESTED;
+			DEBUG(printk("em8300_audio.o: Audio out of sync (%d). Resyncing.\n",				em->audio_lag	));
+		    }
 	    }
 	}
-	*/
 	em->audio_ptsvalid=0;
     } 
 

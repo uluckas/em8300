@@ -86,6 +86,20 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 	    }
 	}
 	break;	
+    case _IOC_NR(EM8300_IOCTL_SET_VIDEOMODE):
+	if (_IOC_DIR(cmd) & _IOC_WRITE) {
+	    int val;
+	    get_user(val, (int *)arg);
+	    em8300_ioctl_setvideomode(em,val);
+	}
+	break;
+    case _IOC_NR(EM8300_IOCTL_SET_PLAYMODE):
+	if (_IOC_DIR(cmd) & _IOC_WRITE) {
+	    int val;
+	    get_user(val, (int *)arg);
+	    em8300_ioctl_setplaymode(em,val);
+	}
+	break;
     case _IOC_NR(EM8300_IOCTL_SET_ASPECTRATIO):
 	if (_IOC_DIR(cmd) & _IOC_WRITE) {
 	    int val;
@@ -234,7 +248,22 @@ int em8300_ioctl_setaspectratio(struct em8300_s *em, int ratio) {
 int em8300_ioctl_setplaymode(struct em8300_s *em, int mode) {
     switch(mode) {
     case EM8300_PLAYMODE_PLAY:
-	
+	mpegaudio_command(em,MACOMMAND_PLAY);
+	if(em->playmode == EM8300_PLAYMODE_STOPPED)
+	    em8300_ioctl_enable_videoout(em,1);
+	em8300_video_setplaymode(em,mode);
+	break;
+    case EM8300_PLAYMODE_STOPPED:
+	em8300_ioctl_enable_videoout(em,0);
+	em8300_video_setplaymode(em,mode);
+	break;
+    case EM8300_PLAYMODE_PAUSED:
+	 mpegaudio_command(em,MACOMMAND_PAUSE);
+	em8300_video_setplaymode(em,mode);
+	break;
+    default:
+	return -1;
     }
+    em->playmode = mode;
     return 0;
 }

@@ -1,3 +1,12 @@
+2001-03-25  Rick Haines  <rick@kuroyi.net>
+
+	* modules/README-greenscreen,
+	  modules/em8300_main.c,
+	  modules/em8300_video.c:
+	add bt865_ucode_timeout module parameter
+	for people with bt865's who get timeouts
+	uploading their microcode.
+	
 2001-03-21  Rick Haines  <rick@kuroyi.net>
 
 	* dhc/*

@@ -69,6 +69,9 @@ MODULE_PARM(dicom_control, "i");
 static int use_bt865 = 0;
 MODULE_PARM(use_bt865, "i");
 
+int bt865_ucode_timeout = 0;
+MODULE_PARM(bt865_ucode_timeout, "i");
+
 int activate_loopback = 0;
 MODULE_PARM(activate_loopback, "i");
 

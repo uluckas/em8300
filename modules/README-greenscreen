@@ -1,8 +1,12 @@
-If you have a bt865 you will need:
+General fixes:
 
  em8300:
-   use_bt865  -- set to 1 if you have a bt865.  Modifies some
-                 initialization values.
+   activate_loopback   -- set to 1 if you lose video signal
+                          when uploading the microcode
+   bt865_ucode_timeout -- set to 1 if you have a bt865 and get timeouts
+                          when uploading the microcode.
+   use_bt865           -- set to 1 if you have a bt865.  Modifies some
+                          initialization values.
 
 If your red and blue colors channels are switched:
 
@@ -22,7 +26,7 @@ Greenscreen fixes:
    dicom_other_pal -- use the opposite fix values for pal mode
                       if you only use/care about NTSC or PAL ignore this.
 
-Common settings:
+Common settings to fix greenscreen:
 
 adv717x pixelport_16bit=1 pixelport_other_pal=1
 em8300  dicom_fix=1 dicom_control=1 dicom_other_pal=1

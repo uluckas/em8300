@@ -1,5 +1,11 @@
 2001-08-05  Rick Haines  <rick@kuroyi.net>
 
+	* modules/README-2.4,
+	  modules/README-2.2:
+	update
+	
+2001-08-05  Rick Haines  <rick@kuroyi.net>
+
 	* modules/Makefile,
 	  modules/Makefile.2.2,
 	  modules/em8300_main.c:

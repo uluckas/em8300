@@ -8,7 +8,5 @@ If your kernel sources are in a location other than /usr/src/linux
 you need to modify the second line of the Makefile.  If you need
 to build with a compiler other than gcc (i.e. kgcc), modify line 8.
 
-If you get "em8300.o: unresolved symbol register_sound_dsp" you either
-need to enable audio support in your kernel, load the soundcore module,
-or disable registration of /dev/dsp in the driver by removing
--DREGISTER_DSP from EXTRA_CFLAGS in the Makefile.
+If sound is configured in your kernel, the driver will register a /dev/dsp
+device.

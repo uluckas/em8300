@@ -23,6 +23,7 @@ EM8300_OBJS = em8300_main.o em8300_i2c.o em8300_audio.o em8300_fifo.o \
 
 MODVERS=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep "CONFIG_MODVERSIONS" | cut -d " " -f 3)
 KERNVER=$(shell cat $(KERNEL_LOCATION)/include/linux/version.h | grep "UTS" | sed -e 's/.*"\(.*\)"/\1/')
+RKERNVER=`uname -r`
 
 MODULE_CC=$(shell $(CC) -v 2>&1 | tail -1)
 KERNEL_CC=$(shell cat /proc/version | sed 's/^Linux.*\((gcc.*)\).*$$/\1/')
@@ -30,40 +31,39 @@ KERNEL_CC=$(shell cat /proc/version | sed 's/^Linux.*\((gcc.*)\).*$$/\1/')
 MODULE_CC:=$(shell echo "$(MODULE_CC)" | cut -d ' ' -f 3)
 KERNEL_CC:=$(shell echo "$(KERNEL_CC)" | cut -d ' ' -f 3)
 
-SOUND_BUILTIN=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep " CONFIG_SOUND " | cut -d " " -f 3)
-SOUND_MODULE=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep " CONFIG_SOUND_MODULE " | cut -d " " -f 3)
-
-I2CALGO_BUILTIN=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep " CONFIG_I2C_ALGOBIT " | cut -d " " -f 3)
-I2CALGO_MODULE=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep " CONFIG_I2C_ALGOBIT_MODULE " | cut -d " " -f 3)
-
 VERSION_HEADER=em8300_version.h
 
 CFLAGS=-D__KERNEL__ -DMODULE $(EM8300_DEBUG) -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer $(EXTRA_CFLAGS)
 
+# Check the kernel version compiled and running
 IS22=NO
 IS22=$(patsubst 2.2.%,YES,$(KERNVER))
+IS22RUN=NO
+IS22RUN=$(patsubst 2.2.%,YES,$(RKERNVER))
 
 ifeq "$(MODVERS)" "1"
 	CFLAGS+=-DMODVERSIONS -include $(KERNEL_LOCATION)/include/linux/modversions.h
 endif
 
-ifeq "$(I2CALGO_BUILTIN)" "1"
-	CFLAGS+=-DI2C_BITBANGING
-else
-	ifeq "$(I2CALGO_MODULE)" "1"
+# Change the modules path depending on kernel version, also force I2C for
+# 2.2 due to lack of sensible way to detect its presence
+ifeq "$(IS22)" "YES"
+	SMODINST="misc"
+	ifeq "$(I2C_LOCATION)" ""
 		CFLAGS+=-DI2C_BITBANGING
 	else
-		ifeq "$(IS22)" "YES"
-			ifeq "$(I2C_LOCATION)" ""
-				CFLAGS+=-DI2C_BITBANGING
-			else
-				CFLAGS+=-I$(I2C_LOCATION) -DI2C_BITBANGING
-			endif
-		endif
+		CFLAGS+=-I$(I2C_LOCATION) -DI2C_BITBANGING
 	endif
+else
+	SMODINST="kernel/drivers/video"
 endif
 
-
+# Change the modules path depending on kernel version
+ifeq "$(IS22RUN)" "YES"
+	RMODINST="misc"
+else
+	RMODINST="kernel/drivers/video"
+endif
 
 all : $(MODULES)
 
@@ -96,10 +96,10 @@ em8300.o : gcc-check $(VERSION_HEADER) $(EM8300_OBJS)
 	$(LD) $(EXTRA_LDFLAGS) -r -o $@ $(EM8300_OBJS)
 
 install : $(MODULES)
-	@echo Installing modules for $(KERNVER) into `uname -r`
+	@echo Installing modules for $(KERNVER) into $(RKERNVER)
 	@for module in $^ ;\
 	do \
-	install -D $$module $(prefix)/lib/modules/`uname -r`/kernel/drivers/video/$$module ;\
+	install -D $$module $(prefix)/lib/modules/$(RKERNVER)/$(RMODINST)/$$module ;\
 	done
 	@depmod -a
 	@echo em8300.h
@@ -111,7 +111,7 @@ uninstall : $(MODULES)
 	@echo Uninstalling modules for $(KERNVER)
 	@for module in $^ ;\
 	do \
-	rm -f $$module $(prefix)/lib/modules/`uname -r`/kernel/drivers/video/$$module ;\
+	rm -f $$module $(prefix)/lib/modules/$(RKERNVER)/$(RMODINST)/$$module ;\
 	done
 	@depmod -a
 	@echo em8300.h
@@ -121,7 +121,7 @@ uninstall : $(MODULES)
 install-newkern : $(MODULES)
 	@for module in $^ ;\
 	do \
-	install -D $$module $(prefix)/lib/modules/$(KERNVER)/kernel/drivers/video/$$module ;\
+	install -D $$module $(prefix)/lib/modules/$(KERNVER)/$(SMODINST)/$$module ;\
 	echo $$module ;\
 	done
 	@echo em8300.h
@@ -132,3 +132,8 @@ install-newkern : $(MODULES)
 clean :
 	rm -f *.o
 	rm -f $(VERSION_HEADER)
+
+
+
+
+

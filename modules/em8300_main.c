@@ -65,7 +65,7 @@
 #define EM8300_MINOR(inode) ((inode)->i_rdev % 4)
 #define EM8300_CARD(inode) ((inode)->i_rdev / 4)
 
-#ifndef I2C_BITBANGING
+#if !defined(CONFIG_I2C_ALGOBIT) && !defined(CONFIG_I2C_ALGOBIT_MODULE)
 #error "This needs the I2C Bit Banging Interface in your Kernel"
 #endif
 

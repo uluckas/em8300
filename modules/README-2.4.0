@@ -17,7 +17,17 @@ but since the modules need to be compiled for the same kernel that they will
 be used under it doesn't make sense not to have done a make bzImage (or
 equivalent) and a make modules at least at some point in the past...)
 
-Let me know if you have any problems using the script...
+If you want to install the modules in your standard module installation 
+directory then run the script:
+	./make-install-2.4
+
+Again you need to apply the above mentioned modifications to the top of the 
+script first, if necessary.
+
+And finally there is a make-clean script which cleans up the em8300/modules
+directory (no need to edit this).
+
+Let me know if you have any problems using the scripts...
 
 I verified it to work fine on kernels 2.4.0-ac9 and -ac10.
 

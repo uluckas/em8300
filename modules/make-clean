@@ -1,0 +1,4 @@
+#!/bin/bash
+
+rm -f tempfifo *.o .*.flags .have_run .have_run2 core *~
+

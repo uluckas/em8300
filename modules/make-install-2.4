@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Change this to reflect your kernel sources path.
+KERNEL_LOCATION=/usr/src/linux
+
+# Change this to your em8300/modules path if running this script from outside
+# the em8300/modules directory.
+EM_LOCATION=`pwd`
+
+pushd .
+cd ${EM_LOCATION}
+if [ ! -f .have_run2 ]; then
+	touch .have_run2
+	# Swap the makefiles (if not already done).
+	if [ -f Makefile.2.4 ]; then
+		mv Makefile Makefile.2.2
+		mv Makefile.2.4 Makefile
+	fi
+	echo
+	echo "Running script for the first time..."
+	echo
+	echo "This script will install the em8300 modules on a 2.4.0 kernel."
+	echo
+	echo "You obviously need to have configured your kernel and have run " \
+	     "a make dep"
+	echo "before running this script. And you also need to have run the"
+	echo "make-modules-2.4 script so that you have generated the modules"
+	echo "already. (If not, this script will fail.)"
+	echo
+	echo "Press return to continue or ctrl+c to abort."
+	read
+else
+	echo
+	echo "Installing em8300 modules..."
+	echo
+fi
+# We need a temporary fifo as "patch" refuses to output patches to stdout. Grrr.
+if [ ! -f tempfifo ]; then
+	mkfifo tempfifo
+fi
+cd ${KERNEL_LOCATION}
+# Patch the main kernel makefile in memory only and make the em8300 modules
+# using it.
+cat <<KERNEL_MAKEFILE_PATCH | patch --ignore-whitespace -p0 -o ${EM_LOCATION}/tempfifo | make -f ${EM_LOCATION}/tempfifo modules_install
+--- Makefile.old	Sat Jan 20 14:07:21 2001
++++ Makefile	Sat Jan 20 01:42:46 2001
+@@ -125,7 +125,7 @@
+ 		 drivers/net/net.o \\
+ 		 drivers/media/media.o
+ LIBS		=\$(TOPDIR)/lib/lib.a
+-SUBDIRS		=kernel drivers mm fs net ipc lib
++SUBDIRS		=${EM_LOCATION}
+ 
+ DRIVERS-n :=
+ DRIVERS-y :=
+@@ -325,7 +325,7 @@
+ init/main.o: init/main.c include/config/MARKER
+ 	\$(CC) \$(CFLAGS) \$(CFLAGS_KERNEL) \$(PROFILING) -c -o \$*.o $<
+ 
+-fs lib mm ipc kernel drivers net: dummy
++${EM_LOCATION}: dummy
+ 	\$(MAKE) CFLAGS="\$(CFLAGS) \$(CFLAGS_KERNEL)" \$(subst \$@, _dir_\$@, \$@)
+ 
+ TAGS: dummy
+KERNEL_MAKEFILE_PATCH
+popd
+rm tempfifo
+

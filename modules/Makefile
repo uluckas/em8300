@@ -112,7 +112,7 @@ install : $(MODULES)
 	@depmod -a
 	@echo em8300.h
 	@install -D ../include/linux/em8300.h \
-		$(KERNEL_LOCATION)/include/linux/em8300.h
+		/usr/include/linux/em8300.h
 	@echo Installed to running kernel
 
 uninstall : $(MODULES)
@@ -123,7 +123,7 @@ uninstall : $(MODULES)
 	done
 	@depmod -a
 	@echo em8300.h
-	@rm -f $(KERNEL_LOCATION)/include/linux/em8300.h
+	@rm -f /usr/include/linux/em8300.h
 	@echo Uninstall successfull
 
 install-newkern : $(MODULES)
@@ -134,7 +134,7 @@ install-newkern : $(MODULES)
 	done
 	@echo em8300.h
 	@install -D ../include/linux/em8300.h \
-		$(KERNEL_LOCATION)/include/linux/em8300.h
+		/usr/include/linux/em8300.h
 	@echo Installed to kernel version of header files
 
 clean :

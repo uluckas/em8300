@@ -2,6 +2,9 @@ This is a patch to add dxr3/hollywood+ support to xine.
 It if doesn't apply cleanly you can checkout xine cvs from the date on the patch.
 There also may be a more current version at http://www.kuroyi.net/xine
 
+Xine cvs is broken for now.  Use the 0.4.01 patch.  You'll also
+need the updated libcss input plugin from http://www.kuroyi.net/xine
+
 cvs -z3 -d:pserver:anonymous@cvs.xine.sourceforge.net:/cvsroot/xine co xine
 patch -p0 <xine_dxr3.patch
 cd xine

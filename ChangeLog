@@ -1,3 +1,11 @@
+2001-04-20  Rick Haines  <rick@kuroyi.net>
+
+	* xine/README,
+	  xine/xine-0.4.01_dxr3.patch.gz:
+	update xine patch to use installed libdxr3.
+	Now selects correct aspect ratio (make sure
+	to get the updated input plugin as well)
+	
 2001-04-19  Rick Haines  <rick@kuroyi.net>
 
 	* overlay/dxr3view.c:

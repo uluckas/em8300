@@ -1,3 +1,12 @@
+2001-09-05  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em9010.c:
+	Another autocal fix from Daniel.
+	"The content of the overlay register 0x0d
+	is no more set to 0x44 but its content is set
+	by the cable detection routine (that was already
+	existing). The resulting can be 0x44 OR 0x4C."
+	
 2001-09-03  Jonas Birme  <jonas@birme.se>
 	
 	* debian/chagelog,

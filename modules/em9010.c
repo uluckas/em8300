@@ -683,8 +683,6 @@ int em9010_overlay_update(struct em8300_s *em)
 	em->overlay_double_y = loc_2BE50(em);
 	pr_debug("em9010: ydouble: %d\n", em->overlay_double_y);
 
-	em9010_write(em, 0xd, 0x44);
-
 	switch(em->overlay_mode) {
 	case EM8300_OVERLAY_MODE_RECTANGLE:
 		em9010_write(em, 0xa, 0x77);

@@ -1,9 +1,15 @@
+2001-03-05  Rick Haines  <rick@kuroyi.net>
+
+	* xine/README,
+	  xine/xine_dxr3.patch.gz:
+	added xine_dxr3 patch
+	
 2001-03-04  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300.h,
 	  modules/em8300_dicom.c,
 	  modules/em8300_video.c:
-	Fix aspect ratio stuff thanks to information on enabling
+	fix aspect ratio stuff thanks to information on enabling
 	16x9 mode from Morten Bøgeskov.
 
 	* omsplugin/dxr3/em8300.h,

@@ -1,0 +1,20 @@
+This is a patch to add dxr3/hollywood+ support to xine.
+There may be a more current version at http://www.kuroyi.net/xine
+
+cvs -z3 -d:pserver:anonymous@cvs.xine.sourceforge.net:/cvsroot/xine co xine
+patch -p0 <xine_dxr3.patch
+cd xine
+./autogen.sh --enable-dxr3
+make
+make install
+cd ..
+
+You may want to read the Xine FAQ for info about CSS, etc.
+
+Run it with:
+
+xine_dxr3 -A dxr3
+or
+xine_dxr3 -S -A dxr3
+or
+xine_dxr3 -a1 -u0 -A dxr3

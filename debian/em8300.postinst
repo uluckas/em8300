@@ -1,0 +1,63 @@
+#!/bin/sh -e
+
+# source debconf library
+. /usr/share/debconf/confmodule
+
+# movedoc - function to make the transition /usr/doc -> /usr/share/doc
+movedoc()
+{
+  PKG=em8300
+  OLD=/usr/doc/$PKG
+  NEW=/usr/share/doc/$PKG
+  if test -d $OLD -a ! -h $OLD -a ! $OLD -ef $NEW; then
+      rm -f $OLD/.dhelp
+      if test -e $OLD && ! rmdir $OLD 2>/dev/null; then
+          VERSION_CONTROL=t \
+	  cp -ab $OLD $NEW/..
+	  rm -rf $OLD
+      fi
+  fi
+  if test -d /usr/doc -a ! -e $OLD -a -d $NEW; then
+      ln -s $NEW $OLD
+  fi
+}
+
+add_msg() { db_fset $2 seen false || true; db_input $1 $2 || true; }
+
+show_msg() { add_msg $1 $2; db_go; }
+
+if [ "$1" = "configure" ]; then
+    movedoc    
+
+    if [ ! -f /usr/lib/em8300/microcode0.bin ]; then
+    
+        PWD=`pwd`
+	cd /tmp/
+
+        if [ -f /tmp/enc2dev.vx_ ]; then
+            /usr/sbin/msexpand.pl /tmp/enc2dev.vx_ ;
+        elif [ -f /tmp/rmquasar.vx: ]; then
+            /usr/sbin/msexpand.pl /tmp/rmquasar.vx_ ;
+        fi
+
+        if [ -f /tmp/enc2dev.vxd ]; then
+            /usr/sbin/microcode_extract.pl /tmp/enc2dev.vxd ;
+        elif [ -f /tmp/rmquasar.vxd ]; then
+            /usr/sbin/microcode_extract.pl /tmp/rmquasar.vxd ;
+        fi
+
+        if [ -f microcode0.bin ]; then
+            install -d /usr/lib/em8300
+            install -m644 microcode0.bin /usr/lib/em8300/
+	    rm -f microcode0.bin microcode1.bin
+	fi
+    
+        ln -sf /usr/lib/em8300/microcode0.bin /etc/dxr3.ux
+
+        cd $PWD
+    fi
+    
+    show_msg critical em8300/install_note
+    ldconfig
+fi
+db_stop

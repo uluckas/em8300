@@ -1,0 +1,25 @@
+#!/bin/sh -e
+
+. /usr/share/debconf/confmodule
+
+  if [ ! -r /dev/em8300 ]; then
+    mknod /dev/em8300 c 121 0;
+  fi
+  if [ ! -r /dev/em8300_mv ]; then
+    mknod /dev/em8300_mv c 121 1;
+  fi
+  if [ ! -r /dev/em8300_ma ]; then
+    mknod /dev/em8300_ma c 121 2;
+  fi
+  if [ ! -r /dev/em8300_sp ]; then
+    mknod /dev/em8300_sp c 121 3;
+  fi
+
+  chown root.video /dev/em8300*
+  chmod 664 /dev/em8300*
+
+  update-rc.d em8300 defaults > /dev/null
+  depmod -a
+  /etc/init.d/em8300 start 
+
+db_stop

@@ -1,0 +1,6 @@
+Source: em8300
+Section: contrib/graphics
+Priority: optional
+Maintainer: Jonas Birme <jonas@birme.se>
+Standards-Version: 0.8.0.0
+

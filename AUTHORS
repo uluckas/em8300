@@ -34,6 +34,9 @@ Contributions (in semi-random order)
   Jeffrey H. Ingber <jhingber@ix.netcom.com>
     rev1 overlay patches
 
+  Jonas Birme <jonas@birme.se>
+    debian packaging
+
   Andrew Meredith <andrew@anvil.org>
     rpm packaging and module build-on-boot
 

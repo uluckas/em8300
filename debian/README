@@ -1,0 +1,35 @@
+Debian README for em8300 package
+
+INSTALL
+
+To get started you must have the modules compiled, which they aren't at this moment I guess.
+
+Change to your sourcetree where the source is installed.
+
+# cd /usr/src/
+
+Untar the source
+
+# tar xvzf em8300.tar.gz
+
+# cd modules/em8300
+
+Build a debian-package
+
+# debian/rules binary-modules
+
+Install modules
+
+# dpkg -i ../em8300-modules-<kvers>_0.8-1.deb
+
+The next thing to do is uploading the microcode unless the player handles this automatic. Xine 0.5 doesn't
+
+# microcode_upload.pl /etc/dxr3.ux
+
+This should be all
+
+CONTACT
+
+For questions about dxr3 go to http://dxr3.sourceforge.net/ and for debian specific question you could send me a mail Jonas Birme <jonas@birme.se>
+
+Jonas Birme, 08 Aug 2001

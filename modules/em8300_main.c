@@ -491,7 +491,7 @@ int em8300_init(struct em8300_s *em) {
 	if (read_register(0x1f50) == 0x123) {
 		em->chip_revision = 2;
 		if (0x40 & read_register(0x1c08)) {
-			em->var_video_value = 0xd34;
+			em->var_video_value = 3375; /* was 0xd34 = 3380 */
 			em->mystery_divisor = 0x107ac;
 			em->var_ucode_reg2 = 0x272;
 			em->var_ucode_reg3 = 0x8272;

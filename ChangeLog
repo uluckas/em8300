@@ -1,3 +1,22 @@
+2001-08-08  Rick Haines  <rick@kuroyi.net>
+
+	* debian/*:
+	Debian packaging stuff from Jonas Birme
+
+	* modules/em8300_main.c:
+	Patch from Eduard to change var_video_value
+	to 3375.  This looks dependent on card version
+	which is probably why I didn't see a difference.
+	
+	* em8300.sysv.in:
+	Patch from Jeffrey Ingber to make the rpm boot
+	script upload the microcode
+
+	* modules/Makefile:
+	Patch from Jeffrey Ingber to use
+	include/linux/autoconf.h instead of
+	include/config/modversions.h.
+	
 2001-08-05  Rick Haines  <rick@kuroyi.net>
 
 	* modules/README-2.4,

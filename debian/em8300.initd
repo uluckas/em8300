@@ -1,0 +1,38 @@
+#!/bin/sh
+
+case "$1" in
+  start)
+  	echo -n "Loading em8300 modules: "
+	modprobe i2c-algo-bit
+	modprobe eeprom
+	echo -n "eeprom "
+	modprobe adv717x
+	echo -n "adv717x "
+	modprobe bt865
+	echo -n "bt865 "
+	modprobe em8300
+	echo -n "em8300"
+	echo "."
+	;;
+   stop)
+   	echo -n "Unloading em8300 modules: "
+	fuser -k /dev/em8300
+	fuser -k /dev/em8300_mv
+	fuser -k /dev/em8300_ma
+	rmmod eeprom
+	echo -n "eeprom "
+	rmmod em8300
+	echo -n "em8300 "
+	rmmod adv717x
+	echo -n "adv717x "
+	rmmod bt865
+	echo -n "bt865"
+	echo "."
+	;;
+    *)
+        echo "Usage: /etc/init.d/em8300 {start|stop}"
+	exit 1
+	;;
+esac
+
+exit 0

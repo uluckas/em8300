@@ -60,7 +60,11 @@
 #include "em8300_fifo.h"
 #include "em8300_version.h"
 
+/* It seems devfs will implement a new scheme of enumerating minor numbers.
+ * Currently it seems broken. But that is why we added these macros.
+ */
 #define EM8300_MINOR(inode) ((inode)->i_rdev % 4)
+#define EM8300_CARD(inode) ((inode)->i_rdev / 4)
 
 #ifndef I2C_BITBANGING
 #error "This needs the I2C Bit Banging Interface in your Kernel"
@@ -441,7 +445,7 @@ static int em8300_dsp_ioctl(struct inode* inode, struct file* filp, unsigned int
 
 static int em8300_dsp_open(struct inode* inode, struct file* filp) 
 {
-	int dsp_num = EM8300_MINOR(inode)/4;
+	int dsp_num = ((MINOR(inode->i_rdev) >> 4) & 0x0f);
 	int card = dsp_num_table[dsp_num]-1;
 	int err=0;
 

@@ -98,10 +98,6 @@ typedef struct {
 #define EM8300_VIDEOMODE_PAL	0
 #define EM8300_VIDEOMODE_PAL60	1
 #define EM8300_VIDEOMODE_NTSC	2
-#define EM8300_VIDEOMODE_NTSC60	3
-#define EM8300_VIDEOMODE_PAL_M	4
-#define EM8300_VIDEOMODE_PALM60	5
-#define EM8300_VIDEOMODE_PALNC	6
 #define EM8300_VIDEOMODE_LAST	2
 #ifndef EM8300_VIDEOMODE_DEFAULT
 #define EM8300_VIDEOMODE_DEFAULT EM8300_VIDEOMODE_NTSC
@@ -300,7 +296,7 @@ struct em8300_s
 	int clockgen_tvmode;
 	
 	/* Timing measurement */
-	struct timeval tv,last_status_time;
+	struct timeval tv, last_status_time;
 	long irqtimediff;
 	int irqcount;
 	int frames;
@@ -333,7 +329,7 @@ struct em8300_s
 	int var_video_value;
 	
 	/* Sub Picture */
-	int sp_pts,sp_ptsvalid,sp_count;
+	int sp_pts, sp_ptsvalid, sp_count;
 	int sp_ptsfifo_ptr;
 #if LINUX_VERSION_CODE < 0x020314    
 	struct wait_queue *sp_ptsfifo_wait;

@@ -457,7 +457,7 @@ static int em8300_dsp_open(struct inode* inode, struct file* filp)
 {
 	int dsp_num = ((MINOR(inode->i_rdev) >> 4) & 0x0f);
 	int card = dsp_num_table[dsp_num] - 1;
-	int err=0;
+	int err = 0;
 
         pr_debug("em8300: opening dsp %i for card %i\n", dsp_num, card);
 

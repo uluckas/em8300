@@ -786,32 +786,32 @@ static int bt865_setmode(int mode, struct i2c_client *client)
 	pr_debug("bt865_setmode( %d, %p )\n", mode, client);
 
 	switch (mode) {
-	case EM8300_VIDEOMODE_NTSC:
+	case ENCODER_MODE_NTSC:
 		printk(KERN_NOTICE "bt865.o: Configuring for NTSC\n");
 		config = NTSC_CONFIG_BT865;
 		data->configlen = sizeof(NTSC_CONFIG_BT865);
 		break;
-	case EM8300_VIDEOMODE_NTSC60:
+	case ENCODER_MODE_NTSC60:
 		printk(KERN_NOTICE "bt865.o: Configuring for NTSC\n");
 		config = NTSC60_CONFIG_BT865;
 		data->configlen = sizeof(NTSC60_CONFIG_BT865);
 		break;
-	case EM8300_VIDEOMODE_PAL_M:
+	case ENCODER_MODE_PAL_M:
 		printk(KERN_NOTICE "bt865.o: Configuring for PAL_M\n");
 		config = PALM_CONFIG_BT865;
 		data->configlen = sizeof(PALM_CONFIG_BT865);
 		break;
-	case EM8300_VIDEOMODE_PALM60:
+	case ENCODER_MODE_PALM60:
 		printk(KERN_NOTICE "bt865.o: Configuring for PAL_M60\n");
 		config = PALM60_CONFIG_BT865;
 		data->configlen = sizeof(PALM60_CONFIG_BT865);
 		break;
-	case EM8300_VIDEOMODE_PAL:
+	case ENCODER_MODE_PAL:
 		printk(KERN_NOTICE "bt865.o: Configuring for PAL\n");
 		config = PAL_CONFIG_BT865;
 		data->configlen = sizeof(PAL_CONFIG_BT865);
 		break;
-	case EM8300_VIDEOMODE_PALNC:
+	case ENCODER_MODE_PALNC:
 		printk(KERN_NOTICE "bt865.o: Configuring for PAL\n");
 		config = PALNC_CONFIG_BT865;
 		data->configlen = sizeof(PALNC_CONFIG_BT865);
@@ -847,10 +847,10 @@ static int bt865_setup(struct i2c_client *client)
 
 	if (EM8300_VIDEOMODE_DEFAULT == EM8300_VIDEOMODE_PAL) {
 		printk(KERN_NOTICE "bt865.o: Defaulting to PAL\n");
-		bt865_setmode(EM8300_VIDEOMODE_PAL, client);
+		bt865_setmode(ENCODER_MODE_PAL, client);
 	} else if (EM8300_VIDEOMODE_DEFAULT == EM8300_VIDEOMODE_NTSC) {
 		printk(KERN_NOTICE "bt865.o: Defaulting to NTSC\n");
-		bt865_setmode(EM8300_VIDEOMODE_NTSC, client);
+		bt865_setmode(ENCODER_MODE_NTSC, client);
 	}
 
 	if (bt865_update(client)) {

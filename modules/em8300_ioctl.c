@@ -265,7 +265,7 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc)
 
 	copy_from_user(&uc, useruc, sizeof(em8300_microcode_t));
 
-	if ((ret=em8300_ucode_upload(em, uc.ucode, uc.ucode_size))) {
+	if ((ret = em8300_ucode_upload(em, uc.ucode, uc.ucode_size))) {
 		return ret;
 	}
 
@@ -275,9 +275,15 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc)
 		return ret;
 	}
 
-	if (em->mvfifo) em8300_fifo_free(em->mvfifo);
-	if (em->mafifo) em8300_fifo_free(em->mafifo);
-	if (em->spfifo) em8300_fifo_free(em->spfifo);
+	if (em->mvfifo) {
+		em8300_fifo_free(em->mvfifo);
+	}
+	if (em->mafifo) {
+		em8300_fifo_free(em->mafifo);
+	}
+	if (em->spfifo) {
+		em8300_fifo_free(em->spfifo);
+	}
 	
 	if (!(em->mvfifo = em8300_fifo_alloc())) {
 		return -ENOMEM;
@@ -338,12 +344,28 @@ void em8300_ioctl_getstatus(struct em8300_s *em, char *usermsg)
 
 int em8300_ioctl_setvideomode(struct em8300_s *em, int mode)
 {
+	int encoder;
+
+	switch (mode) {
+	case EM8300_VIDEOMODE_PAL:
+		encoder = ENCODER_MODE_PAL;
+		break;
+	case EM8300_VIDEOMODE_PAL60:
+		encoder = ENCODER_MODE_PAL60;
+		break;
+	case EM8300_VIDEOMODE_NTSC:
+		encoder = ENCODER_MODE_NTSC;
+		break;
+	default:
+		return -EINVAL;
+	}
+
 	em->video_mode = mode;
 
 	em8300_dicom_disable(em);
 
 	if (em->encoder) {
-		em->encoder->driver->command(em->encoder, ENCODER_CMD_SETMODE, (void *) &mode);
+		em->encoder->driver->command(em->encoder, ENCODER_CMD_SETMODE, (void *)encoder);
 	}
 	em8300_dicom_enable(em);
 	em8300_dicom_update(em);

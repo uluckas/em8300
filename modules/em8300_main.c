@@ -34,7 +34,9 @@
 #include <linux/string.h>
 #include <linux/time.h>
 #include <linux/poll.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
 #include <linux/kcomp.h>
+#endif
 #ifdef CONFIG_PROC_FS
 #include <linux/proc_fs.h>
 #endif

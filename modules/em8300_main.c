@@ -35,7 +35,9 @@
 #include <linux/string.h>
 #include <linux/time.h>
 #include <linux/poll.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,12)
 #include <linux/wrapper.h>	/* for mem_map_reserve */
+#endif
 #ifdef CONFIG_PROC_FS
 #include <linux/proc_fs.h>
 #endif
@@ -442,7 +444,11 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 
 		/* reserve all pages */
 		for(adr = (long)mem; adr < (long)mem + size; adr += PAGE_SIZE) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,12)
 			mem_map_reserve(virt_to_page(adr));
+#else
+			SetPageReserved(virt_to_page(adr));
+#endif
 		}
 
 		/* lock the area*/
@@ -556,7 +562,11 @@ int em8300_io_release(struct inode* inode, struct file *filp)
 		list_del(&info->item);
 
 		for(adr = (long)info->ptr; adr < (long)info->ptr + info->length; adr += PAGE_SIZE) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,12)
 			mem_map_unreserve(virt_to_page(adr));
+#else
+			ClearPageReserved(virt_to_page(adr));
+#endif
 		}
 
 		kfree(info->ptr);

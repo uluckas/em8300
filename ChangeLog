@@ -8,6 +8,11 @@
 	There's no need to include linux/wrapper.h in modules/adv717x.c or
 	modules/bt865.c.
 
+	* modules/em8300_main.c:
+	Since kernel 2.5.12, mem_map_reserve and mem_map_unreserve from
+	linux/wrapper.h are replaced by SetPageReserved and
+	ClearPageReserved. Thanks to Håkon Skjelten for pointing this.
+
 2004-03-16  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_fifo.c,
 	  modules/em8300_ioctl.c,

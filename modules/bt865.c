@@ -100,9 +100,13 @@ int bt865_setmode(int mode, struct i2c_client *client) {
 	break;
     case ENCODER_MODE_PAL_M:
 	printk("<1>bt865.o: Configuring for PALM\n");
+	i2c_smbus_write_byte_data(client,0xcc, 0xf0);
+	i2c_smbus_write_byte_data(client,0xd0, 0x0);
 	break;
     case ENCODER_MODE_PAL60:
 	printk("<1>bt865.o: Configuring for PAL 60\n");
+	i2c_smbus_write_byte_data(client,0xcc, 0xe0);
+	i2c_smbus_write_byte_data(client,0xd0, 0x0);
 	break;
     case ENCODER_MODE_NTSC:
 	printk("<1>bt865.o: Configuring for NTSC\n");
@@ -149,7 +153,7 @@ int bt865_setup(struct i2c_client *client) {
 
   // basically, disable teletext
 
-    i2c_smbus_write_byte_data(client,0xb2, 0x10);
+    i2c_smbus_write_byte_data(client,0xb2, 0x0);
 
     // sets a reserved bit in register 0xBC!!!
 

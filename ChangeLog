@@ -1,5 +1,11 @@
 2001-12-29  Rick Haines  <rick@kuroyi.net>
 
+	* modules/Makefile,
+	  modules/em8300_main.c:
+	procfs information updates from David
+
+2001-12-29  Rick Haines  <rick@kuroyi.net>
+
 	* modules/em8300.sysv.in:
 	fix eeprom module name
         (from Sergei 'Jin' Bostandjan)

@@ -1,3 +1,4 @@
+MODULE_VERSION="0.9.1"
 # where the kernel sources are located
 KERNEL_LOCATION=/lib/modules/$(shell uname -r)/build
 
@@ -34,6 +35,8 @@ SOUND_MODULE=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep " CO
 
 I2CALGO_BUILTIN=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep " CONFIG_I2C_ALGOBIT " | cut -d " " -f 3)
 I2CALGO_MODULE=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep " CONFIG_I2C_ALGOBIT_MODULE " | cut -d " " -f 3)
+
+VERSION_HEADER=em8300_version.h
 
 CFLAGS=-D__KERNEL__ -DMODULE $(EM8300_DEBUG) -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer $(EXTRA_CFLAGS)
 
@@ -93,7 +96,11 @@ gcc-check:
 	 fi \
 	fi
 
-em8300.o : gcc-check $(EM8300_OBJS)
+$(VERSION_HEADER):
+	@echo \#define COMPILER_VERSION \"`$(CC) -v 2>&1 | tail -1`\" >  $@
+	@echo \#define MODULE_VERSION \"$(MODULE_VERSION)\" >>  $@
+
+em8300.o : gcc-check $(VERSION_HEADER) $(EM8300_OBJS)
 	$(LD) $(EXTRA_LDFLAGS) -r -o $@ $(EM8300_OBJS)
 
 install : $(MODULES)
@@ -121,3 +128,4 @@ install-newkern : $(MODULES)
 
 clean :
 	rm -f *.o
+	rm -f $(VERSION_HEADER)

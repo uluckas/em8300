@@ -58,6 +58,7 @@
 #include "em8300_reg.h"
 #include <linux/em8300.h>
 #include "em8300_fifo.h"
+#include "em8300_version.h"
 
 #define EM8300_MINOR(inode) ((inode)->i_rdev & 0x0f)
 
@@ -509,19 +510,24 @@ int em8300_proc_read(char *page, char **start, off_t off, int count, int *eof, v
         *start = 0;
         *eof = 1;
     
-        len += sprintf(page+len, "----- EM8300 Device Info -----\n");
+        len += sprintf(page+len, "----- Driver Info -----\n");
+	len += sprintf(page+len, "em8300 module version %s\n", MODULE_VERSION);
+	len += sprintf(page+len, "Compiled with %s\n", COMPILER_VERSION);
         if (em->ucodeloaded) {
 		/* Device information */
-		len += sprintf(page+len, "Device name: %s\n", em->name);
-		len += sprintf(page+len, "Revision %d:%d\n", em->chip_revision, em->pci_revision);
-		
-		len += sprintf(page+len, "Mystery divisor: %d\n", em->mystery_divisor);
-		
-		/* Microcode */
-		len += sprintf(page+len, "  Microcode registers\n");
-		len += sprintf(page+len, " Unknown reg1: %d\n", em->var_ucode_reg1);
-		len += sprintf(page+len, " Unknown reg2: %d\n", em->var_ucode_reg2);
-		len += sprintf(page+len, " Unknown reg3: %d\n", em->var_ucode_reg3);
+		len += sprintf(page+len, "Card revision %d\n", em->pci_revision);
+		len += sprintf(page+len, "Chip revision %d\n", em->chip_revision);
+		len += sprintf(page+len, "Memory mapped at addressrange 0x%0x->0x%0x%s\n", (unsigned int)em->mem, (unsigned int)em->mem+(unsigned int)em->memsize, (em->mtrr_reg?" (FIFOs using MTRR)":""));
+		len += sprintf(page+len, "Displaybuffer resolution: %dx%d\n", em->dbuf_info.xsize, em->dbuf_info.ysize);
+		len += sprintf(page+len, "Dicom set to %s\n", (em->dicom_tvout?"TV-out":"overlay"));
+		if(em->dicom_tvout) {
+			len += sprintf(page+len, "Using %s\n", (em->video_mode==EM8300_VIDEOMODE_PAL?"PAL":"NTSC"));
+			len += sprintf(page+len, "Aspect is %s\n", (em->aspect_ratio==EM8300_ASPECTRATIO_4_3?"4:3":"16:9"));
+		} else {
+			len += sprintf(page+len, "em9010 %s\n", (em->overlay_enabled?"online":"offline"));
+			len += sprintf(page+len, "video mapped to screen coordinates %dx%d (%dx%d)\n", em->overlay_frame_xpos, em->overlay_frame_ypos, em->overlay_xres, em->overlay_yres);
+		}
+		len += sprintf(page+len, "%s audio output\n", (em->audio_mode==EM8300_AUDIOMODE_ANALOG?"analog":"digital"));
 	}
 	else {
 		len += sprintf(page+len, "Microcode hasn't been loaded\n");

@@ -200,14 +200,6 @@ int em8300_io_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, un
     struct em8300_s *em = filp->private_data;
     int subdevice = MINOR(inode->i_rdev) & 3;
 
-    em8300_microcode_t uc;
-    em8300_register_t reg;
-    
-    struct timeval tv;
-    char tmpstr[1024];
-    int ret,err,len;
-    long tdiff,frames,scr,picpts;
-
     switch(subdevice) {
     case EM8300_SUBDEVICE_AUDIO:
 	return em8300_audio_ioctl(em,cmd,arg);
@@ -215,118 +207,10 @@ int em8300_io_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, un
 	return em8300_video_ioctl(em,cmd,arg);
     case EM8300_SUBDEVICE_SUBPICTURE:
 	return em8300_spu_ioctl(em,cmd,arg);
+    case EM8300_SUBDEVICE_CONTROL:
+	return em8300_control_ioctl(em,cmd,arg);
     }
-    
-    if (_IOC_DIR(cmd) != 0) {
-	len = _IOC_SIZE(cmd);
-	if (len < 1 || len > 65536 || arg == 0)
-	    return -EFAULT;
-	if (_IOC_DIR(cmd) & _IOC_WRITE)
-	    if ((err = verify_area(VERIFY_READ, (void *)arg, len)) < 0)
-		return err;
-	if (_IOC_DIR(cmd) & _IOC_READ)
-	    if ((err = verify_area(VERIFY_WRITE, (void *)arg, len)) < 0)
-                                return err;
-    }	
-    
-    switch(_IOC_NR(cmd)) {
-   /* Microcode upload */
-    case 0:
-	copy_from_user(&uc, (void *)arg, sizeof(em8300_microcode_t));
-
-	if((ret=em8300_ucode_upload(em,uc.ucode, uc.ucode_size)))
-	    return ret;
-
-	if((ret=em8300_video_setup(em)))
-	    return ret;
-
-	if(em->mvfifo) em8300_fifo_free(em->mvfifo);
-	if(em->mafifo) em8300_fifo_free(em->mafifo);
-	if(em->spfifo) em8300_fifo_free(em->spfifo);
-
-	if(!(em->mvfifo = em8300_fifo_alloc()))
-	    return -ENOMEM;
-	
-	if(!(em->mafifo = em8300_fifo_alloc()))
-	    return -ENOMEM;
-
-	if(!(em->spfifo = em8300_fifo_alloc()))
-	    return -ENOMEM;
-
-	em8300_fifo_init(em,em->mvfifo,
-			 MV_PCIStart, MV_PCIWrPtr, MV_PCIRdPtr,
-			 MV_PCISize, 0x900, FIFOTYPE_VIDEO);
-
-	em8300_fifo_init(em,em->mafifo, 
-			 MA_PCIStart, MA_PCIWrPtr, MA_PCIRdPtr, 
-			 MA_PCISize, 0x1000, FIFOTYPE_AUDIO); 
-
-	em8300_fifo_init(em,em->spfifo, 
-			 SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, 
-			 SP_PCISize, 0x1000, FIFOTYPE_VIDEO);
-	em8300_spu_init(em);
-
-	if((ret=em8300_audio_setup(em)))
-	    return ret;
-	
-	if(em->encoder)
-	    em->encoder->driver->command(em->encoder,ENCODER_CMD_ENABLEOUTPUT,
-					 (void *)1);
- 	
-	em->ucodeloaded = 1;
-
-	printk(KERN_INFO "em8300: Microcode version 0x%02x loaded\n",read_ucregister(MicroCodeVersion));
-	
-	break;
-    /* Write register */
-    case 1:
-	copy_from_user(&reg, (void *)arg, sizeof(em8300_register_t));
-	if(reg.microcode_register)
-	    write_ucregister(reg.reg, reg.val);
-	else
-	    write_register(reg.reg, reg.val);
-	break;
-    /* Read register */
-    case 2:
-	copy_from_user(&reg, (void *)arg, sizeof(em8300_register_t));
-	if(reg.microcode_register)
-	    reg.val = read_ucregister(reg.reg);
-	else
-	    reg.val = read_register(reg.reg);
-	
-	copy_to_user((void *)arg,&reg, sizeof(em8300_register_t));
-	break;
-    /* Get status report */
-    case 3:
-	{
-	    char mvfstatus[128];
-	    char mafstatus[128];
-	    char spfstatus[128];
-
-	    em8300_fifo_statusmsg(em->mvfifo,mvfstatus);
-	    em8300_fifo_statusmsg(em->mafifo,mafstatus);
-	    em8300_fifo_statusmsg(em->spfifo,spfstatus);
-	    
-	frames = (read_ucregister(MV_FrameCntHi) << 16) | read_ucregister(MV_FrameCntLo);
-	picpts = (read_ucregister(PicPTSHi) << 16) |
-	    read_ucregister(PicPTSLo);
-	scr = (read_ucregister(MV_SCRhi) << 16) | read_ucregister(MV_SCRlo);
-	
-	do_gettimeofday(&tv);
-	tdiff = TIMEDIFF(tv,em->last_status_time);
-	em->last_status_time = tv;
-	sprintf(tmpstr,"Time elapsed: %ld us\nIRQ time period: %ld\nInterrupts : %d\nFrames: %ld\nSCR: %ld\nPicture PTS: %ld\nSCR diff: %ld\nMV Fifo: %s\nMA Fifo: %s\nSP Fifo: %s\nAudio pts: %d\nAudio lag: %d\n",
-		tdiff, em->irqtimediff,em->irqcount,frames-em->frames,scr,picpts,scr-em->scr,mvfstatus,mafstatus,spfstatus,em->audio_pts,em->audio_lag);
-	em->irqcount = 0;
-	em->frames = frames;
-	em->scr = scr;
-	copy_to_user((void *)arg,tmpstr,strlen(tmpstr)+1);
-	}
-	break;
-    default:
-	return -EINVAL;
-    }
-    return 0;
+    return -EINVAL;
 }
 
 static
@@ -425,7 +309,14 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 			 vma->vm_end - vma->vm_start,
 			 vma->vm_page_prot);
 	vma->vm_file = file;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,4,0)
 	file->f_dentry->d_inode->i_count++;
+#else    
+	atomic_inc(&file->f_dentry->d_inode->i_count);
+#endif   
+	file->f_dentry->d_inode->i_count++;
+
 	break;
     default:
 	return -EINVAL;

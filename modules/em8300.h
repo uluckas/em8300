@@ -10,10 +10,20 @@ typedef struct {
     int microcode_register;
 } em8300_register_t;
 
+typedef struct {
+    int brightness;
+    int contrast;
+    int saturation;
+} em8300_bcs_t;
+
 #define EM8300_IOCTL_INIT       _IOW('C',0,em8300_microcode_t)
-#define EM8300_IOCTL_READREG    _IORW('C',1,em8300_register_t)
+#define EM8300_IOCTL_READREG    _IOWR('C',1,em8300_register_t)
 #define EM8300_IOCTL_WRITEREG   _IOW('C',2,em8300_register_t)
 #define EM8300_IOCTL_GETSTATUS  _IOR('C',3,char[1024])
+#define EM8300_IOCTL_SETBCS	_IOW('C',4,em8300_bcs_t)
+#define EM8300_IOCTL_GETBCS	_IOR('C',4,em8300_bcs_t)
+#define EM8300_IOCTL_SET_ASPECTRATIO _IOW('C',5,int)
+#define EM8300_IOCTL_GET_ASPECTRATIO _IOR('C',5,int)
 
 #define EM8300_IOCTL_VIDEO_SETPTS 1
 #define EM8300_IOCTL_SPU_SETPTS 1
@@ -147,8 +157,8 @@ struct em8300_s
     int dicom_vertoffset;
     int dicom_horizoffset;
     int dicom_brightness;
+    int dicom_contrast;
     int dicom_saturation;
-    int dicom_chroma;
 
     /* I2C */
     int i2c_pin_reg;
@@ -255,6 +265,7 @@ int em8300_writeregblock(struct em8300_s *em, int offset, unsigned *buf, int len
 int em8300_waitfor(struct em8300_s *em, int reg, int val, int mask);
 
 /* em8300_dicom.c */
+void em8300_dicom_setBCS(struct em8300_s *em, int brightness, int contrast, int saturation);
 int em8300_dicom_update(struct em8300_s *em);
 
 /* em8300_video.c */
@@ -278,9 +289,10 @@ void em8300_spu_check_ptsfifo(struct em8300_s *em);
 
 
 /* em8300_ioctl.c */
+int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg);
 int em8300_ioctl_setvideomode(struct em8300_s *em, int mode);
 int em8300_ioctl_setaspectratio(struct em8300_s *em, int ratio);
-void em8300_ioctl_setBCS(struct em8300_s *em, int brightness, int chroma, int saturation);
-
+void em8300_ioctl_getstatus(struct em8300_s *em, char *usermsg);
+int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc);
 
 #endif

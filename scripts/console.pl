@@ -334,7 +334,7 @@ while(<>) {
     s/sw ([0-9a-f]+)/ write_myst(hex($1));/e;
   }
   elsif(/^w /) {
-    s/w 0x([0-9a-f]+) 0x([0-9a-f]+)/ em8300_write(hex($1),hex($2),0);/e;
+    s/w 0x([0-9a-f]+) (0x)*([0-9a-f]+)/ em8300_write(hex($1),hex($2),0);/e;
     s/w (\w+) ([0-9a-f]+)/
       if($microcode_registers{$1} ne '') {
 	em8300_write($microcode_registers{$1},hex($2),1);
@@ -385,7 +385,8 @@ while(<>) {
     @regs = sort(@regs);
     foreach my $r (@regs) {
       $val = em8300_read($microcode_registers{$r},1);
-      print sprintf("%-20s 0x%04x",$r,$val), "\n";
+      $reg = em8300_getregister($microcode_registers{$r},1);
+      print sprintf("%-20s (0x%04x): 0x%04x",$r,$reg,$val), "\n";
     }
   } elsif(/^x/) {
     
@@ -409,7 +410,11 @@ while(<>) {
     printf("0x%x\n",$r5);
 
     
-  } elsif(/^q/) {
+  } elsif(/^bcs/) {
+    s/bcs ([0-9]+) ([0-9]+) ([0-9]+)/em8300_setbcs($1,$2,$3)/e;
+  } elsif(/^ar [01]/) {
+    s/ar ([01])/em8300_setaspectratio($1)/e;
+  }elsif(/^q/) {
     exit(1);
   }
   elsif(/^h/) {

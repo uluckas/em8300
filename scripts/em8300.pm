@@ -22,10 +22,12 @@ sub _IOC {
    (($size) << $_IOC_SIZESHIFT));
 }
 
-sub EMCTL_IOCTL_INIT { _IOC(1,'C',0,8 );}
-sub EMCTL_IOCTL_READREG { _IOC(3,'C',2,8);}
-sub EMCTL_IOCTL_WRITEREG { _IOC(1,'C',1,8); }
+sub EMCTL_IOCTL_INIT { _IOC(0,'C',0,8 );}
+sub EMCTL_IOCTL_READREG { _IOC(3,'C',1,12);}
+sub EMCTL_IOCTL_WRITEREG { _IOC(1,'C',2,12); }
 sub EMCTL_IOCTL_GETSTATUS { _IOC(2,'C',3,shift)}
+sub EMCTL_IOCTL_SETBCS { _IOC(1,'C',4,12) }
+sub EMCTL_IOCTL_SETASPECTRATIO { _IOC(1,'C',5,4) }
 
 sub em8300_open {
   open(EMDEV,"</dev/em8300") or die("Can't open device");
@@ -36,12 +38,8 @@ sub em8300_close {
 }
 
 sub em8300_write {
-  my $reg = shift;
-  my $val = shift;
-  my $ucode = shift;
-
   # Prepare ioctl
-  $initparams = pack("III", $reg, $val,$ucode);
+  $initparams = pack("III", @_);
   ioctl(EMDEV, &EMCTL_IOCTL_WRITEREG, $initparams) or die("Write register error");
 }
 
@@ -51,9 +49,22 @@ sub em8300_read {
 
   # Prepare ioctl
   $initparams = pack("III", $reg, 0, $ucode);
-  ioctl(EMDEV, &EMCTL_IOCTL_READREG, $initparams) or die("Read register error");
+  ioctl(EMDEV, &EMCTL_IOCTL_READREG, $initparams) or 
+    die("Read register error");
   ($reg, $val) = unpack("II",$initparams);
   return $val;
+}
+
+sub em8300_getregister {
+  my $reg = shift;
+  my $ucode = shift;
+
+  # Prepare ioctl
+  $initparams = pack("III", $reg, 0, $ucode);
+  ioctl(EMDEV, &EMCTL_IOCTL_READREG, $initparams) or 
+    die("Read register error");
+  ($reg, $val) = unpack("II",$initparams);
+  return $reg;
 }
 
 sub em8300_getstatus {
@@ -64,4 +75,16 @@ sub em8300_getstatus {
   ioctl(EMDEV, &EMCTL_IOCTL_GETSTATUS(1024), $reply) or die("Get status error");
   $len = index($reply,chr(0));
   return substr($reply,0,$len);
+}
+
+sub em8300_setbcs {
+  my $params = pack("III",@_);
+  ioctl(EMDEV,&EMCTL_IOCTL_SETBCS,$params) or 
+    die("Set BCS error");
+}
+
+sub em8300_setaspectratio {
+  my $params = pack("I",@_);
+  ioctl(EMDEV,&EMCTL_IOCTL_SETASPECTRATIO,$params) or 
+    die("Set aspectratio error");
 }

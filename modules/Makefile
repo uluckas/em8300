@@ -5,24 +5,16 @@ KERNEL_LOCATION=/usr/src/linux
 # some magic for using linux kernel settings
 # when compiling module(s)
 
-
-EXTRA_CFLAGS = -g -Werror -I/usr/local/include \
-	       -DEM8300_VIDEOMODE_DEFAULT=EM8300_VIDEOMODE_PAL \
+EXTRA_CFLAGS = -DEM8300_VIDEOMODE_DEFAULT=EM8300_VIDEOMODE_PAL \
 		-DEM8300_AUDIOMODE_DEFAULT=EM8300_AUDIOMODE_ANALOG
-O_TARGET 	= em8300.o
-O_OBJS 		= em8300_main.o em8300_i2c.o em8300_audio.o em8300_fifo.o \
-		  em8300_video.o em8300_misc.o em8300_dicom.o em8300_ucode.o \
-		  em8300_ioctl.o em8300_spu.o em9010.o
-M_OBJS 		= em8300.o adv717x.o eeprom.o bt865.o
-MX_OBJS      	= 
 
-here:
-	DIR=`pwd`; (cd $(KERNEL_LOCATION); make SUBDIRS=$$DIR modules)
+O_TARGET = em8300.o
 
-dep:
-	DIR=`pwd`; (cd $(KERNEL_LOCATION); make SUBDIRS=$$DIR dep)
+obj-y	:= em8300_main.o em8300_i2c.o em8300_audio.o em8300_fifo.o \
+	   em8300_video.o em8300_misc.o em8300_dicom.o em8300_ucode.o \
+	   em8300_ioctl.o em8300_spu.o em9010.o
 
-clean:
-	-rm -f $(O_OBJS) $(M_OBJS) $(MX_OBJS) .depend .*.o.flags *~
+obj-m	:= em8300.o adv717x.o bt865.o eeprom.o
 
 include $(KERNEL_LOCATION)/Rules.make
+

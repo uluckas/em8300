@@ -9,27 +9,43 @@ EM_LOCATION=`pwd`
 
 pushd .
 cd ${EM_LOCATION}
-# Swap the makefiles.
+# Swap the makefiles (if not already done).
 if [ -f Makefile.2.4 ]; then
 	mv Makefile Makefile.2.2
 	mv Makefile.2.4 Makefile
 fi
-# Generate the correct patch.
-if [ ! -f kernel-makefile-patch2 ]; then
-	cat kernel-makefile-patch | sed s?EM8300_LOC?${EM_LOCATION}?g > \
-					${EM_LOCATION}/kernel-makefile-patch2
-fi
 cd ${KERNEL_LOCATION}
 # Patch the main kernel makefile.
-patch -p0 < ${EM_LOCATION}/kernel-makefile-patch2
+cat <<KERNEL_MAKEFILE_PATCH | patch --ignore-whitespace -p0 
+--- Makefile.old	Sat Jan 20 14:07:21 2001
++++ Makefile	Sat Jan 20 01:42:46 2001
+@@ -125,7 +125,7 @@
+ 		 drivers/net/net.o \\
+ 		 drivers/media/media.o
+ LIBS		=\$(TOPDIR)/lib/lib.a
+-SUBDIRS		=kernel drivers mm fs net ipc lib
++SUBDIRS		=kernel drivers mm fs net ipc lib ${EM_LOCATION}
+ 
+ DRIVERS-n :=
+ DRIVERS-y :=
+@@ -325,7 +325,7 @@
+ init/main.o: init/main.c include/config/MARKER
+ 	\$(CC) \$(CFLAGS) \$(CFLAGS_KERNEL) \$(PROFILING) -c -o \$*.o $<
+ 
+-fs lib mm ipc kernel drivers net: dummy
++fs lib mm ipc kernel drivers net ${EM_LOCATION}: dummy
+ 	\$(MAKE) CFLAGS="\$(CFLAGS) \$(CFLAGS_KERNEL)" \$(subst \$@, _dir_\$@, \$@)
+ 
+ TAGS: dummy
+KERNEL_MAKEFILE_PATCH
 popd
 
-echo .
+echo
 echo Kernel and modules have been prepared. Now change to ${KERNEL_LOCATION}
 echo directory and run: make modules
 echo You will then find the compiled modules in ${EM_LOCATION}
-echo .
+echo
 echo "You obviously need to have configured your kernel and run a make dep"
 echo "followed by a make bzImage (or equivalent) beforehand."
-echo .
+echo
 

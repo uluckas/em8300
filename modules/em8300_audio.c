@@ -249,6 +249,7 @@ static int set_format(struct em8300_s *em, int fmt)
 		case AFMT_AC3:
 			if (em->audio_mode != EM8300_AUDIOMODE_DIGITALAC3)
 				set_audiomode(em, EM8300_AUDIOMODE_DIGITALAC3);
+			set_speed(em, 48000);
 			em->audio.format = fmt;
 			break;
 #endif

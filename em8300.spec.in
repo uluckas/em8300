@@ -37,6 +37,7 @@ shared objects in the em8300 package.
 %package kmods
 Summary: Modules and boot self build for Hollywood plus / DXR3 device driver for Linux
 Group: Development/Libraries
+Provides: perl(em8300)
 
 %description kmods
 This contains the source code for the modules that drive
@@ -86,19 +87,23 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files devel
 %defattr(-,root,root)
-/usr/bin/*
 /usr/include/libdxr3/
 /usr/include/linux/*
 /usr/lib/*.a
 /usr/lib/*.la
-%doc README NEWS AUTHORS COPYING ChangeLog INSTALL
 
 %files kmods
 %defattr(-,root,root)
 /usr/share/em8300/
-%doc README NEWS AUTHORS COPYING ChangeLog INSTALL
 
 %changelog
+* Tue Sep 25 2001 Andrew Meredith <andrew@anvil.org>
+- Removed extranious line from devel file list.
+
+* Tue Sep 25 2001 Akos Szabo <fonya@fatav.hu>
+- Remove docs section from kmods, and devel
+- Added Provides to the kmods
+
 * Tue Mar 13 2001 Andrew Meredith <andrew@anvil.org>
 - Added em8300-kmods package
 

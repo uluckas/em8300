@@ -29,5 +29,5 @@ dist-rpm: em8300.spec modules.tar.gz dist
 	cp -f ${top_srcdir}/@PACKAGE@-@VERSION@.tar.gz ./SOURCES
 	echo "%_topdir `pwd`"	> rpmmacros
 	echo "macrofiles: /usr/lib/rpm/macros: ... :`pwd`/rpmmacros"	> rpmrc
-	rpm --target=i586-pc-linux-gnu --rcfile rpmrc -ba em8300.spec
+	rpm --rcfile rpmrc -ba em8300.spec
 

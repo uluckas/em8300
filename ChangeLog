@@ -1,3 +1,19 @@
+2001-09-30  Rick Haines  <rick@kuroyi.net>
+
+	* em8300.spec.in,
+	  configure.in,
+	  Makefile.am:
+	updates from Andrew
+
+	* modules/em8300_audio.c:
+	set correct speed for AC3 output
+
+	* include/linux/em8300.h:
+	swap EM8300_AUDIOMODE_DIGITALPCM and
+	EM8300_AUDIOMODE_DIGITALAC3 so that
+	dhc switches between analog and digitalpcm.
+	This is the logical order anyway.
+
 2001-09-19  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_audio.c:

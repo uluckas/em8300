@@ -324,8 +324,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	case SNDCTL_DSP_SYNC:  /* wait until last byte is played and reset device */
 		pr_debug("em8300_audio.o: SNDCTL_DSP_SYNC\n");
 		em8300_fifo_sync(em->mafifo);
-		val = 0;
-		break;
+		return 0;
 
 	case SNDCTL_DSP_SPEED: /* set sample rate */
 		if (get_user(val, (int *) arg)) {

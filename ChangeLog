@@ -1,3 +1,8 @@
+2004-09-05  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_audio.c:
+	Fix the SNDCTL_DSP_SYNC audio ioctl, as suggested by Aaron
+	Kaplan. Many thanks to him.
+
 2004-08-21  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_procfs.c:
 	Update procfs to not segfault if no video encoder chip was

@@ -142,6 +142,7 @@ int em8300_fifo_check(struct fifo_s *fifo) {
 	fifo->nslots;
 
     if((freeslots > fifo->threshold) && fifo->waiting) {
+	fifo->waiting=0;
 	wake_up_interruptible(&fifo->wait);
     }
     return 0;
@@ -232,7 +233,6 @@ int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer
 	if(n) {
 	    fifo->waiting=1;
 	    interruptible_sleep_on(&fifo->wait);
-	    fifo->waiting=0;
 	}
 	
 	if(signal_pending(current)) {
@@ -243,4 +243,16 @@ int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer
 	}
     }
     return total_bytes_written;
+}
+
+int em8300_fifo_freeslots(struct fifo_s *fifo)
+{
+    return ((*fifo->readptr - *fifo->writeptr) / fifo->slotptrsize +
+	    fifo->nslots - 1) % fifo->nslots;
+}
+
+void em8300_fifo_statusmsg(struct fifo_s *fifo, char *str)
+{
+    int freeslots = em8300_fifo_freeslots(fifo);
+    sprintf(str,"Free slots: %d/%d",freeslots,fifo->nslots);
 }

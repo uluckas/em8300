@@ -52,6 +52,7 @@ int audio_stop(struct em8300_s *em) {
 static
 int set_rate(struct em8300_s *em,int rate)
 {
+    em->audio_rate = rate; 
     switch(rate) {
     case 48000:
 	em8300_clockgen_write(em,(em->clockgen & ~CLOCKGEN_SAMPFREQ_MASK) |
@@ -124,6 +125,13 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	    em->swapbytes = 1;
 	}
 	break;
+    case EM8300_IOCTL_AUDIO_SETPTS:
+	if (get_user(em->audio_pts, (int *)arg))
+	    return -EFAULT;
+	em->audio_pts >>= 1;
+	em->audio_ptsvalid=1;
+	val=0;
+	break;
     default:
 	return -EINVAL;
     }
@@ -173,5 +181,18 @@ int em8300_audio_setup(struct em8300_s *em) {
 int em8300_audio_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos)
 {
+    int scr;
+    if(em->audio_ptsvalid) {
+	if(em->audio_rate) {
+	    scr =
+		read_ucregister(MV_SCRlo) +
+		(read_ucregister(MV_SCRhi) << 16);
+	    em->audio_lag = em->audio_pts - (scr + 45000 * count *
+		((em->mafifo->nslots - em8300_fifo_freeslots(em->mafifo))-1)
+		/4
+		/ em->audio_rate);
+	}
+	em->audio_ptsvalid=0;
+    }
     return em8300_fifo_writeblocking(em->mafifo, count, buf,1,0);
 }

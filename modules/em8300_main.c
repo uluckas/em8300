@@ -79,6 +79,25 @@ void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 	    em8300_fifo_check(em->mafifo);
 
 	if(irqstatus & IRQSTATUS_VIDEO_VBL) {
+	    long picpts,scr,lag;
+
+	    em8300_fifo_check(em->spfifo);
+	    em8300_spu_check_ptsfifo(em);
+	    em8300_fifo_check(em->mvfifo);
+	    
+	    picpts = (read_ucregister(PicPTSHi) << 16) |
+		read_ucregister(PicPTSLo);
+	    scr = (read_ucregister(MV_SCRhi) << 16) | read_ucregister(MV_SCRlo);
+
+	    lag = scr-picpts;
+
+	    if(lag > PTSLAG_LIMIT || lag < -PTSLAG_LIMIT) {
+		DEBUG(printk("em8300_main.o: Lagging (%ld) to much. Catching up\n",lag));
+		scr = picpts;
+		write_ucregister(MV_SCRhi, scr >> 16);		
+		write_ucregister(MV_SCRlo, scr & 0xffff);		
+	    }
+	    
 	    do_gettimeofday(&tv);
 	    em->irqtimediff = TIMEDIFF(tv,em->tv);
 	    em->tv = tv;
@@ -201,7 +220,7 @@ int em8300_io_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, un
     struct timeval tv;
     char tmpstr[1024];
     int ret,err,len;
-    long tdiff,frames,scr;
+    long tdiff,frames,scr,picpts;
 
     switch(subdevice) {
     case EM8300_SUBDEVICE_AUDIO:
@@ -254,7 +273,8 @@ int em8300_io_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, un
 
 	em8300_fifo_init(em,em->spfifo, 
 			 SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, 
-			 SP_PCISize, 0x1000, FIFOTYPE_VIDEO); 
+			 SP_PCISize, 0x1000, FIFOTYPE_VIDEO);
+	em8300_spu_init(em);
 
 	if((ret=em8300_audio_setup(em)))
 	    return ret;
@@ -288,18 +308,30 @@ int em8300_io_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, un
 	break;
     /* Get status report */
     case 3:
+	{
+	    char mvfstatus[128];
+	    char mafstatus[128];
+	    char spfstatus[128];
+
+	    em8300_fifo_statusmsg(em->mvfifo,mvfstatus);
+	    em8300_fifo_statusmsg(em->mafifo,mafstatus);
+	    em8300_fifo_statusmsg(em->spfifo,spfstatus);
+	    
 	frames = (read_ucregister(MV_FrameCntHi) << 16) | read_ucregister(MV_FrameCntLo);
+	picpts = (read_ucregister(PicPTSHi) << 16) |
+	    read_ucregister(PicPTSLo);
 	scr = (read_ucregister(MV_SCRhi) << 16) | read_ucregister(MV_SCRlo);
 	
 	do_gettimeofday(&tv);
 	tdiff = TIMEDIFF(tv,em->last_status_time);
 	em->last_status_time = tv;
-	sprintf(tmpstr,"Time elapsed: %ld us\nIRQ time period: %ld\nInterrupts : %d\nFrames: %ld\nSCR: %ld\n",
-		tdiff, em->irqtimediff,em->irqcount,frames-em->frames,scr-em->scr);
+	sprintf(tmpstr,"Time elapsed: %ld us\nIRQ time period: %ld\nInterrupts : %d\nFrames: %ld\nSCR: %ld\nPicture PTS: %ld\nSCR diff: %ld\nMV Fifo: %s\nMA Fifo: %s\nSP Fifo: %s\nAudio pts: %d\nAudio lag: %d\n",
+		tdiff, em->irqtimediff,em->irqcount,frames-em->frames,scr,picpts,scr-em->scr,mvfstatus,mafstatus,spfstatus,em->audio_pts,em->audio_lag);
 	em->irqcount = 0;
 	em->frames = frames;
 	em->scr = scr;
 	copy_to_user((void *)arg,tmpstr,strlen(tmpstr)+1);
+	}
 	break;
     default:
 	return -EINVAL;

@@ -70,3 +70,6 @@ int em8300_fifo_check(struct fifo_s *fifo);
 
 int em8300_fifo_sync(struct fifo_s *fifo);
 
+int em8300_fifo_freeslots(struct fifo_s *fifo);
+
+void em8300_fifo_statusmsg(struct fifo_s *fifo, char *str);

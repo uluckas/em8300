@@ -17,6 +17,8 @@ typedef struct {
 
 #define EM8300_IOCTL_VIDEO_SETPTS 1
 #define EM8300_IOCTL_SPU_SETPTS 1
+#define EM8300_IOCTL_SPU_SETPALETTE 2
+#define EM8300_IOCTL_AUDIO_SETPTS _SIOWR('P', 31, int)
 
 #define EM8300_VIDEOMODE_PAL 1
 #define EM8300_VIDEOMODE_PAL60 2
@@ -34,6 +36,10 @@ typedef struct {
 #define PCI_VENDOR_ID_SIGMADESIGNS 0x1105
 #define PCI_DEVICE_ID_SIGMADESIGNS_EM8300 0x8300
 #endif
+
+
+#define PTSLAG_LIMIT 45000
+
 
 #define CLOCKGEN_SAMPFREQ_MASK 0xc0
 #define CLOCKGEN_SAMPFREQ_66 0xc0
@@ -137,6 +143,10 @@ struct em8300_s
 
     /* Audio */
     int swapbytes;
+    int audio_ptsvalid;
+    int audio_pts;
+    int audio_rate;
+    int audio_lag;
 
     /* Video */
     int video_mode;
@@ -144,8 +154,14 @@ struct em8300_s
     int video_ptsfifo_ptr;
 
     /* Sub Picture */
-    int sp_pts,sp_ptsvalid,sp_offset,sp_count;
+    int sp_pts,sp_ptsvalid,sp_count;
     int sp_ptsfifo_ptr;
+#if LINUX_VERSION_CODE < 0x020314    
+    struct wait_queue *sp_ptsfifo_wait;
+#else
+    wait_queue_head_t sp_ptsfifo_wait;
+#endif
+    int sp_ptsfifo_waiting;
     
     int linecounter;
 };
@@ -200,6 +216,8 @@ int em8300_spu_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos);
 int em8300_spu_open(struct em8300_s *em);
 int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg);
+int em8300_spu_init(struct em8300_s *em);
+void em8300_spu_check_ptsfifo(struct em8300_s *em);
 
 
 /* em8300_ioctl.c */

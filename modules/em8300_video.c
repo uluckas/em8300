@@ -192,9 +192,9 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos)
 {
     unsigned flags=0;
-    int ptsfifoptr=0;
-    
+    //    em->video_ptsvalid=0;
     if(em->video_ptsvalid) {
+	int ptsfifoptr=0;
 	//	printk("em8300_video.o: video_write %x,%d\n",count,em->video_pts);
 	flags = 0x40000000;
 	em->video_pts>>=1;

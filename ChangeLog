@@ -1,3 +1,9 @@
+2004-04-14  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_compat24.h,
+	  modules/em8300_main.c:
+	New code for pci probing. Many thanks to Andreas Schultz who did
+	most (not to say all) the work.
+
 2004-04-12  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Check if CONFIG_MTRR is defined before #including asm/mtrr.h as it

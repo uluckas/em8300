@@ -65,6 +65,10 @@ static inline void i2c_set_adapdata(struct i2c_adapter *dev, void *data)
 #define MODULE_LICENSE(_license)
 #endif
 
+#if !defined(MODULE_ALIAS_CHARDEV_MAJOR)
+#define MODULE_ALIAS_CHARDEV_MAJOR(major)
+#endif
+
 #if !defined(EXPORT_NO_SYMBOLS)
 #define EXPORT_NO_SYMBOLS
 #endif

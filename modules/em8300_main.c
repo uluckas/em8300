@@ -70,6 +70,7 @@ MODULE_AUTHOR("Henrik Johansson <henrikjo@post.utfors.se>");
 MODULE_DESCRIPTION("EM8300 MPEG-2 decoder");
 MODULE_SUPPORTED_DEVICE("em8300");
 MODULE_LICENSE("GPL");
+MODULE_ALIAS_CHARDEV_MAJOR(EM8300_MAJOR);
 
 EXPORT_NO_SYMBOLS;
 
@@ -144,6 +145,14 @@ struct memory_info
 	char *ptr;
 };
 
+static struct pci_device_id em8300_ids[] = {
+	{ PCI_VENDOR_ID_SIGMADESIGNS, PCI_DEVICE_ID_SIGMADESIGNS_EM8300,
+	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
+	{ 0 }
+};
+
+MODULE_DEVICE_TABLE(pci, em8300_ids);
+
 static irqreturn_t em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 {
 	struct em8300_s *em = (struct em8300_s *) dev_id;
@@ -185,89 +194,35 @@ static irqreturn_t em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 	return IRQ_NONE;
 }
 
-static void release_em8300(int max)
+static void release_em8300(struct em8300_s *em)
 {
-	struct em8300_s *em;
-	int i;
-
-	for (i = 0; i < max; i++) {
-		em = &em8300[i];
-
-		if(em->encoder) {
-			em->encoder->driver->command(em->encoder, ENCODER_CMD_ENABLEOUTPUT, (void *) 0);
-		}
+	if(em->encoder) {
+		em->encoder->driver->command(em->encoder, ENCODER_CMD_ENABLEOUTPUT, (void *) 0);
+	}
 
 #ifdef CONFIG_MTRR
-		if (em->mtrr_reg) {
-			mtrr_del(em->mtrr_reg,em->adr, em->memsize);
-		}
+	if (em->mtrr_reg) {
+		mtrr_del(em->mtrr_reg,em->adr, em->memsize);
+	}
 #endif
 
-		em8300_i2c_exit(em);
+	em8300_i2c_exit(em);
 
-		write_ucregister(Q_IrqMask, 0);
-		write_ucregister(Q_IrqStatus, 0);
-		writel(0, &em->mem[0x2000]);
+	write_ucregister(Q_IrqMask, 0);
+	write_ucregister(Q_IrqStatus, 0);
+	writel(0, &em->mem[0x2000]);
 
-		em8300_fifo_free(em->mvfifo);
-		em8300_fifo_free(em->mafifo);
-		em8300_fifo_free(em->spfifo);
+	em8300_fifo_free(em->mvfifo);
+	em8300_fifo_free(em->mafifo);
+	em8300_fifo_free(em->spfifo);
 
-		/* free it */
-		free_irq(em->dev->irq, em);
+	/* free it */
+	free_irq(em->dev->irq, em);
 
-		/* unmap and free memory */
-		if (em->mem) {
-			iounmap((unsigned *) em->mem);
-		}
+	/* unmap and free memory */
+	if (em->mem) {
+		iounmap((unsigned *) em->mem);
 	}
-}
-
-static int find_em8300(void)
-{
-	struct pci_dev *dev = NULL;
-	unsigned char revision;
-	struct em8300_s *em;
-	unsigned int em8300_n = 0;
-	int result;
-
-	while ((dev = pci_find_device(PCI_VENDOR_ID_SIGMADESIGNS, PCI_DEVICE_ID_SIGMADESIGNS_EM8300, dev))) {
-		em = &em8300[em8300_n];
-		em->dev = dev;
-		em->card_nr = em8300_n;
-		em->adr = dev->resource[0].start;
-		em->memsize = 1024 * 1024;
-		pci_enable_device(dev);
-		pci_read_config_byte(dev, PCI_CLASS_REVISION, &revision);
-		em->pci_revision = revision;
-		pr_info("em8300: EM8300 %x (rev %d) ", dev->device, revision);
-		printk("bus: %d, devfn: %d, irq: %d, ", dev->bus->number, dev->devfn, dev->irq);
-		printk("memory: 0x%08lx.\n", em->adr);
-
-		em->mem = ioremap(em->adr, em->memsize);
-		pr_info("em8300: mapped-memory at 0x%p\n", em->mem);
-#ifdef CONFIG_MTRR
-		em->mtrr_reg = mtrr_add(em->adr, em->memsize, MTRR_TYPE_UNCACHABLE, 1);
-		if (em->mtrr_reg) pr_info("em8300: using MTRR\n");
-#endif
-
-		result = request_irq(dev->irq, em8300_irq, SA_SHIRQ | SA_INTERRUPT, "em8300", (void *) em);
-
-		if (result == -EINVAL) {
-			printk(KERN_ERR "em8300: Bad irq number or handler\n");
-			return -EINVAL;
-		}
-
-		pci_set_master(dev);
-
-		em8300_n++;
-	}
-
-	if (em8300_n) {
-		pr_info("em8300: %d EM8300 card(s) found.\n", em8300_n);
-	}
-
-	return em8300_n;
 }
 
 static int em8300_io_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, unsigned long arg)
@@ -642,7 +597,7 @@ static struct file_operations em8300_dsp_audio_fops = {
 #endif
 
 #ifdef CONFIG_PROC_FS
-int em8300_proc_read(char *page, char **start, off_t off, int count, int *eof, void *data)
+static int em8300_proc_read(char *page, char **start, off_t off, int count, int *eof, void *data)
 {
 	int len = 0;
 	struct em8300_s *em = (struct em8300_s *) data;
@@ -679,7 +634,7 @@ int em8300_proc_read(char *page, char **start, off_t off, int count, int *eof, v
 }
 #endif
 
-int init_em8300(struct em8300_s *em)
+static int init_em8300(struct em8300_s *em)
 {
 	write_register(0x30000, read_register(0x30000));
 
@@ -731,143 +686,198 @@ int init_em8300(struct em8300_s *em)
 	return 0;
 }
 
-void __exit em8300_exit(void)
+static int __devinit em8300_probe(struct pci_dev *dev,
+				  const struct pci_device_id *pci_id)
 {
-	int card;
-#if defined(CONFIG_DEVFS_FS) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,69)
-	int frame;
+	unsigned char revision;
+	struct em8300_s *em;
+	char devname[64];
+	int result;
+
+	em = &em8300[em8300_cards];
+	em->dev = dev;
+	em->card_nr = em8300_cards;
+	em->adr = dev->resource[0].start;
+	em->memsize = 1024 * 1024;
+
+	pci_enable_device(dev);
+	pci_read_config_byte(dev, PCI_CLASS_REVISION, &revision);
+	em->pci_revision = revision;
+	pr_info("em8300: EM8300 %x (rev %d) ", dev->device, revision);
+	printk("bus: %d, devfn: %d, irq: %d, ", dev->bus->number, dev->devfn, dev->irq);
+	printk("memory: 0x%08lx.\n", em->adr);
+
+	em->mem = ioremap(em->adr, em->memsize);
+	pr_info("em8300: mapped-memory at 0x%p\n", em->mem);
+#ifdef CONFIG_MTRR
+	em->mtrr_reg = mtrr_add(em->adr, em->memsize, MTRR_TYPE_UNCACHABLE, 1);
+	if (em->mtrr_reg) pr_info("em8300: using MTRR\n");
 #endif
+
+	result = request_irq(dev->irq, em8300_irq, SA_SHIRQ | SA_INTERRUPT, "em8300", (void *) em);
+
+	if (result == -EINVAL) {
+		printk(KERN_ERR "em8300: Bad irq number or handler\n");
+		return -EINVAL;
+	}
+
+	pci_set_master(dev);
+	pci_set_drvdata(dev, em);
+
+	em->irqmask = 0;
+	em->encoder = NULL;
+	em->linecounter=0;
+
+	init_em8300(em);
+
+#ifdef CONFIG_PROC_FS
+	if (em8300_proc) {
+		struct proc_dir_entry *proc;
+		sprintf(devname, "%d", em8300_cards );
+		proc = create_proc_entry(devname, S_IFREG | S_IRUGO, em8300_proc);
+		if (proc) {
+			proc->data = (void *) em;
+			proc->read_proc = em8300_proc_read;
+			proc->owner = THIS_MODULE;
+		}
+	}
+#endif
+#ifdef CONFIG_DEVFS_FS
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,70)
+	sprintf(devname, "%s-%d", EM8300_LOGNAME, em8300_cards );
+	em8300_handle[(em8300_cards * 4) + 0] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
+							       (em8300_cards * 4) + 0, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
+	sprintf(devname, "%s_mv-%d", EM8300_LOGNAME, em8300_cards );
+	em8300_handle[(em8300_cards * 4) + 1] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
+							       (em8300_cards * 4) + 1, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
+	sprintf(devname, "%s_ma-%d", EM8300_LOGNAME, em8300_cards );
+	em8300_handle[(em8300_cards * 4) + 2] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
+							       (em8300_cards * 4) + 2, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
+	sprintf(devname, "%s_sp-%d", EM8300_LOGNAME, em8300_cards );
+	em8300_handle[(em8300_cards * 4) + 3] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
+							       (em8300_cards * 4) + 3, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
+#else
+	devfs_mk_cdev(MKDEV(EM8300_MAJOR, (em8300_cards * 4)),
+		      S_IFCHR | S_IRUGO | S_IWUGO,
+		      "%s-%d", EM8300_LOGNAME, em8300_cards);
+	devfs_mk_cdev(MKDEV(EM8300_MAJOR, (em8300_cards * 4) + 1),
+		      S_IFCHR | S_IRUGO | S_IWUGO,
+		      "%s_mv-%d", EM8300_LOGNAME, em8300_cards);
+	devfs_mk_cdev(MKDEV(EM8300_MAJOR, (em8300_cards * 4) + 2),
+		      S_IFCHR | S_IRUGO | S_IWUGO,
+		      "%s_ma-%d", EM8300_LOGNAME, em8300_cards);
+	devfs_mk_cdev(MKDEV(EM8300_MAJOR, (em8300_cards * 4) + 3),
+		      S_IFCHR | S_IRUGO | S_IWUGO,
+		      "%s_sp-%d", EM8300_LOGNAME, em8300_cards);
+#endif
+#endif
+#if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
+	if ((em->dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, -1)) < 0) {
+		printk(KERN_ERR "em8300: cannot register oss audio device!\n");
+	} else {
+		dsp_num_table[em->dsp_num >> 4 & 0x0f] = em8300_cards + 1;
+		pr_debug("em8300: registered dsp %i for device %i\n", em->dsp_num >> 4 & 0x0f, em8300_cards);
+	}
+#endif
+
+	em8300_cards++;
+	return 0;
+}
+
+static void __devexit em8300_remove(struct pci_dev *pci)
+{
+	struct em8300_s *em = pci_get_drvdata(pci);
 	char devname[64];
 
+	if (em) {
+#ifdef CONFIG_DEVFS_FS
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,69)
+		devfs_unregister(em8300_handle[(em->card_nr * 4) + 3]);
+		devfs_unregister(em8300_handle[(em->card_nr * 4) + 2]);
+		devfs_unregister(em8300_handle[(em->card_nr * 4) + 1]);
+		devfs_unregister(em8300_handle[(em->card_nr * 4) + 0]);
+#else
+		devfs_remove("%s-%d", EM8300_LOGNAME, em->card_nr);
+		devfs_remove("%s_mv-%d", EM8300_LOGNAME, em->card_nr);
+		devfs_remove("%s_ma-%d", EM8300_LOGNAME, em->card_nr);
+		devfs_remove("%s_sp-%d", EM8300_LOGNAME, em->card_nr);
+#endif
+#endif
+#if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
+		unregister_sound_dsp(em->dsp_num);
+#endif
+#ifdef CONFIG_PROC_FS
+		if (em8300_proc) {
+			sprintf(devname, "%d", em->card_nr);
+			remove_proc_entry(devname, em8300_proc);
+		}
+#endif
+		release_em8300(em);
+	}
+
+	pci_set_drvdata(pci, NULL);
+}
+
+static struct pci_driver em8300_driver = {
+	.name     = "Sigma Designs EM8300",
+	.id_table = em8300_ids,
+	.probe    = em8300_probe,
+	.remove   = __devexit_p(em8300_remove),
+};
+
+static void __exit em8300_exit(void)
+{
 #ifdef CONFIG_EM8300_IOCTL32
 	em8300_ioctl32_exit();
 #endif
 
-	for (card = 0; card < em8300_cards; card++) {
-#ifdef CONFIG_DEVFS_FS
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,69)
-		for (frame = 3; frame >= 0; frame--) {
-			devfs_unregister(em8300_handle[(card * 4) + frame]);
-		}
-#else
-		devfs_remove("%s-%d", EM8300_LOGNAME, card);
-		devfs_remove("%s_mv-%d", EM8300_LOGNAME, card);
-		devfs_remove("%s_ma-%d", EM8300_LOGNAME, card);
-		devfs_remove("%s_sp-%d", EM8300_LOGNAME, card);
-#endif
-#endif
-#if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
-		unregister_sound_dsp(em8300[card].dsp_num);
-#endif
-	}
-#ifdef CONFIG_PROC_FS
-	sprintf(devname, "%s", EM8300_LOGNAME );
-	if (em8300_proc != NULL) remove_proc_entry(devname, &proc_root);
-#endif
+	pci_unregister_driver(&em8300_driver);
+
 #if defined(CONFIG_DEVFS_FS) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
-	sprintf(devname, "%s", EM8300_LOGNAME);
-	devfs_unregister_chrdev(EM8300_MAJOR, devname);
-#endif
+	devfs_unregister_chrdev(EM8300_MAJOR, EM8300_LOGNAME);
+#else
 	unregister_chrdev(EM8300_MAJOR, EM8300_LOGNAME);
-	release_em8300(em8300_cards);
+#endif
+
+#ifdef CONFIG_PROC_FS
+	if (em8300_proc) {
+		remove_proc_entry(EM8300_LOGNAME, &proc_root);
+	}
+#endif
 }
 
-int __init em8300_init(void)
+static int __init em8300_init(void)
 {
-	int card = 0;
-	int frame = 3;
-	struct em8300_s *em = NULL;
+	int err;
 
-	char devname[32];
-#ifdef CONFIG_PROC_FS
-	struct proc_dir_entry *proc;
-#endif
 	//memset(&em8300, 0, sizeof(em8300) * EM8300_MAX);
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
 	memset(&dsp_num_table, 0, sizeof(dsp_num_table));
 #endif
 
-#if defined(CONFIG_DEVFS_FS) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
-	sprintf(devname, "%s", EM8300_LOGNAME);
-	devfs_register_chrdev(EM8300_MAJOR, devname, &em8300_fops);
-#endif
 #ifdef CONFIG_PROC_FS
-	sprintf(devname, "%s", EM8300_LOGNAME);
-	em8300_proc = create_proc_entry(devname, S_IFDIR | S_IRUGO | S_IXUGO, &proc_root);
-	if (em8300_proc == NULL) {
+	em8300_proc = create_proc_entry(EM8300_LOGNAME, S_IFDIR | S_IRUGO | S_IXUGO, &proc_root);
+	if (em8300_proc) {
+		em8300_proc->owner = THIS_MODULE;
+	} else {
 		printk(KERN_ERR "em8300: unable to register proc entry!\n");
-		goto err_chrdev;
 	}
-	em8300_proc->owner = THIS_MODULE;
 #endif
-#ifdef CONFIG_SOUND_MODULE
-	//request_module("soundcore");
-#endif
-
-	/* Find EM8300 cards */
-	em8300_cards = find_em8300();
-
-	/* Initialize EM8300 cards */
-	for (card = 0; card < em8300_cards; card++) {
-		em = &em8300[card];
-
-		em->irqmask = 0;
-
-		em->encoder = NULL;
-
-		em->linecounter=0;
-
-		init_em8300(em);
-
-#ifdef CONFIG_PROC_FS
-		sprintf(devname, "%d", card );
-		proc = create_proc_entry(devname, S_IFREG | S_IRUGO, em8300_proc);
-		proc->data = (void *) em;
-		proc->read_proc = em8300_proc_read;
-		proc->owner = THIS_MODULE;
-#endif
-#ifdef CONFIG_DEVFS_FS
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,70)
-		sprintf(devname, "%s-%d", EM8300_LOGNAME, card );
-		em8300_handle[(card * 4)] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
-				(card * 4), S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
-		sprintf(devname, "%s_mv-%d", EM8300_LOGNAME, card );
-		em8300_handle[(card * 4) + 1] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
-				(card * 4)+1, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
-		sprintf(devname, "%s_ma-%d", EM8300_LOGNAME, card );
-		em8300_handle[(card * 4) + 2] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
-				(card * 4) + 2, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
-		sprintf(devname, "%s_sp-%d", EM8300_LOGNAME, card );
-		em8300_handle[(card * 4) + 3] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
-				(card * 4) + 3, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
+#if defined(CONFIG_DEVFS_FS) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
+	if (devfs_register_chrdev(EM8300_MAJOR, EM8300_LOGNAME, &em8300_fops)) {
 #else
-		devfs_mk_cdev(MKDEV(EM8300_MAJOR, (card * 4)),
-			      S_IFCHR | S_IRUGO | S_IWUGO,
-			      "%s-%d", EM8300_LOGNAME, card);
-		devfs_mk_cdev(MKDEV(EM8300_MAJOR, (card * 4) + 1),
-			      S_IFCHR | S_IRUGO | S_IWUGO,
-			      "%s_mv-%d", EM8300_LOGNAME, card);
-		devfs_mk_cdev(MKDEV(EM8300_MAJOR, (card * 4) + 2),
-			      S_IFCHR | S_IRUGO | S_IWUGO,
-			      "%s_ma-%d", EM8300_LOGNAME, card);
-		devfs_mk_cdev(MKDEV(EM8300_MAJOR, (card * 4) + 3),
-			      S_IFCHR | S_IRUGO | S_IWUGO,
-			      "%s_sp-%d", EM8300_LOGNAME, card);
+	if (register_chrdev(EM8300_MAJOR, EM8300_LOGNAME, &em8300_fops)) {
 #endif
-#endif
-#if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
-		if ((em8300[card].dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, -1)) < 0) {
-			printk(KERN_ERR "em8300: cannot register oss audio device!\n");
-			goto err_audio_dsp;
-		}
-		dsp_num_table[em8300[card].dsp_num >> 4 & 0x0f] = card + 1;
-		pr_debug("em8300: registered dsp %i for device %i\n", em8300[card].dsp_num >> 4 & 0x0f, card);
-#endif
+		printk(KERN_ERR "em8300: unable to get major %d\n", EM8300_MAJOR);
+		err = -ENODEV;
+		goto err_chrdev;
 	}
 
-	if (register_chrdev(EM8300_MAJOR, EM8300_LOGNAME, &em8300_fops)) {
-		printk(KERN_ERR "em8300: unable to get major %d\n", EM8300_MAJOR);
-		goto err_chrdev;
+	if ((err = pci_module_init(&em8300_driver)) < 0) {
+#ifdef MODULE
+		printk(KERN_ERR "Sigmadesigns EM8300 not found or device busy\n");
+#endif
+		goto err_init;
 	}
 
 #ifdef CONFIG_EM8300_IOCTL32
@@ -876,44 +886,19 @@ int __init em8300_init(void)
 
 	return 0;
 
-#if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
- err_audio_dsp:
-#endif
- err_chrdev:
-	while (card-- > 0) {
-		while (frame-- > 0) {
-#ifdef CONFIG_DEVFS_FS
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,69)
-			devfs_unregister(em8300_handle[(card * 4) + frame]);
-#else
-			switch (frame) {
-			case 0:
-				devfs_remove("%s-%d", EM8300_LOGNAME, card);
-				break;
-			case 1:
-				devfs_remove("%s_mv-%d", EM8300_LOGNAME, card);
-				break;
-			case 2:
-				devfs_remove("%s_ma-%d", EM8300_LOGNAME, card);
-				break;
-			case 3:
-				devfs_remove("%s_sp-%d", EM8300_LOGNAME, card);
-				break;
-			}
-#endif
-#endif
-		}
-		frame = 3;
-#if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
-		unregister_sound_dsp(em[card].dsp_num);
-#endif
-	}
+ err_init:
 #if defined(CONFIG_DEVFS_FS) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
-	sprintf(devname, "%s", EM8300_LOGNAME);
-	devfs_unregister_chrdev(EM8300_MAJOR, devname);
+	devfs_unregister_chrdev(EM8300_MAJOR, EM8300_LOGNAME);
+#else
+	unregister_chrdev(EM8300_MAJOR, EM8300_LOGNAME);
 #endif
-	release_em8300(em8300_cards);
-	return -ENODEV;
+
+ err_chrdev:
+#ifdef CONFIG_PROC_FS
+	if (em8300_proc)
+		remove_proc_entry(EM8300_LOGNAME, &proc_root);
+#endif
+	return err;
 }
 
 module_init(em8300_init);

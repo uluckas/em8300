@@ -1,0 +1,46 @@
+To compile the modules under 2.4.x kernels you will need to patch the main
+kernel make file (usually in /usr/src/linux) like this, assuming that your
+kernel is in /usr/src/linux and the modules are in /usr/src/em8300/modules:
+
+[snip]
+--- Makefile.old	Sun Jan 14 12:57:19 2001
++++ Makefile	Fri Jan 19 10:59:32 2001
+@@ -125,7 +125,7 @@
+ 		 drivers/net/net.o \
+ 		 drivers/media/media.o
+ LIBS		=$(TOPDIR)/lib/lib.a
+-SUBDIRS		=kernel drivers mm fs net ipc lib
++SUBDIRS		=kernel drivers mm fs net ipc lib ../em8300/modules
+ 
+ DRIVERS-n :=
+ DRIVERS-y :=
+@@ -325,7 +325,7 @@
+ init/main.o: init/main.c include/config/MARKER
+ 	$(CC) $(CFLAGS) $(CFLAGS_KERNEL) $(PROFILING) -c -o $*.o $<
+ 
+-fs lib mm ipc kernel drivers net: dummy
++fs lib mm ipc kernel drivers net ../em8300/modules: dummy
+ 	$(MAKE) CFLAGS="$(CFLAGS) $(CFLAGS_KERNEL)" $(subst $@, _dir_$@, $@)
+ 
+ TAGS: dummy
+[snip]
+
+If your modules are somewhere else then change the two occurences of 
+../em8300/modules to point to your modules directory.
+
+Now delete or rename the em8300/modules/Makefile to e.g. Makefile.2.2 and
+rename the Makefile.2.4 to Makefile
+
+Finally change into the linux kernel directory (/usr/src/linux) and do a:
+	make modules
+
+Go back to the em8300/modules directory and you should find the compiled
+modules there! (-:
+
+For this to work you need to have done a make dep, make bzImage (or 
+equivalent) before the make modules of course.
+
+Hope this is helpful.
+
+Anton Altaparmakov <aia21@cam.ac.uk>
+

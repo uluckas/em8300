@@ -125,12 +125,12 @@ static unsigned char NTSC_config_7170[27] = {
     0x10,       // Mode Register 0
     0x07,       // Mode Register 1
     0x08,       // Mode Register 2
-    0x10,       // Mode Register 3
-    0x00,       // Mode Register 4
+    0x00,       // Mode Register 3
+    0x10,       // Mode Register 4
     0x00,       // Reserved
     0x00,       // Reserved
-    0x45,       // Timing Register 0
-    0x73,       // Timing Register 1
+    0x0d,       // Timing Register 0
+    0x77,       // Timing Register 1
     0x16,       // Subcarrier Frequency Register 0
     0x7c,       // Subcarrier Frequency Register 1
     0xf0,       // Subcarrier Frequency Register 2

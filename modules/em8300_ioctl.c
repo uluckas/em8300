@@ -23,20 +23,17 @@
 #include "encoder.h"
 
 int em8300_ioctl_setvideomode(struct em8300_s *em, int mode) {
-    int encoder,dicom;
+    int encoder;
 
     switch(mode) {
     case EM8300_VIDEOMODE_PAL:
 	encoder = ENCODER_MODE_PAL;
-	dicom = DICOM_MODE_PAL;
 	break;
     case EM8300_VIDEOMODE_PAL60:
 	encoder = ENCODER_MODE_PAL60;
-	dicom = DICOM_MODE_PAL60;
 	break;
     case EM8300_VIDEOMODE_NTSC:
 	encoder = ENCODER_MODE_NTSC;
-	dicom = DICOM_MODE_NTSC;
 	break;
     default:
 	return -EINVAL;
@@ -44,10 +41,36 @@ int em8300_ioctl_setvideomode(struct em8300_s *em, int mode) {
 
     em->video_mode = mode;
     
-    em8300_dicom_setmode(em,dicom);
+    em8300_dicom_update(em);
 
     if(em->encoder)
 	em->encoder->driver->command(em->encoder,ENCODER_CMD_SETMODE,
 				     (void *)encoder);
     return 0;
 }
+
+void em8300_ioctl_setBCS(struct em8300_s *em, int brightness, int chroma, int saturation) {
+    em->dicom_brightness = 0x40;
+    em->dicom_chroma = 0x60;
+    em->dicom_saturation = 0x60;
+
+    em8300_dicom_update(em);
+}
+
+int em8300_ioctl_setaspectratio(struct em8300_s *em, int ratio) {
+
+    em->aspect_ratio = ratio;
+    
+    em8300_dicom_update(em);
+
+    return 0;
+}
+
+int em8300_ioctl_setplaymode(struct em8300_s *em, int mode) {
+    switch(mode) {
+    case EM8300_PLAYMODE_PLAY:
+	
+    }
+    return 0;
+}
+

@@ -21,11 +21,22 @@ typedef struct {
 #define EM8300_IOCTL_AUDIO_SETPTS _SIOWR('P', 31, int)
 #define EM8300_IOCTL_AUDIO_SYNC _SIO('P', 30)
 
-#define EM8300_VIDEOMODE_PAL 1
-#define EM8300_VIDEOMODE_PAL60 2
-#define EM8300_VIDEOMODE_NTSC 3
+#define EM8300_ASPECTRATIO_3_2 0
+#define EM8300_ASPECTRATIO_16_9 1
+
+#define EM8300_VIDEOMODE_PAL 0
+#define EM8300_VIDEOMODE_PAL60 1
+#define EM8300_VIDEOMODE_NTSC 2
+#define EM8300_VIDEOMODE_LAST 2
 #ifndef EM8300_VIDEOMODE_DEFAULT
 #define EM8300_VIDEOMODE_DEFAULT EM8300_VIDEOMODE_NTSC
+#endif
+
+#define EM8300_AUDIOMODE_ANALOG 0
+#define EM8300_AUDIOMODE_DIGITALPCM 1
+#define EM8300_AUDIOMODE_DIGITALAC3 2
+#ifndef EM8300_AUDIOMODE_DEFAULT
+#define EM8300_AUDIOMODE_DEFAULT EM8300_AUDIOMODE_ANALOG
 #endif
 
 #define EM8300_PLAYMODE_STOPPED         0
@@ -49,7 +60,7 @@ typedef struct {
 
 
 #define PTSLAG_LIMIT 45000
-#define AUDIO_LAG_LIMIT 0
+#define AUDIO_LAG_LIMIT 10000
 
 
 #define CLOCKGEN_SAMPFREQ_MASK 0xc0
@@ -57,7 +68,10 @@ typedef struct {
 #define CLOCKGEN_SAMPFREQ_48 0x40
 #define CLOCKGEN_SAMPFREQ_44 0x80
 #define CLOCKGEN_SAMPFREQ_32 0x00
-#define CLOCKGEN_ENABLE 0x10
+
+#define CLOCKGEN_OUTMASK 0x30
+#define CLOCKGEN_DIGITALOUT 0x10
+#define CLOCKGEN_ANALOGOUT 0x20
 
 #define MVCOMMAND_STOP 0x0
 #define MVCOMMAND_11 0x11
@@ -126,8 +140,13 @@ struct em8300_s
     struct fifo_s *mvfifo;
     struct fifo_s *mafifo;
     struct fifo_s *spfifo;
-    
-    struct dicom_s dicom;
+
+    /* DICOM */
+    int dicom_vertoffset;
+    int dicom_horizoffset;
+    int dicom_brightness;
+    int dicom_saturation;
+    int dicom_chroma;
     
     /* I2C bus 1*/
     struct i2c_algo_bit_data i2c_data_1;
@@ -159,6 +178,7 @@ struct em8300_s
     int scr;
 
     /* Audio */
+    int audio_mode;
     int swapbytes;
     int audio_ptsvalid;
     int audio_pts;
@@ -168,8 +188,16 @@ struct em8300_s
 
     /* Video */
     int video_mode;
+    int aspect_ratio;
     int video_pts,video_ptsvalid,video_offset,video_count;
     int video_ptsfifo_ptr;
+#if LINUX_VERSION_CODE < 0x020314    
+    struct wait_queue *video_ptsfifo_wait;
+#else
+    wait_queue_head_t video_ptsfifo_wait;
+#endif
+    int video_ptsfifo_waiting;
+    int video_first;
 
     /* Sub Picture */
     int sp_pts,sp_ptsvalid,sp_count;
@@ -218,7 +246,6 @@ int em8300_waitfor(struct em8300_s *em, int reg, int val, int mask);
 
 /* em8300_dicom.c */
 int em8300_dicom_update(struct em8300_s *em);
-int em8300_dicom_setmode(struct em8300_s *em, int mode);
 
 /* em8300_video.c */
 int em8300_video_start(struct em8300_s *em);
@@ -229,6 +256,7 @@ void em8300_video_setspeed(struct em8300_s *em, int speed);
 int em8300_video_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos);
 int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg);
+void em8300_video_check_ptsfifo(struct em8300_s *em);
 
 /* em8300_spu.c */
 int em8300_spu_write(struct em8300_s *em, const char * buf,
@@ -241,7 +269,8 @@ void em8300_spu_check_ptsfifo(struct em8300_s *em);
 
 /* em8300_ioctl.c */
 int em8300_ioctl_setvideomode(struct em8300_s *em, int mode);
-
+int em8300_ioctl_setaspectratio(struct em8300_s *em, int ratio);
+void em8300_ioctl_setBCS(struct em8300_s *em, int brightness, int chroma, int saturation);
 
 
 #endif

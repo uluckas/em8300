@@ -68,10 +68,9 @@ int em8300_spu_write(struct em8300_s *em, const char * buf,
 	    em->sp_ptsfifo_waiting=1;
 	    interruptible_sleep_on(&em->sp_ptsfifo_wait);
 	    em->sp_ptsfifo_waiting=0;
+	    if(signal_pending(current)) 
+		return -EINTR;
 	}
-
-	if(signal_pending(current)) 
-	    return -EINTR;
 
 	write_register(ptsfifoptr+0, em->sp_pts >> 16);
 	write_register(ptsfifoptr+1, (em->sp_pts & 0xffff) | 1);

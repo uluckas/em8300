@@ -25,9 +25,9 @@
 
 
 int mpegaudio_command(struct em8300_s *em, int cmd) {
-    if(read_ucregister(MV_Command) != 0xffff)
-        return -1;
+    em8300_waitfor(em,ucregister(MA_Command), 0xffff, 0xffff);
 
+    printk("MA_Command: %d\n",cmd);
     write_ucregister(MA_Command,cmd);
 
     return em8300_waitfor(em,ucregister(MA_Status), cmd, 0xffff);
@@ -124,15 +124,17 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	}
 	break;
     case EM8300_IOCTL_AUDIO_SETPTS:
-	if(!em->audio_ptsvalid) {
-	    if (get_user(em->audio_pts, (int *)arg))
-		return -EFAULT;
-	    em->audio_pts >>= 1;
-	    em->audio_ptsvalid=1;
-	}
+	if (get_user(em->audio_pts, (int *)arg))
+	    return -EFAULT;
+	em->audio_pts >>= 1;
+	em->audio_ptsvalid=1;
 	val=0;
 	break;
     case EM8300_IOCTL_AUDIO_SYNC:
+	if (get_user(em->audio_pts, (int *)arg)) 
+	    return -EFAULT;
+	em->audio_pts >>= 1;
+	em->audio_ptsvalid=1;
 	em->audio_sync=AUDIO_SYNC_REQUESTED;
 	val=0;
 	break;
@@ -172,6 +174,18 @@ int em8300_audio_release(struct em8300_s *em)
 int em8300_audio_setup(struct em8300_s *em) {
     int ret;
 
+    em->audio_mode = EM8300_AUDIOMODE_DEFAULT;
+    
+    em->clockgen = 0xb | CLOCKGEN_SAMPFREQ_48;
+
+    em->clockgen &= ~CLOCKGEN_OUTMASK;
+    if(em->audio_mode == EM8300_AUDIOMODE_ANALOG)
+	em->clockgen |= CLOCKGEN_ANALOGOUT;
+    else
+	em->clockgen |= CLOCKGEN_DIGITALOUT;
+    
+    em8300_clockgen_write(em,em->clockgen);
+    
     ret = em8300_audio_flush(em);
     
     if(ret) {
@@ -184,14 +198,50 @@ int em8300_audio_setup(struct em8300_s *em) {
     mpegaudio_command(em,MACOMMAND_PLAY);
     write_register(0x1f47, 0x18);
     mpegaudio_command(em,MACOMMAND_PAUSE);
-    write_register(0x1fb0,0x62);
 
+    if(em->audio_mode == EM8300_AUDIOMODE_ANALOG)
+	write_register(0x1fb0,0x62);
+    else	
+	write_register(0x1fb0,0x3a0);
+    
     return 0;
+}
+
+int em8300_audio_calcbuffered(struct em8300_s *em) {
+    int readptr,writeptr,bufsize,n;
+
+    readptr = read_ucregister(MA_Rdptr) | (read_ucregister(MA_Rdptr_Hi) << 16);
+    writeptr = read_ucregister(MA_Wrptr) | (read_ucregister(MA_Wrptr_Hi) << 16);
+    bufsize = read_ucregister(MA_BuffSize) | (read_ucregister(MA_BuffSize_Hi) << 16);
+
+    n = (bufsize+writeptr-readptr) % bufsize;
+    
+    return em8300_fifo_calcbuffered(em->mafifo) + n;
 }
 
 int em8300_audio_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos)
 {
+    if((em->audio_sync == AUDIO_SYNC_REQUESTED) && (em->audio_ptsvalid)) {
+	int ret;
+	
+	//	em8300_fifo_sync(em->mafifo);
+	em8300_audio_flush(em);
+
+	ret = em8300_fifo_writeblocking(em->mafifo, count, buf,1,0);
+
+	write_ucregister(MV_SCRlo, em->audio_pts & 0xffff);
+	write_ucregister(MV_SCRhi, em->audio_pts >> 16);
+
+	mpegaudio_command(em,MACOMMAND_PLAY);
+
+	printk("Setting SCR: %d\n",em->audio_pts);
+
+	em->audio_sync = AUDIO_SYNC_INACTIVE;
+	em->audio_ptsvalid = 0;
+	return ret;
+    }
+
     if(em->audio_ptsvalid) {
 	long picpts;
 	picpts =
@@ -199,11 +249,13 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 	    (read_ucregister(PicPTSHi) << 16);
 
 	if(em->audio_rate) {
-	    em->audio_lag = picpts - em->audio_pts;
+	    em->audio_lag = picpts - (em->audio_pts -
+		45000/4 * em8300_audio_calcbuffered(em)
+		/ (em->audio_rate));
 	    if(em->audio_sync == AUDIO_SYNC_INACTIVE &&
 	       (em->audio_lag > AUDIO_LAG_LIMIT))	{
 		em->audio_sync = AUDIO_SYNC_REQUESTED;
-		printk("em8300_audio.o: Audio out of sync (%d). Resyncing.\n",				em->audio_lag	);
+		DEBUG(printk("em8300_audio.o: Audio out of sync (%d). Resyncing.\n",				em->audio_lag	));
 	    }	
 	}
 
@@ -216,7 +268,8 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 	    }
 	}
 	em->audio_ptsvalid=0;
-    }
+    } 
+
     
     return em8300_fifo_writeblocking(em->mafifo, count, buf,1,0);
 }

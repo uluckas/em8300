@@ -223,14 +223,7 @@ int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer
     while(n) {
 	copy_size = em8300_fifo_write(fifo, n, userbuffer, swapbyteorder, flags);
 
-	if(copy_size < 0)
-	    return -EIO;
-	
-	n -= copy_size;
-	userbuffer += copy_size;
-	total_bytes_written += copy_size;
-	
-	if(n) {
+	if(!copy_size) {
 	    fifo->waiting=1;
 	    interruptible_sleep_on(&fifo->wait);
 	}
@@ -241,6 +234,14 @@ int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer
 	    else
 		return -EINTR;
 	}
+
+	if(copy_size < 0)
+	    return -EIO;
+	
+	n -= copy_size;
+	userbuffer += copy_size;
+	total_bytes_written += copy_size;
+	
     }
     return total_bytes_written;
 }
@@ -255,4 +256,32 @@ void em8300_fifo_statusmsg(struct fifo_s *fifo, char *str)
 {
     int freeslots = em8300_fifo_freeslots(fifo);
     sprintf(str,"Free slots: %d/%d",freeslots,fifo->nslots);
+}
+
+int em8300_fifo_calcbuffered(struct fifo_s *fifo)
+{
+    int readindex,writeindex,i,n;
+
+    writeindex = (*fifo->writeptr - fifo->start) / fifo->slotptrsize;    
+    readindex = (*fifo->readptr - fifo->start) / fifo->slotptrsize;
+    n=0;
+    i=readindex;
+    while(i != writeindex) {
+	switch(fifo->type) {
+	case FIFOTYPE_AUDIO:
+	    n += fifo->slots.a[i].slotsize;
+	    break;
+	case FIFOTYPE_VIDEO:
+	    n += fifo->slots.v[i].slotsize;
+	    break;
+	}
+	i++;
+	i &= fifo->nslots-1;
+    }
+    return n;
+}
+
+int em8300_fifo_isempty(struct fifo_s *fifo)
+{
+    return !(*fifo->writeptr - *fifo->readptr);
 }

@@ -20,50 +20,20 @@
 
 #include "em8300.h"
 
-static struct dicom_s dicom_PAL   =
-{
-   /* Luma */            0x4000,
-    /* Chroma */          0x6060,
-    /* Frame top */       0x2e, 
-    /* Frame bottom */    0x26d,
-    /* Frame left   */    0x8a,
-    /* Frame right  */    0x359,
-    /* Visible top */     0x2e, 
-    /* Visible bottom */  0x26d,
-    /* Visible left   */  0x8a,
-    /* Visible right  */  0x359,
-    /* TV Out         */  0x4001        
+struct dicom_tvmode {
+    int vertsize;
+    int horizsize;
+    int vertoffset;
+    int horizoffset;
 };
 
-static struct dicom_s dicom_PAL60 =
-{
-    /* Luma */		  0x4000,
-    /* Chroma */	  0x6060,
-    /* Frame top */	  0x28,	
-    /* Frame bottom */    0x207,
-    /* Frame left   */    0x76,
-    /* Frame right  */    0x345,
-    /* Visible top */	  0x28,	
-    /* Visible bottom */  0x207,
-    /* Visible left   */  0x76,
-    /* Visible right  */  0x345,
-    /* TV Out         */  0x4001	
-};
-
-
-static struct dicom_s dicom_NTSC =
-{
-    0x3a00,	// Luma
-    0x6b6b,	// Chroma 
-    0x25,	// Frame top
-    0x202,     	// Frame bottom
-    0x82,	// Frame left   
-    0x340,	// Frame right   
-    0x25,	// Visible top 	  
-    0x202,	// Visible bottom 
-    0x82,	// Visible left  
-    0x340,	// Visible right  
-    0x4001	// TV Out    
+struct dicom_tvmode tvmodematrix[EM8300_VIDEOMODE_LAST+1][2] = {
+    { {576, 720, 46, 130},	// PAL 4:3 
+      {480, 720, 40, 130}},	// PAL 16:9
+    { {480, 720, 46, 138},	// PAL60 4:3 
+      {480, 720, 46, 138}},	// PAL60 16:9
+    { {480, 720, 46, 138},	// NTSC 4:3 
+      {480, 720, 46, 138}},	// NTSC 16:9
 };
 
 int em8300_dicom_update(struct em8300_s *em) {
@@ -72,17 +42,22 @@ int em8300_dicom_update(struct em8300_s *em) {
     if( (ret=em8300_waitfor(em, ucregister(DICOM_UpdateFlag), 0, 1)) )
 	return ret;
 
-    write_ucregister(DICOM_BCSLuma, em->dicom.luma);
-    write_ucregister(DICOM_BCSChroma, em->dicom.chroma);
-    write_ucregister(DICOM_FrameTop, em->dicom.frametop);
-    write_ucregister(DICOM_FrameBottom, em->dicom.framebottom);
-    write_ucregister(DICOM_FrameLeft, em->dicom.frameleft);
-    write_ucregister(DICOM_FrameRight, em->dicom.frameright);
-    write_ucregister(DICOM_VisibleTop, em->dicom.visibletop);
-    write_ucregister(DICOM_VisibleBottom, em->dicom.visiblebottom);
-    write_ucregister(DICOM_VisibleLeft, em->dicom.visibleleft);
-    write_ucregister(DICOM_VisibleRight, em->dicom.visibleright);
-    write_ucregister(DICOM_TvOut, em->dicom.tvout);
+    write_ucregister(DICOM_BCSLuma, em->dicom_brightness << 8);
+    write_ucregister(DICOM_BCSChroma, em->dicom_saturation | (em->dicom_chroma << 8));
+    write_ucregister(DICOM_FrameTop, tvmodematrix[em->video_mode][em->aspect_ratio].vertoffset);
+    write_ucregister(DICOM_FrameBottom, tvmodematrix[em->video_mode][em->aspect_ratio].vertoffset +
+		                        tvmodematrix[em->video_mode][em->aspect_ratio].vertsize-1);
+    write_ucregister(DICOM_FrameLeft, tvmodematrix[em->video_mode][em->aspect_ratio].horizoffset);
+    write_ucregister(DICOM_FrameRight, tvmodematrix[em->video_mode][em->aspect_ratio].horizoffset +
+		                       tvmodematrix[em->video_mode][em->aspect_ratio].horizsize-1);
+    write_ucregister(DICOM_VisibleTop, tvmodematrix[em->video_mode][em->aspect_ratio].vertoffset);
+    write_ucregister(DICOM_VisibleBottom, tvmodematrix[em->video_mode][em->aspect_ratio].vertoffset +
+		                        tvmodematrix[em->video_mode][em->aspect_ratio].vertsize-1);
+    write_ucregister(DICOM_VisibleLeft, tvmodematrix[em->video_mode][em->aspect_ratio].horizoffset);
+    write_ucregister(DICOM_VisibleRight, tvmodematrix[em->video_mode][em->aspect_ratio].horizoffset +
+		                       tvmodematrix[em->video_mode][em->aspect_ratio].horizsize-1);
+
+    write_ucregister(DICOM_TvOut, 0x4001);
 
     if((em->encoder_type == ENCODER_ADV7170) ||
        ((em->encoder_type == ENCODER_ADV7175) &&
@@ -94,17 +69,3 @@ int em8300_dicom_update(struct em8300_s *em) {
     return em8300_waitfor(em, ucregister(DICOM_UpdateFlag), 0, 1);
 }
 
-int em8300_dicom_setmode(struct em8300_s *em, int mode) {
-    switch(mode) {
-	case DICOM_MODE_PAL:
-	    em->dicom = dicom_PAL;
-	    break;
-	case DICOM_MODE_PAL60:
-	    em->dicom = dicom_PAL60;
-	    break;
-	case DICOM_MODE_NTSC:
-	    em->dicom = dicom_NTSC;
-	    break;
-    }
-    return em8300_dicom_update(em);
-}

@@ -81,9 +81,8 @@ void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 	if(irqstatus & IRQSTATUS_VIDEO_VBL) {
 	    long picpts,scr,lag;
 
-	    em8300_fifo_check(em->spfifo);
+	    em8300_video_check_ptsfifo(em);
 	    em8300_spu_check_ptsfifo(em);
-	    em8300_fifo_check(em->mvfifo);
 	    
 	    picpts = (read_ucregister(PicPTSHi) << 16) |
 		read_ucregister(PicPTSLo);
@@ -102,7 +101,7 @@ void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 		write_ucregister(MV_SCRhi, scr >> 16);		
 		write_ucregister(MV_SCRlo, scr & 0xffff);		
 	    }
-	    
+
 	    do_gettimeofday(&tv);
 	    em->irqtimediff = TIMEDIFF(tv,em->tv);
 	    em->tv = tv;

@@ -54,6 +54,8 @@ int em8300_video_start(struct em8300_s *em) {
     write_ucregister(MV_FrameEventLo,0xffff);
     write_ucregister(MV_FrameEventHi,0x7fff);
 
+    em->video_first = 1;
+    
     return mpegvideo_command(em,MVCOMMAND_START);
 }
 
@@ -166,6 +168,11 @@ int em8300_video_setup(struct em8300_s *em) {
     write_ucregister(MV_FrameEventHi,0x7fff);
 
     em8300_ioctl_setvideomode(em,EM8300_VIDEOMODE_DEFAULT);
+    em8300_ioctl_setaspectratio(em,EM8300_ASPECTRATIO_3_2);
+    em8300_ioctl_setBCS(em, 128,128,128);
+
+
+    
 
     /*if(em->encoder_type == ENCODER_ADV7170)
       em->dicom.visibleright = 0x759;*/
@@ -188,6 +195,19 @@ void em8300_video_setspeed(struct em8300_s *em, int speed)
     }
 }
 
+void em8300_video_check_ptsfifo(struct em8300_s *em) {
+    int ptsfifoptr;
+    
+    if(em->video_ptsfifo_waiting) {
+	em->video_ptsfifo_waiting=0;
+
+	ptsfifoptr = ucregister(MV_PTSFifo) + 2*em->video_ptsfifo_ptr;
+
+	if(!(read_register(ptsfifoptr+1) & 1))
+	    wake_up_interruptible(&em->video_ptsfifo_wait);
+    }
+}
+
 int em8300_video_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos)
 {
@@ -195,22 +215,35 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
     //    em->video_ptsvalid=0;
     if(em->video_ptsvalid) {
 	int ptsfifoptr=0;
-	//	printk("em8300_video.o: video_write %x,%d\n",count,em->video_pts);
-	flags = 0x40000000;
 	em->video_pts>>=1;
-	
-	ptsfifoptr = ucregister(MV_PTSFifo) + 4*em->video_ptsfifo_ptr;
-	if(!(read_register(ptsfifoptr+3) & 1)) {
+	//	printk("em8300_video.o: video_write %x,%x %x\n",count,em->video_pts,em->video_offset);
+
+	if(em->video_first) {
+	    unsigned startpts;
+	    startpts = em->video_pts + 45000 / 30;
+	    write_ucregister(MV_SCRlo, startpts & 0xffff);
+	    write_ucregister(MV_SCRhi, (startpts >> 16) & 0xffff);
+	    em->video_first = 0;
+	} else {
+	    flags = 0x40000000;
+	    ptsfifoptr = ucregister(MV_PTSFifo) + 4*em->video_ptsfifo_ptr;
+
+	    if(read_register(ptsfifoptr+1) & 1) {
+		em->video_ptsfifo_waiting=1;
+		interruptible_sleep_on(&em->video_ptsfifo_wait);
+		em->video_ptsfifo_waiting=0;
+		if(signal_pending(current)) 
+		    return -EINTR;
+	    }
+
 	    write_register(ptsfifoptr, em->video_offset >> 16);
 	    write_register(ptsfifoptr+1, em->video_offset & 0xffff);
 	    write_register(ptsfifoptr+2, em->video_pts >> 16);
 	    write_register(ptsfifoptr+3, (em->video_pts & 0xffff) | 1);
-	} else {
-	    printk("em8300_video.o: PTS Fifo full\n");
+
+	    em->video_ptsfifo_ptr++;
+	    em->video_ptsfifo_ptr %= read_ucregister(MV_PTSSize) / 4;
 	}
-	
-	em->video_ptsfifo_ptr++;
-	em->video_ptsfifo_ptr %= read_ucregister(MV_PTSSize) / 4;
 	em->video_ptsvalid=0;
     }
 

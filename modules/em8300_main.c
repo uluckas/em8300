@@ -376,8 +376,10 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 		/* remap the memory to user space */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,3)
 		if (remap_page_range(vma->vm_start, virt_to_phys((void *)mem), size, vma->vm_page_prot)) {
-#else
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 		if (remap_page_range(vma, vma->vm_start, virt_to_phys((void *)mem), size, vma->vm_page_prot)) {
+#else
+		if (remap_pfn_range(vma, vma->vm_start, virt_to_phys((void *)mem) >> PAGE_SHIFT, size, vma->vm_page_prot)) {
 #endif
 			kfree(mem);
 			return -EAGAIN;
@@ -406,8 +408,10 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,3)
 		remap_page_range(vma->vm_start, em->adr, vma->vm_end - vma->vm_start, vma->vm_page_prot);
-#else
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 		remap_page_range(vma, vma->vm_start, em->adr, vma->vm_end - vma->vm_start, vma->vm_page_prot);
+#else
+		remap_pfn_range(vma, vma->vm_start, em->adr >> PAGE_SHIFT, vma->vm_end - vma->vm_start, vma->vm_page_prot);
 #endif
 		vma->vm_file = file;
 		atomic_inc(&file->f_dentry->d_inode->i_count);

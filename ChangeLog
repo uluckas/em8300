@@ -1,3 +1,9 @@
+2002-01-08  Rick Haines  <rick@kuroyi.net>
+
+	* AUTHORS,
+	  modules/em8300_main.c:
+	minor devfs/procfs #ifdef cleanups from Graeme.
+	
 2002-01-07  David Holm  <dholm@iname.com>
 
 	* modules/Makefile:

@@ -540,7 +540,9 @@ int em8300_proc_read(char *page, char **start, off_t off, int count, int *eof, v
 void cleanup_module(void)
 {
 	int card;
+#ifdef CONFIG_DEVFS_FS
 	int frame;
+#endif
 	char devname[64];
 	
 	for (card = 0; card < em8300_cards; card++) {
@@ -625,8 +627,10 @@ int em8300_init(struct em8300_s *em) {
 
 int init_module(void)
 {
-	int card;
+	int card=0;
+#ifdef CONFIG_DEVFS_FS
 	int frame;
+#endif
 	struct em8300_s *em = NULL;
 
 	char devname[32];
@@ -651,7 +655,7 @@ int init_module(void)
 		printk(KERN_ERR "em8300: unable to register proc entry!\n");
 		goto err_chrdev;
 	}
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,2,0)
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
 	em8300_proc->owner = THIS_MODULE;
 #endif
 #endif
@@ -676,7 +680,7 @@ int init_module(void)
 		proc = create_proc_entry(devname, S_IFREG | S_IRUGO, em8300_proc);
 		proc->data = (void *) em;
 		proc->read_proc = em8300_proc_read;
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,2,0)
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
 		proc->owner = THIS_MODULE;
 #endif
 #endif
@@ -730,3 +734,8 @@ int init_module(void)
 	release_em8300(em8300_cards);
 	return -ENODEV;
 }
+
+
+
+
+

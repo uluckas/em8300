@@ -22,7 +22,12 @@ General fixes:
 If your red and blue colors channels are switched:
 
  adv717x:
-   swap_redblue_pal    -- swaps the red and blue channels (ntsc and pal now)
+   swap_redblue_pal      -- swaps the red and blue channels (ntsc and pal now)
+   pixeldata_adjust_ntsc -- If your red and blue colours are swapped in NTSC,
+                            try setting this to 0,1,2 or 3. Defaults to 1.
+   pixeldata_adjust_pal  -- If your red and blue colours are swapped in PAL,
+                            try setting this to 0,1,2 or 3. Defaults to 1.
+
 
 Greenscreen (tvout only) fixes:
 

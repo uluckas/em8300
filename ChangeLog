@@ -1,3 +1,11 @@
+2001-07-16  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_dicom.c:
+	Patch from Eduard Hasenleithner to fix pal mode
+
+	* configure.in:
+	Move AC_PROG_CC to placate new autoconf
+	
 2001-07-15  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_audio.c:

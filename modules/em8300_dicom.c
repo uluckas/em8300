@@ -139,6 +139,10 @@ int em8300_dicom_update(struct em8300_s *em)
 	int ret;
 	int vmode_ntsc = 1;
 	
+	if (dicom_other_pal) {
+		vmode_ntsc = (em->video_mode == EM8300_VIDEOMODE_NTSC);
+	}
+
 	if ((ret=em8300_waitfor(em, ucregister(DICOM_UpdateFlag), 0, 1))) {
 		return ret;
 	}
@@ -210,10 +214,6 @@ int em8300_dicom_update(struct em8300_s *em)
 			write_ucregister(DICOM_Control, 0x9efe);		
 		} else { /* ADV7170 or ADV7175A */
 			write_register(0x1f47, 0x18);
-
-			if (dicom_other_pal) {
-				vmode_ntsc = (em->video_mode == EM8300_VIDEOMODE_NTSC);
-			}
 
 			if (vmode_ntsc) {
 				if (dicom_fix) {

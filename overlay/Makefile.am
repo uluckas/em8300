@@ -1,6 +1,6 @@
-CFLAGS = @GLOBAL_CFLAGS@ `gtk-config --cflags`
+CFLAGS = @GLOBAL_CFLAGS@ $(GTK_CFLAGS)
 INCLUDES = -I@srcdir@/include -I/usr/local/include
-LDFLAGS = `gtk-config --libs`
+LDFLAGS = $(GTK_LIBS)
 
 bin_PROGRAMS = autocal dxr3view
 noinst_HEADERS = autocal.h allblackbut.h overlay.h
@@ -12,7 +12,7 @@ dxr3view_SOURCES = dxr3view.c overlay.c
 dxr3view_DEPENDENCIES = libsdeps
 
 debug:
-	$(MAKE) CFLAGS="$(DEBUG_CFLAGS) `gtk-config --cflags`"
+	$(MAKE) CFLAGS="$(DEBUG_CFLAGS) $(GTK_LIBS)"
 
 libsdeps:
 	@cd $(top_srcdir)/libdxr3; $(MAKE) libdxr3.la

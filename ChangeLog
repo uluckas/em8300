@@ -1,3 +1,13 @@
+2001-04-22  Rick Haines  <rick@kuroyi.net>
+
+	* m4/gtk.m4,
+	  configure.in,
+	  Makefile.am,
+	  dhc/Makefile.am,
+	  overlay/Makefile.am:
+	add autoconf check for gtk thanks to m4 file
+	'borrowed' from glade by Bo.
+	
 2001-04-20  Rick Haines  <rick@kuroyi.net>
 
 	* xine/xine-0.4.01_dxr3.patch.gz:

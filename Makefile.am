@@ -1,4 +1,4 @@
-EXTRA_DIST = autotools/ modules/ omsplugin/ xine/ scripts/ shinit.sh bootstrap
+EXTRA_DIST = autotools/ m4/ modules/ omsplugin/ xine/ scripts/ shinit.sh bootstrap
 
 pkgdata_DATA = omsplugin.tar.gz xine.tar.gz modules.tar.gz
 pkgdata_SCRIPTS = em8300.sysv

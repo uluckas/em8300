@@ -1,6 +1,6 @@
-CFLAGS = @GLOBAL_CFLAGS@ `gtk-config --cflags`
+CFLAGS = @GLOBAL_CFLAGS@ $(GTK_CFLAGS)
 INCLUDES = -I@srcdir@/include -I/usr/local/include
-LDFLAGS = `gtk-config --libs` -lpthread
+LDFLAGS = $(GTK_LIBS) -lpthread
 
 bin_PROGRAMS = dhc
 noinst_HEADERS = dhc_callback.h dhc_gui.h pixmaps.h
@@ -8,7 +8,7 @@ noinst_HEADERS = dhc_callback.h dhc_gui.h pixmaps.h
 dhc_SOURCES = dhc_main.c dhc_callback.c dhc_gui.c
 
 debug:
-	$(MAKE) CFLAGS="$(DEBUG_CFLAGS) `gtk-config --cflags`"
+	$(MAKE) CFLAGS="$(DEBUG_CFLAGS) $(GTK_LIBS)"
 
 mostlyclean-generic:
 	-rm -f *~ \#* .*~ .\#*

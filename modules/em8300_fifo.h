@@ -5,23 +5,23 @@
 #define FIFOTYPE_VIDEO 2
 
 struct video_fifoslot_s {
-    unsigned flags;
-    unsigned physaddress_hi;
-    unsigned physaddress_lo;
-    unsigned slotsize;
+	unsigned flags;
+	unsigned physaddress_hi;
+	unsigned physaddress_lo;
+	unsigned slotsize;
 };
 
 struct audio_fifoslot_s {
-    unsigned physaddress_hi;
-    unsigned physaddress_lo;
-    unsigned slotsize;
+	unsigned physaddress_hi;
+	unsigned physaddress_lo;
+	unsigned slotsize;
 };
 
 struct pts_fifoslot_s {
-    unsigned streamoffset_hi;
-    unsigned streamoffset_lo;
-    unsigned pts_hi;
-    unsigned pts_lo;
+	unsigned streamoffset_hi;
+	unsigned streamoffset_lo;
+	unsigned pts_hi;
+	unsigned pts_lo;
 };
 
 struct em8300_s;
@@ -29,37 +29,37 @@ typedef void (*preprocess_cb_t)(struct em8300_s *, unsigned char *,
 				const unsigned char *, int);
 
 struct fifo_s {
-    struct em8300_s *em;
+	struct em8300_s *em;
     
-    int valid;
+	int valid;
 
-    int type;
-    int nslots;
-    union {
-	struct video_fifoslot_s *v;
-	struct audio_fifoslot_s *a;
-	struct pts_fifoslot_s *pts;
-    } slots;
-    int slotptrsize;
-    int slotsize;
-
-    int start;
-    int *writeptr;
-    int *readptr;
-    int localreadptr;
-    int threshold;
-
-    char *fifobuffer;
-
-    preprocess_cb_t preprocess_cb;
-    int preprocess_ratio,preprocess_maxbufsize;
-    
+	int type;
+	int nslots;
+	union {
+		struct video_fifoslot_s *v;
+		struct audio_fifoslot_s *a;
+		struct pts_fifoslot_s *pts;
+	} slots;
+	int slotptrsize;
+	int slotsize;
+	
+	int start;
+	int *writeptr;
+	int *readptr;
+	int localreadptr;
+	int threshold;
+	
+	char *fifobuffer;
+	
+	preprocess_cb_t preprocess_cb;
+	int preprocess_ratio,preprocess_maxbufsize;
+	
 #if LINUX_VERSION_CODE < 0x020314    
-    struct wait_queue *wait;
+	struct wait_queue *wait;
 #else
-    wait_queue_head_t wait;
+	wait_queue_head_t wait;
 #endif	
-    int waiting;
+	int waiting;
 };
 
 struct em8300_s;

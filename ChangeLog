@@ -1,3 +1,9 @@
+2001-04-23  Rick Haines  <rick@kuroyi.net>
+
+	* modules/*:
+	merge kernel coding style patch from James Farwell
+	and make a pass through the code myself.
+	
 2001-04-22  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_audio.c,

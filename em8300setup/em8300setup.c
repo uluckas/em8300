@@ -168,29 +168,27 @@ int main(int argc, char * argv[]) {
 							display_only=1;
 							break;
 						case 'f':
-							if(opt[2] == '\0') 
+							if(opt[2] == '\0')
 								sprintf(ucode_file,"%s", argv[optindex++]);
-							else 
+							else
 								sprintf(ucode_file,"%s",opt+2);
 							upload=1;
 							printf("Using microcode file %s\n",ucode_file);
 							break;
 						 default:
 							printf("Unknown option -%c \n\n",opt[1]);
-							printf("Usage: em8300setup [-q]|[all other options]\n\nWhere options are one of the following (latter options will override previously specified options for the same control)\n\n");
-							printf("\t-p, -p6, -n 	Set display mode to pal, pal60, ntsc\n");
-							printf("\t-a, -d, -3 	Set audio mode to analog, digitalpcm, digital ac3\n");
-							printf("\t-o, -w	 	Set aspect ratio to normal[4:3], widescreen[16:9]\n");
-							printf("\t-S, -s	 	Set spu mode On(S), Off(s)\n");
-							printf("\t-f <filename>	Specify alternate location of microcode\n");
-							printf("\t\t\tDefaults to /usr/share/misc/em8300.uc\n");
-							printf("\t-q	 	Query the current settings for all of the above and exit no change\n");
-							printf("\t<none>\t\tPassing no options causes the same behaviour as em8300init with no\n"); 
-							printf("\t\t\toptions microcode is uploaded from the default location.\n");
+							printf("Usage: em8300setup [-q]|[all other options]\n\nWhere options are one of the following (latter options will override previously\nspecified options for the same control):\n\n");
+							printf("  -p, -p6, -n\tSet display mode to pal, pal60, ntsc\n");
+							printf("  -a, -d, -3\tSet audio mode to analog, digitalpcm, digital ac3\n");
+							printf("  -o, -w\tSet aspect ratio to normal[4:3], widescreen[16:9]\n");
+							printf("  -S, -s\tSet spu mode On(S), Off(s)\n");
+							printf("  -f <filename>\tSpecify alternate location of microcode\n\t\t(Defaults to /usr/share/misc/em8300.uc)\n");
+							printf("  -q\t\tQuery the current settings for all of the above and\n\t\texit without making any changes\n");
+							printf("  <none>\tPassing no option (except -f) causes the microcode\n\t\tto be loaded\n");
 
 							exit(1);
 
-					}	
+					}
 
 
 

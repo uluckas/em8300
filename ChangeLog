@@ -1,3 +1,8 @@
+2005-03-08  Nicolas Boullis  <nboullis@debian.org>
+	* em8300setup/em8300setup.c:
+	Improve em8300setup's usage message. Thanks to Ville Skyttä for
+	the rephrasing.
+
 2005-03-07  Nicolas Boullis  <nboullis@debian.org>
 	* modules/adv717x.c,
 	  modules/bt865.c:

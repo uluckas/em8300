@@ -107,8 +107,77 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 	    em8300_ioctl_setaspectratio(em,val);
 	}
 	break;
+    case _IOC_NR(EM8300_IOCTL_OVERLAY_SETMODE):
+	if (_IOC_DIR(cmd) & _IOC_WRITE) {
+	    int val;
+	    get_user(val, (int *)arg);
+	    if(!em8300_ioctl_overlay_setmode(em,val))
+		return -EINVAL;
+	}
+	break;
+    case _IOC_NR(EM8300_IOCTL_OVERLAY_SETWINDOW):
+	{
+	    em8300_overlay_window_t val;
+	    if (_IOC_DIR(cmd) & _IOC_WRITE) {
+		copy_from_user(&val, (void *)arg,
+			       sizeof(em8300_overlay_window_t));
+		if(!em8300_ioctl_overlay_setwindow(em,&val))
+		    return -EINVAL;
+	    }
+	    if (_IOC_DIR(cmd) & _IOC_READ) {
+		copy_to_user((void *)arg, &val,
+			     sizeof(em8300_overlay_window_t));
+	    }
+	}
+	break;
+    case _IOC_NR(EM8300_IOCTL_OVERLAY_SETSCREEN):
+	{
+	    em8300_overlay_screen_t val;
+	    if (_IOC_DIR(cmd) & _IOC_WRITE) {
+		copy_from_user(&val, (void *)arg,
+			       sizeof(em8300_overlay_screen_t));
+		if(!em8300_ioctl_overlay_setscreen(em,&val))
+		    return -EINVAL;
+	    }
+	    if (_IOC_DIR(cmd) & _IOC_READ) {
+		copy_to_user((void *)arg, &val,
+			     sizeof(em8300_overlay_screen_t));
+	    }
+	}
+	break;
+    case _IOC_NR(EM8300_IOCTL_OVERLAY_CALIBRATE):
+	{
+	    em8300_overlay_calibrate_t val;
+	    if (_IOC_DIR(cmd) & _IOC_WRITE) {
+		copy_from_user(&val, (void *)arg,
+			       sizeof(em8300_overlay_calibrate_t));
+		if(!em8300_ioctl_overlay_calibrate(em, &val))
+		    return -EIO;
+	    }
+	
+	    if (_IOC_DIR(cmd) & _IOC_READ) {
+		copy_to_user((void *)arg, &val,
+			     sizeof(em8300_overlay_calibrate_t));
+	    }
+	}
+	break;
+    case _IOC_NR(EM8300_IOCTL_OVERLAY_GET_ATTRIBUTE):
+	{
+	    em8300_attribute_t val;
+	    copy_from_user(&val, (void *)arg,
+			   sizeof(em8300_attribute_t));	    
+	    if (_IOC_DIR(cmd) & _IOC_WRITE) 
+		em9010_set_attribute(em,val.attribute, val.value);
+	    if (_IOC_DIR(cmd) & _IOC_READ) {
+		val.value = em9010_get_attribute(em,val.attribute);
+		copy_to_user((void *)arg, &val,
+			     sizeof(em8300_attribute_t));
+	    }
+	}
+	
+	break;
     default:
-	return -EINVAL;
+	return -ETIME;
     }
     return 0;
 }
@@ -266,4 +335,61 @@ int em8300_ioctl_setplaymode(struct em8300_s *em, int mode) {
     }
     em->playmode = mode;
     return 0;
+}
+
+int em8300_ioctl_overlay_setmode(struct em8300_s *em,int val) {
+    switch(val) {
+    case EM8300_OVERLAY_MODE_OFF:
+	if(em->overlay_enabled) {
+	    em->overlay_enabled=0;
+	    em->overlay_mode=val;
+	    em9010_overlay_update(em);
+	    em8300_ioctl_setvideomode(em,em->video_mode);
+	}
+	break;
+    case EM8300_OVERLAY_MODE_RECTANGLE:
+    case EM8300_OVERLAY_MODE_OVERLAY:
+	if(!em->overlay_enabled) {
+	    em->overlay_enabled=1;
+	    em->overlay_mode=val;
+	    em8300_dicom_disable(em);
+	    em8300_dicom_enable(em);
+	    em8300_dicom_update(em);
+	    em9010_overlay_update(em);
+	} else {
+	    em->overlay_mode=val;
+	    em9010_overlay_update(em);
+	}
+	break;
+    default:
+	return 0;
+    }
+    return 1;
+}
+
+int em8300_ioctl_overlay_setwindow(struct em8300_s *em,em8300_overlay_window_t *w) {
+    if(w->xpos < -2000 || w->xpos > 2000)
+	return 0;
+    if(w->ypos < -2000 || w->ypos > 2000)
+	return 0;
+    if(w->width <= 0 || w->width > 2000)
+	return 0;
+    if(w->height <= 0 || w->height > 2000)
+	return 0;
+    em->overlay_frame_xpos = w->xpos;
+    em->overlay_frame_ypos = w->ypos;
+    em->overlay_frame_width = w->width;
+    em->overlay_frame_height = w->height;
+    em8300_dicom_update(em);
+    return 1;
+}
+
+int em8300_ioctl_overlay_setscreen(struct em8300_s *em,em8300_overlay_screen_t *s) {
+    if(s->xsize < 0 || s->xsize > 2000)
+	return 0;
+    if(s->ysize < 0 || s->ysize > 2000)
+	return 0;
+
+    em9010_overlay_set_res(em,s->xsize,s->ysize);
+    return 1;
 }

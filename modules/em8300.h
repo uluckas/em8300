@@ -16,6 +16,28 @@ typedef struct {
     int saturation;
 } em8300_bcs_t;
 
+typedef struct {
+    int cal_mode;
+    int arg;
+    int arg2;
+    int result;
+    int result2;
+} em8300_overlay_calibrate_t;
+
+typedef struct {
+    int xpos, ypos;
+    int width, height;
+} em8300_overlay_window_t;
+
+typedef struct {
+    int xsize, ysize;
+} em8300_overlay_screen_t;
+
+typedef struct {
+    int attribute;
+    int value;
+} em8300_attribute_t;
+
 #define EM8300_IOCTL_INIT       _IOW('C',0,em8300_microcode_t)
 #define EM8300_IOCTL_READREG    _IOWR('C',1,em8300_register_t)
 #define EM8300_IOCTL_WRITEREG   _IOW('C',2,em8300_register_t)
@@ -26,6 +48,12 @@ typedef struct {
 #define EM8300_IOCTL_GET_ASPECTRATIO _IOR('C',5,int)
 #define EM8300_IOCTL_SET_VIDEOMODE _IOW('C',6,int)
 #define EM8300_IOCTL_SET_PLAYMODE _IOW('C',7,int)
+#define EM8300_IOCTL_OVERLAY_CALIBRATE _IOWR('C',8,em8300_overlay_calibrate_t)
+#define EM8300_IOCTL_OVERLAY_SETMODE _IOW('C',9,int)
+#define EM8300_IOCTL_OVERLAY_SETWINDOW _IOWR('C',10,em8300_overlay_window_t)
+#define EM8300_IOCTL_OVERLAY_SETSCREEN _IOWR('C',11,em8300_overlay_screen_t)
+#define EM8300_IOCTL_OVERLAY_GET_ATTRIBUTE _IOR('C',12,em8300_attribute_t)
+#define EM8300_IOCTL_OVERLAY_SET_ATTRIBUTE _IOW('C',12,em8300_attribute_t)
 
 #define EM8300_IOCTL_VIDEO_SETPTS 1
 #define EM8300_IOCTL_SPU_SETPTS 1
@@ -59,6 +87,25 @@ typedef struct {
 #define EM8300_PLAYMODE_PLAY            5
 #define EM8300_PLAYMODE_REVERSEPLAY     6
 #define EM8300_PLAYMODE_SCAN            7
+#define EM8300_PLAYMODE_FRAMEBUF	8
+
+#define EM8300_OVERLAY_MODE_OFF 0
+#define EM8300_OVERLAY_MODE_RECTANGLE 1
+#define EM8300_OVERLAY_MODE_OVERLAY 2
+
+#define EM8300_OVERLAY_CALMODE_XOFFSET 1
+#define EM8300_OVERLAY_CALMODE_YOFFSET 2
+#define EM8300_OVERLAY_CALMODE_XCORRECTION 3
+#define EM8300_OVERLAY_CALMODE_COLOR 4
+
+#define EM9010_ATTRIBUTE_XCORR 1
+#define EM9010_ATTRIBUTE_XOFFSET 2
+#define EM9010_ATTRIBUTE_YOFFSET 3
+#define EM9010_ATTRIBUTE_JITTER 4
+#define EM9010_ATTRIBUTE_STABILITY 5
+#define EM9010_ATTRIBUTE_KEYCOLOR_UPPER 6
+#define EM9010_ATTRIBUTE_KEYCOLOR_LOWER 7
+#define EM9010_ATTRIBUTE_MAX 7
 
 #define EM8300_SUBDEVICE_CONTROL 0
 #define EM8300_SUBDEVICE_VIDEO 1
@@ -86,7 +133,7 @@ typedef struct {
 #define CLOCKGEN_ANALOGOUT 0x20
 
 #define MVCOMMAND_STOP 0x0
-#define MVCOMMAND_11 0x11
+#define MVCOMMAND_DISPLAYBUFINFO 0x11
 #define MVCOMMAND_10 0x10
 #define MVCOMMAND_PAUSE 1
 #define MVCOMMAND_START 3
@@ -136,6 +183,19 @@ struct dicom_s {
     int tvout;
 };
 
+struct displaybuffer_info_s {
+    int xsize;
+    int ysize;
+    int xsize2;
+    int flag1,flag2;
+    int buffer1;
+    int buffer2;
+    int unk_present;
+    int unknown1;
+    int unknown2;
+    int unknown3;
+};
+
 struct em8300_s
 {
     char name[40];
@@ -164,6 +224,7 @@ struct em8300_s
     int dicom_contrast;
     int dicom_saturation;
     int dicom_tvout;
+    struct displaybuffer_info_s dbuf_info;
 
     /* I2C */
     int i2c_pin_reg;
@@ -239,6 +300,22 @@ struct em8300_s
     int sp_ptsfifo_waiting;
     
     int linecounter;
+
+    /* EM9010 overlay processor */
+    int overlay_enabled;
+    int overlay_mode;
+    int overlay_gamma_enable;
+    int overlay_xres;
+    int overlay_yres;
+    int overlay_frame_xpos;
+    int overlay_frame_ypos;
+    int overlay_frame_width;
+    int overlay_frame_height;
+    int overlay_a[EM9010_ATTRIBUTE_MAX+1];
+    int overlay_double_y;
+    int overlay_xcorr_default;
+    int overlay_70;
+    int overlay_dword_24bb8;
 };
 
 #define TIMEDIFF(a,b) a.tv_usec - b.tv_usec + \
@@ -275,6 +352,7 @@ int em8300_ucode_upload(struct em8300_s *em, void *ucode_user, int ucode_size);
 int em8300_setregblock(struct em8300_s *em, int offset, int val, int len);
 int em8300_writeregblock(struct em8300_s *em, int offset, unsigned *buf, int len);
 int em8300_waitfor(struct em8300_s *em, int reg, int val, int mask);
+int em8300_waitfor_not(struct em8300_s *em, int reg, int val, int mask);
 
 /* em8300_dicom.c */
 void em8300_dicom_setBCS(struct em8300_s *em, int brightness, int contrast, int saturation);
@@ -282,6 +360,9 @@ void em8300_dicom_enable(struct em8300_s *em);
 void em8300_dicom_disable(struct em8300_s *em);
 int em8300_dicom_update(struct em8300_s *em);
 void em8300_dicom_init(struct em8300_s *em);
+int em8300_dicom_get_dbufinfo(struct em8300_s *em);
+void em8300_dicom_fill_dispbuffers(struct em8300_s *em, int xpos, int ypos, int xsize,
+				  int ysize, unsigned int pat1, unsigned int pat2);
 
 /* em8300_video.c */
 
@@ -312,5 +393,20 @@ void em8300_ioctl_getstatus(struct em8300_s *em, char *usermsg);
 int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc);
 void em8300_ioctl_enable_videoout(struct em8300_s *em, int mode);
 int em8300_ioctl_setplaymode(struct em8300_s *em, int mode);
+int em8300_ioctl_overlay_calibrate(struct em8300_s *em, em8300_overlay_calibrate_t *c);
+int em8300_ioctl_overlay_setwindow(struct em8300_s *em,em8300_overlay_window_t *w);
+int em8300_ioctl_overlay_setscreen(struct em8300_s *em,em8300_overlay_screen_t *s);
+int em8300_ioctl_overlay_setmode(struct em8300_s *em,int val);
 
+/* em9010.c */
+int em9010_cabledetect(struct em8300_s *em);
+int em9010_calibrate_xoffset(struct em8300_s *em);
+int em9010_calibrate_yoffset(struct em8300_s *em);
+int em9010_init(struct em8300_s *em);
+int em9010_overlay_update(struct em8300_s *em);
+int em9010_overlay_set_res(struct em8300_s *em, int xres, int yres);
+void sub_4288c(struct em8300_s *em, int pa, int pb, int pc, int pd, int pe, int pf,
+	       int pg, int ph);
+int em9010_get_attribute(struct em8300_s *em, int attribute);
+int em9010_set_attribute(struct em8300_s *em, int attribute, int value);
 #endif

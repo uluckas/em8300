@@ -81,6 +81,11 @@ int upload_prepare(struct em8300_s *em)
      em->mem[0x1ff8] = 0xff00;
      em->mem[0x1ff9] = 0xff00;
 
+     if(em->chip_revision == 1) {
+	 em->mem[0x1c04] = 0x8c7;
+	 em->mem[0x1c00] = 0x80;
+	 em->mem[0x1c04] = 0xc7;
+     }
      if(read_register(0x1c08) & 0x40) {
 	 em->mem[0x1c04] = 0x8272;
 	 if(read_register(0x1c08) & 0x20)

@@ -33,10 +33,26 @@ int em8300_waitfor(struct em8300_s *em, int reg, int val, int mask) {
     return -ETIME;
 }
 
+int em8300_waitfor_not(struct em8300_s *em, int reg, int val, int mask) {
+    int tries;
+
+    for(tries=0; tries < 100 ; tries++) {
+	if((em->mem[reg] & mask) != val)
+	    return 0;
+	mdelay(10);
+    }
+    return -ETIME;
+}
+
 int em8300_setregblock(struct em8300_s *em, int offset, int val, int len) {
     int i;
 
-    val = val | (val << 8) | (val << 16) | (val << 24);
+    for(i=1000; i; i--) {
+	if(!read_register(0x1c1a))
+	    break;
+	if(!i)
+	    return -ETIME;
+    }
     
     em->mem[0x1c11] = offset & 0xffff;
     em->mem[0x1c12] = (offset >> 16) & 0xffff;
@@ -52,9 +68,28 @@ int em8300_setregblock(struct em8300_s *em, int offset, int val, int len) {
 
     for(i=0; i < len/4; i++) 
 	em->mem[0x11800] = val;
-	
-    if(em8300_waitfor(em,0x1c1a, 0, 1))
-	return -ETIME;
+
+    switch(len % 4) {
+    case 1:
+	em->mem[0x10000] = val;
+	break;
+    case 2:
+	em->mem[0x10800] = val;
+	break;
+    case 3:
+	em->mem[0x11000] = val;
+	break;
+    }
+
+    for(i=1000; i; i--) {
+	if(!read_register(0x1c1a))
+	    break;
+	if(!i)
+	    return -ETIME;
+    }
+    
+    /*    if(em8300_waitfor(em,0x1c1a, 0, 1)) 
+	  return -ETIME;  */
     return 0;
 }
 
@@ -75,7 +110,7 @@ int em8300_writeregblock(struct em8300_s *em, int offset, unsigned *buf, int len
 
     for(i=0; i < len/4; i++) 
 	em->mem[0x11800] = *buf++;
-	
+
     if(em8300_waitfor(em,0x1c1a, 0, 1))
 	return -ETIME;
     return 0;

@@ -12,7 +12,7 @@ EXTRA_CFLAGS = -g -Werror -I/usr/local/include \
 O_TARGET 	= em8300.o
 O_OBJS 		= em8300_main.o em8300_i2c.o em8300_audio.o em8300_fifo.o \
 		  em8300_video.o em8300_misc.o em8300_dicom.o em8300_ucode.o \
-		  em8300_ioctl.o em8300_spu.o
+		  em8300_ioctl.o em8300_spu.o em9010.o
 M_OBJS 		= em8300.o adv717x.o eeprom.o bt865.o
 MX_OBJS      	= 
 

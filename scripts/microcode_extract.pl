@@ -34,13 +34,13 @@ $ucnt = 0;
 
 for($i=0; $i < length($vxd); $i++) 
 {
-  if(unpack('S',substr($vxd,$i,2)) == 2) {
+  if(unpack('v',substr($vxd,$i,2)) == 2) {
     $savei = $i;
     $ok = 1;
     $blocktype = -1;
     $count=0;
     while($blocktype != 0) {
-      ($blocktype, $offset, $dlen) = unpack('SII',substr($vxd,$i,11));
+      ($blocktype, $offset, $dlen) = unpack('vVV',substr($vxd,$i,11));
       
       if($blocktype == 0) { last; }
       

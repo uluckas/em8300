@@ -32,7 +32,7 @@ undef $/;
 $ucode = <>;
 
 while(1) {
-  ($flags,$offset,$len) = unpack('SII',$ucode);
+  ($flags,$offset,$len) = unpack('vVV',$ucode);
   $len*=2;
 
   printf("Flags:  0x%x\n",$flags);

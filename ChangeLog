@@ -1,3 +1,15 @@
+2001-03-17  Rick Haines  <rick@kuroyi.net>
+
+	* scripts/microcode_extract.pl,
+	  scripts/microcode_info.pl:
+	endian fixes from Fabian Jakobs
+	
+2001-03-15  Rick Haines  <rick@kuroyi.net>
+
+	* include/linux/Makefile.am,
+	  em8300.spec.in:
+	install em8300.h properly
+
 2001-03-14  Rick Haines  <rick@kuroyi.net>
 
 	* omsplugin/README,

@@ -1,4 +1,49 @@
-2003-12-08 Nicolas Boullis  <nboullis@debian.org>
+2004-02-17  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_fifo.c,
+	  modules/em8300_fifo.h:
+	Use pci_alloc_consistent to allocate a DMA-able buffer rather 
+	than kmalloc + virt_to_bus, as virt_to_bus is not supported on 
+	sparc.
+
+	* modules/Makefile:
+	Add support for sparc64 systems.
+
+	* modules/Makefile,
+	  modules/em8300_ioctl32.c,
+	  modules/em8300_ioctl32.h,
+	  modules/em8300_main.c:
+	Add support for 32-bit ioctls on 64-bit systems with a 32-bit 
+	userspace.
+
+	* modules/Makefile:
+	Fix support for building with i2c modules out of the kernel.
+
+	* ChangeLog:
+	Update the ChangeLog.
+
+2004-02-09  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_main.c:
+	Check for O_NONBLOCK whenever a write is attempted, ans it may 
+	be changed after opening with fcntl. Thanks to Michael Roitzsch 
+	for this patch.
+
+	* modules/em8300_fifo.c:
+	Try to properly detect when the DMA engine is frozen. Many 
+	thanks to Michael Roitzsch for his initial patch and for testing 
+	this one.
+
+	* modules/em8300_misc.c:
+	Give the CPU back to other processes when waiting for a 
+	condition on the register of the em8300 chip.
+
+2004-02-08  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_audio.c:
+	Fix em8300 audio for big-endian systems, and for big-endian 
+	audio data on little-endian systems.
+
+	* modules/Makefile: Add support for PowerPC.
+
+2003-12-08  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_fifo.c,
 	  ChangeLog:
 	Fix a bug (introduced by myself in the patch for alpha support)

@@ -110,7 +110,6 @@ static void preprocess_analog(struct em8300_s *em, unsigned char *outbuf, const 
 	if (em->audio.format == AFMT_S16_LE ||
 	    em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3) {
 #endif
-		/* Software emulation code, should be removed before sending a patch to linus */
 		if (em->audio.channels == 2) {
 			for (i = 0; i < inlength; i += 4) {
 				get_user(outbuf[i + 3], inbuf_user++);
@@ -126,7 +125,6 @@ static void preprocess_analog(struct em8300_s *em, unsigned char *outbuf, const 
 				outbuf[2 * i + 2] = outbuf[2 * i];
 			}
 		}
-		/* End software emulation */
 	} else {
 		for (i = 0; i < inlength / 2; i++) {
 			outbuf[2 * i] = inbuf_user[i];

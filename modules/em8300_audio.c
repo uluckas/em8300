@@ -137,7 +137,11 @@ static void setup_mafifo(struct em8300_s *em) {
 	if (em->audio_mode == EM8300_AUDIOMODE_ANALOG) {
 		em->mafifo->preprocess_ratio = em->stereo ? 1 : 2;
 		em->mafifo->preprocess_cb = &preprocess_analog;
+#if 0 /* fix 1/2 second delay */
 		em->mafifo->preprocess_maxbufsize = -1;
+#else
+		em->mafifo->preprocess_maxbufsize = 3070;
+#endif
 	} else {
 		em->mafifo->preprocess_ratio = 2;
 		em->mafifo->preprocess_maxbufsize = 0x600;

@@ -1,3 +1,23 @@
+2001-07-15  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_audio.c:
+	Patch from Daniel Chassot to fix 1/2 sec sync problem
+	
+	* modules/em8300_dicom.c:
+	Patch from John Stebbins to fix NTSC sync problems
+	and shift it up a bit.
+
+	* modules/em8300_video.c (em8300_video_sync):
+	Patch from Eduard Hasenleithner to make em8300_video_sync()
+	timeout if it takes too long.
+
+	* modules/README-2.4,
+	  modules/README-2.2,
+	  modules/make-modules-2.4,
+	  modules/make-install-2.4,
+	  modules/make-clean:
+	Remove old 2.4 Makefile stuff
+	
 2001-06-27  Rick Haines  <rick@kuroyi.net>
 
 	* modules/adv717x.c (adv717x_update):

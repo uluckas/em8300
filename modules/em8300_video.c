@@ -81,7 +81,9 @@ int em8300_video_setplaymode(struct em8300_s *em, int mode)
 
 int em8300_video_sync(struct em8300_s *em)
 {
-	int rdptr,wrptr;
+	int rdptr,wrptr,synctimeout;
+
+	synctimeout = 0;
     
 	do {
 		wrptr = read_ucregister(MV_Wrptr_Lo) |
@@ -89,7 +91,7 @@ int em8300_video_sync(struct em8300_s *em)
 		rdptr = read_ucregister(MV_RdPtr_Lo) |
 			(read_ucregister(MV_RdPtr_Hi)<<16);
 
-		if (rdptr != wrptr) {
+		if (rdptr != wrptr && ++synctimeout < 20) {
 			schedule_timeout(HZ/10);
 		}
 

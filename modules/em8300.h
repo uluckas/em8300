@@ -128,6 +128,8 @@ struct em8300_s
 {
     char name[40];
 
+    int chip_revision;
+    
     int inuse[4];
     int ucodeloaded;
     
@@ -147,6 +149,10 @@ struct em8300_s
     int dicom_brightness;
     int dicom_saturation;
     int dicom_chroma;
+
+    /* I2C */
+    int i2c_pin_reg;
+    int i2c_oe_reg;
     
     /* I2C bus 1*/
     struct i2c_algo_bit_data i2c_data_1;

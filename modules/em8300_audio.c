@@ -189,8 +189,6 @@ int set_stereo(struct em8300_s *em, int val) {
 static
 int set_rate(struct em8300_s *em,int rate)
 {
-    em->audio_rate = rate; 
-
     em->clockgen &= ~CLOCKGEN_SAMPFREQ_MASK;
 
     switch(rate) {
@@ -209,6 +207,8 @@ int set_rate(struct em8300_s *em,int rate)
 	rate = 48000;
     }
     
+    em->audio_rate = rate; 
+
     em8300_clockgen_write(em,em->clockgen);
     
     return rate;

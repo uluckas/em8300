@@ -519,6 +519,23 @@ void cleanup_module(void) {
     unregister_chrdev(EM8300_MAJOR,EM8300_LOGNAME);
 }
 
+int em8300_init(struct em8300_s *em) {
+    write_register(0x30000, read_register(0x30000));
+
+    write_register(0x1f50, 0x123);
+
+    if(read_register(0x1f50) == 0x123)
+	em->chip_revision = 2;
+    else
+	em->chip_revision = 1;
+
+    printk("em8300_main.o: Chip revision: %d\n",em->chip_revision);
+    
+    em8300_i2c_init(em);
+
+    return 0;
+}
+
 int init_module(void)
 {
     int card;
@@ -537,10 +554,10 @@ int init_module(void)
 	
 	em->encoder = NULL;
 	em->eeprom = NULL;
-	
-	em8300_i2c_init(em);
 
 	em->linecounter=0;
+
+	em8300_init(em);
     }
     if(register_chrdev(EM8300_MAJOR, EM8300_LOGNAME, &em8300_fops)) {
 	printk(KERN_ERR "em8300: unable to get major %d\n", EM8300_MAJOR);

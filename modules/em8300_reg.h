@@ -10,6 +10,7 @@
 #define read_register(a) *((volatile unsigned *)(em->mem+a))
 #define write_ucregister(a,v) *((volatile unsigned *)(em->mem+em->ucode_regs[a]))=v
 #define read_ucregister(a) *((volatile unsigned *)(em->mem+em->ucode_regs[a]))
+
 /*
   EM8300 fixed registers
 */

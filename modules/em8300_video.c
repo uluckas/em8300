@@ -118,7 +118,12 @@ int em8300_video_setup(struct em8300_s *em) {
     write_ucregister(Q_IrqMask,0x0);
     write_ucregister(Q_IrqStatus,0x0);
     write_ucregister(Q_IntCnt,0x64);
-    write_register(0x1ffb,0xce4);
+
+    if(read_register(0x1c08) & 0x40)
+	write_register(0x1ffb,0xd34);
+    else
+	write_register(0x1ffb,0xce4);
+
     write_ucregister(MA_Threshold,0x8);
 
     /* Release reset */

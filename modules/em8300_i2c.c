@@ -43,34 +43,37 @@ void em8300_setscl(void *data,int state)
     struct private_data_s *p = (struct private_data_s *)data;
     int sel = p->clk << 8;
 
-    p->em->mem[EM8300_I2C_OE] = sel | p->clk;
-    p->em->mem[EM8300_I2C_PIN] = sel | (state ? p->clk : 0);
+    p->em->mem[p->em->i2c_oe_reg] = sel | p->clk;
+    p->em->mem[p->em->i2c_pin_reg] = sel | (state ? p->clk : 0);
 }
 
 static
 void em8300_setsda(void *data,int state)
 {
     struct private_data_s *p = (struct private_data_s *)data;
+    struct em8300_s *em = p->em;
     int sel = p->data << 8;
 
-    p->em->mem[EM8300_I2C_OE] = sel | p->data;
-    p->em->mem[EM8300_I2C_PIN] = sel | (state ? p->data : 0);
+    em->mem[em->i2c_oe_reg] = sel | p->data;
+    em->mem[em->i2c_pin_reg] = sel | (state ? p->data : 0);
 }
 
 static
 int em8300_getscl(void *data)
 {
     struct private_data_s *p = (struct private_data_s *)data;
+    struct em8300_s *em = p->em;
 
-    return p->em->mem[EM8300_I2C_PIN] & (p->clk << 8);
+    return em->mem[em->i2c_pin_reg] & (p->clk << 8);
 }
 
 static
 int em8300_getsda(void *data)
 {
     struct private_data_s *p = (struct private_data_s *)data;
+    struct em8300_s *em = p->em;
 
-    return p->em->mem[EM8300_I2C_PIN] & (p->data << 8);
+    return em->mem[em->i2c_pin_reg] & (p->data << 8);
 }
 
 
@@ -89,10 +92,7 @@ static int em8300_i2c_reg(struct i2c_client *client)
     case I2C_DRIVERID_AT24Cxx:
 	em->eeprom = client;
 	break;
-
     }
-
-    
     return 0;
 }
 
@@ -129,14 +129,25 @@ int em8300_i2c_init(struct em8300_s *em)
     int ret;
     struct private_data_s *pdata;
 
+    switch(em->chip_revision) {
+    case 2:
+	em->i2c_oe_reg = 0x1f4e;
+	em->i2c_pin_reg = 0x1f4d;
+	break;
+    case 1:
+	em->i2c_oe_reg = 0x1f4f;
+	em->i2c_pin_reg = 0x1f4e;
+	break;
+    }
+    
     /*
       Reset devices on I2C bus
     */
-    em->mem[EM8300_I2C_PIN] = 0x3f3f;
-    em->mem[EM8300_I2C_OE] = 0x3b3b;
-    em->mem[EM8300_I2C_PIN] = 0x0100;
-    em->mem[EM8300_I2C_PIN] = 0x0101;
-    em->mem[EM8300_I2C_PIN] = 0x0808;
+    em->mem[em->i2c_pin_reg] = 0x3f3f;
+    em->mem[em->i2c_oe_reg] = 0x3b3b;
+    em->mem[em->i2c_pin_reg] = 0x0100;
+    em->mem[em->i2c_pin_reg] = 0x0101;
+    em->mem[em->i2c_pin_reg] = 0x0808;
     
     /*
       Setup info structure for bus 1
@@ -202,8 +213,6 @@ int em8300_i2c_init(struct em8300_s *em)
     em->i2c_ops_2.data = em;
     
     ret = i2c_bit_add_bus(&em->i2c_ops_2);
-
-    
     return ret;
 }
 
@@ -219,15 +228,15 @@ void em8300_i2c_exit(struct em8300_s *em)
 void em8300_clockgen_write(struct em8300_s *em, int abyte) {
     int i;
 
-    em->mem[EM8300_I2C_PIN] = 0x808;
+    em->mem[em->i2c_pin_reg] = 0x808;
     for(i=0; i < 8; i++) {
-	em->mem[EM8300_I2C_PIN] = 0x2000;
-	em->mem[EM8300_I2C_PIN] = 0x800 | ((abyte & 1) ? 8:0);
-	em->mem[EM8300_I2C_PIN] = 0x2020;
+	em->mem[em->i2c_pin_reg] = 0x2000;
+	em->mem[em->i2c_pin_reg] = 0x800 | ((abyte & 1) ? 8:0);
+	em->mem[em->i2c_pin_reg] = 0x2020;
 	abyte >>= 1;
     }
 
-    em->mem[EM8300_I2C_PIN] = 0x200;
-    em->mem[EM8300_I2C_PIN] = 0x202;
+    em->mem[em->i2c_pin_reg] = 0x200;
+    em->mem[em->i2c_pin_reg] = 0x202;
 }	
 

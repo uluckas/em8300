@@ -103,17 +103,6 @@ int em8300_video_setup(struct em8300_s *em) {
     write_register(0x1f47,0x0);
 
     if (em->encoder_type == ENCODER_BT865) {
-       write_register(0x1f42,0x8c);
-       write_register(0x1f43,0x2d0);
-       write_register(0x1f45,0x136);
-
-       write_ucregister(DICOM_VSyncLo1,0x1); 
-       write_ucregister(DICOM_VSyncLo2,0x0);
-       write_ucregister(DICOM_VSyncDelay1,0xd2); 
-       write_ucregister(DICOM_VSyncDelay2,0x0);
-
-       write_register(0x1f46,0x0); 
-       write_register(0x1f47,0x1c); 
        write_register(0x1f5e,0x9efe);
        write_ucregister(DICOM_Control,0x9efe);
     } else {
@@ -147,7 +136,7 @@ int em8300_video_setup(struct em8300_s *em) {
     write_ucregister(DICOM_FrameTop,0x2e);
     write_ucregister(DICOM_FrameRight,0x36b);
     write_ucregister(DICOM_FrameBottom,0x11e);
-    write_ucregister(DICOM_TvOut,0x4000);
+    em8300_dicom_enable(em);
 
     em9010_write16(em,0x8,0xff);
     em9010_write16(em,0x10,0xff);
@@ -174,20 +163,16 @@ int em8300_video_setup(struct em8300_s *em) {
     em9010_write(em,0xc,0x8c);
     em9010_write(em,9,0);
 
-    if (em->encoder_type == ENCODER_BT865) {
-      write_ucregister(DICOM_Kmin,0x613);
-    } else {
-      write_ucregister(DICOM_Kmin,0x447);
-    }
+    write_ucregister(DICOM_Kmin,0x447); // was 0x613 for BT865, but this works too
 
     em9010_write(em,7,0x80);
     em9010_write(em,9,0);
+    write_register(0x1f47,0x18); 
 
     if(em->encoder_type == ENCODER_BT865) {
        write_register(0x1f5e,0x9efe);
        write_ucregister(DICOM_Control,0x9efe);
     } else {
-       write_register(0x1f47,0x18);
        write_register(0x1f5e,0x9afe);
        write_ucregister(DICOM_Control,0x9afe);
     }
@@ -198,11 +183,7 @@ int em8300_video_setup(struct em8300_s *em) {
     
     write_ucregister(ForcedLeftParity,0x2);
 
-    if (em->encoder_type == ENCODER_BT865) {
-      write_ucregister(MV_Threshold,0x50);
-    } else {
-      write_ucregister(MV_Threshold,0x90);
-    }
+    write_ucregister(MV_Threshold,0x90); // was 0x50 for BT865, but this works too
 
     write_register(0x1ffa,0x2);
     write_ucregister(Q_IrqMask,0x0);
@@ -229,8 +210,7 @@ int em8300_video_setup(struct em8300_s *em) {
 	return -ETIME;
     }
 
-    em8300_video_setspeed(em,0x900); //was 0x900 too high
-                                     //880 too low
+    em8300_video_setspeed(em,0x900);
 
     write_ucregister(MV_FrameEventLo,0xffff);
     write_ucregister(MV_FrameEventHi,0x7fff);
@@ -240,9 +220,6 @@ int em8300_video_setup(struct em8300_s *em) {
 
     em8300_dicom_setBCS(em, 500,500,500);
 
-    /*if(em->encoder_type == ENCODER_ADV7170)
-      em->dicom.visibleright = 0x759;*/
-
     if(em8300_dicom_update(em)) {
 	DEBUG( printk("em8300: DICOM Update failed\n"));
 	return -ETIME;
@@ -250,23 +227,6 @@ int em8300_video_setup(struct em8300_s *em) {
     
     em->video_playmode = -1;
     em8300_video_setplaymode(em,EM8300_PLAYMODE_STOPPED);
-
-    if(em->encoder_type == ENCODER_BT865) {
-	write_register(0x1f47,0x0);
-	write_register(0x1f42,0x8c);
-	write_register(0x1f43,0x2d0);
-	write_register(0x1f45,0x136);	 
-	write_ucregister(DICOM_VSyncLo1,0x1); 
-	write_ucregister(DICOM_VSyncLo2,0x0);
-	write_ucregister(DICOM_VSyncDelay1,0xd2); 
-	write_ucregister(DICOM_VSyncDelay2,0x0);  
-	write_register(0x1f46,0x0); 
-	write_register(0x1f47,0x1c); 
-	write_register(0x1f5e,0x9efe);
-	write_ucregister(DICOM_Control,0x9efe);
-	write_ucregister(DICOM_UpdateFlag,0x0);		
-	write_ucregister(DICOM_UpdateFlag,0x1);
-    }
 
     return 0;
 }

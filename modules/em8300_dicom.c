@@ -162,6 +162,7 @@ int em8300_dicom_update(struct em8300_s *em)
 	 write_register(0x1f47,0x0);
 	 write_register(0x1f5e,0x1afe);
 	 write_ucregister(DICOM_Control,0x9afe);
+
 #if 0 /* don't know if this is necessary yet */
 #ifdef EM8300_DICOM_0x1f5e_0x1efe
 	 write_register(0x1f5e,0x1efe);
@@ -175,10 +176,23 @@ int em8300_dicom_update(struct em8300_s *em)
 #endif
 #endif
     } else {
-      /* allows people with bt865 to load microcode more than once */
-      if (em->encoder_type != ENCODER_BT865) {
+
+      if (em->encoder_type == ENCODER_BT865) {
+	 write_register(0x1f47,0x0);
+	 write_register(0x1f42,0x8c);
+	 write_register(0x1f43,0x2d0);
+	 write_register(0x1f45,0x136);	 
+	 write_ucregister(DICOM_VSyncLo1,0x1); 
+	 write_ucregister(DICOM_VSyncLo2,0x0);
+	 write_ucregister(DICOM_VSyncDelay1,0xd2); 
+	 write_ucregister(DICOM_VSyncDelay2,0x0);  
+	 write_register(0x1f46,0x0); 
+	 write_register(0x1f47,0x1c);  
+   
+	 write_register(0x1f5e,0x9efe);
+	 write_ucregister(DICOM_Control,0x9efe);		
+      } else { /* ADV7170 or ADV7175A */
 	 write_register(0x1f47,0x18);
-      }
 
 #ifdef EM8300_DICOM_USE_OTHER_FOR_PAL
 	 if (em->video_mode == EM8300_VIDEOMODE_NTSC) {
@@ -207,6 +221,7 @@ int em8300_dicom_update(struct em8300_s *em)
 #endif
 	 }
 #endif
+      }
     }
 
     write_ucregister(DICOM_UpdateFlag,1);

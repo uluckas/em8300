@@ -1,3 +1,10 @@
+2001-09-10  Rick Haines  <rick@kuroyi.net>
+
+	* debian/changelog,
+	  debian/rules,
+	  debian/setvers.sh:
+	Uses $(KVERS) instead of ugly uname -r
+
 2001-09-05  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em9010.c:

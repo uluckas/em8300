@@ -4,8 +4,9 @@
 
 package=`dh_listpackages -a`
 pkgsrc=`dh_listpackages -i`
-pkgmod=em8300-modules-`uname -r`
-kvers=`uname -r`
+kvers=$(KVERS)
+pkgmod=em8300-modules-$(kvers)
+pkgmod_novers=em8300-modules
 KSRC?=/usr/src/linux
 MOD_DIR?='.'
 KMOD_DIR?=/usr/src/modules
@@ -47,7 +48,7 @@ clean-modules:
 	dh_testdir
 	dh_testroot
 	-rm -f build-modules
-	-rm -rf debian/$(pkgmod)
+	-rm -rf debian/$(pkgmod)-$(kvers)
 	-rm -f debian/control.tmp
 	-cd modules ;\
 	$(MAKE) clean ;\
@@ -80,14 +81,16 @@ binary-modules: build-modules
 	dh_testdir
 	dh_testroot
 	dh_installdirs -p$(pkgmod)
-	install -d "debian/$(pkgmod)/usr/share/doc/$(pkgmod)-$(kvers)"
+	install -d "debian/$(pkgmod)/usr/share/doc/$(pkgmod)"
 	dh_installdebconf -p$(pkgmod)
 	cd modules ;\
 	$(MAKE) prefix=`pwd`/../debian/$(pkgmod)/ install ;\
 	cd ..
-	dh_installinit -p$(pkgmod)
+	install -d "debian/$(pkgmod)/etc/init.d"
+	install -m755 debian/em8300-modules.initd debian/$(pkgmod)/etc/init.d/em8300
 	dh_installdocs -p$(pkgmod)
 	dh_installchangelogs -p$(pkgmod)
+	dh_installdeb -p$(pkgmod_novers) -Pdebian/$(pkgmod)
 	dh_fixperms -p$(pkgmod)
 	PKGMOD=$(pkgmod) sh -v debian/setvers.sh
 	dh_md5sums -p$(pkgmod)

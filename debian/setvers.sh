@@ -1,8 +1,8 @@
 #!/bin/sh
 
-KVERS=`uname -r`
+#KVERS=`uname -r`
 
-echo "$KVERS" > debian/KVERS
+#echo "$KVERS" > debian/KVERS
 
 rm -f debian/control.tmp
 

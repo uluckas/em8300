@@ -60,7 +60,7 @@
 #include "em8300_fifo.h"
 #include "em8300_version.h"
 
-#define EM8300_MINOR(inode) ((inode)->i_rdev & 0x0f)
+#define EM8300_MINOR(inode) ((inode)->i_rdev % 4)
 
 #ifndef I2C_BITBANGING
 #error "This needs the I2C Bit Banging Interface in your Kernel"
@@ -558,7 +558,7 @@ void cleanup_module(void)
 	if (em8300_proc != NULL) remove_proc_entry(devname, &proc_root);
 #endif
 #ifdef CONFIG_DEVFS_FS
-	sprintf(devname, "video/%s", EM8300_LOGNAME);
+	sprintf(devname, "%s", EM8300_LOGNAME);
 	devfs_unregister_chrdev(em8300_major, devname);
 	devfs_dealloc_major(DEVFS_SPECIAL_CHR, em8300_major);
 #else
@@ -640,7 +640,7 @@ int init_module(void)
 
 #ifdef CONFIG_DEVFS_FS
 	em8300_major = devfs_alloc_major( DEVFS_SPECIAL_CHR );
-	sprintf(devname, "video/%s", EM8300_LOGNAME );
+	sprintf(devname, "%s", EM8300_LOGNAME );
 	if( devfs_register_chrdev(em8300_major, devname, &em8300_fops) < 0 )
 		goto err_chrdev;
 #endif
@@ -681,14 +681,14 @@ int init_module(void)
 #endif
 #endif
 #ifdef CONFIG_DEVFS_FS
-		sprintf(devname, "video/%s-%d", EM8300_LOGNAME, card );
-		em8300_handle[card] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major, card, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
-		sprintf(devname, "video/%s_mv-%d", EM8300_LOGNAME, card );
-		em8300_handle[card+1] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major, card+1, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
-		sprintf(devname, "video/%s_ma-%d", EM8300_LOGNAME, card );
-		em8300_handle[card+2] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major, card+2, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
-		sprintf(devname, "video/%s_sp-%d", EM8300_LOGNAME, card );
-		em8300_handle[card+3] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major, card+3, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
+		sprintf(devname, "%s-%d", EM8300_LOGNAME, card );
+		em8300_handle[card] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major, (card*4), S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
+		sprintf(devname, "%s_mv-%d", EM8300_LOGNAME, card );
+		em8300_handle[card+1] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major, (card*4)+1, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
+		sprintf(devname, "%s_ma-%d", EM8300_LOGNAME, card );
+		em8300_handle[card+2] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major, (card*4)+2, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
+		sprintf(devname, "%s_sp-%d", EM8300_LOGNAME, card );
+		em8300_handle[card+3] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major, (card*4)+3, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 #endif
 #ifdef REGISTER_DSP
 		if ((em8300[card].dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, -1)) < 0) {
@@ -723,7 +723,7 @@ int init_module(void)
 #endif
 	}
 #ifdef CONFIG_DEVFS_FS
-	sprintf(devname, "video/%s", EM8300_LOGNAME);
+	sprintf(devname, "%s", EM8300_LOGNAME);
 	devfs_unregister_chrdev(em8300_major, devname);
 	devfs_dealloc_major(DEVFS_SPECIAL_CHR, em8300_major);
 #endif

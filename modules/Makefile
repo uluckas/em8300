@@ -115,6 +115,17 @@ install : $(MODULES)
 		$(KERNEL_LOCATION)/include/linux/em8300.h
 	@echo Installed to running kernel
 
+uninstall : $(MODULES)
+	@echo Uninstalling modules for $(KERNVER)
+	@for module in $^ ;\
+	do \
+	rm -f $$module $(prefix)/lib/modules/`uname -r`/kernel/drivers/video/$$module ;\
+	done
+	@depmod -a
+	@echo em8300.h
+	@rm -f $(KERNEL_LOCATION)/include/linux/em8300.h
+	@echo Uninstall successfull
+
 install-newkern : $(MODULES)
 	@for module in $^ ;\
 	do \

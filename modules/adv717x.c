@@ -260,8 +260,16 @@ int adv717x_update(struct i2c_client *client) {
     tmpconfig[1] &= ~0x80;
     tmpconfig[1] |= data->bars ? 0x80:0;
 
-    if(data->rgbmode) 
-	tmpconfig[0] |= 0x40;
+    switch(data->chiptype) {
+    case CHIP_ADV7175:
+	if(data->rgbmode) 
+	    tmpconfig[0] |= 0x40;
+	break;
+    case CHIP_ADV7170:
+	if(data->rgbmode) 
+	    tmpconfig[3] |= 0x10;
+	break;
+    }
     
     if(!data->enableoutput)
 	tmpconfig[1] |= 0x7f;
@@ -353,8 +361,8 @@ int adv717x_setup(struct i2c_client *client) {
     
     memset(data->config, 0, sizeof(data->config));
 
-    data->bars=0;
-    data->rgbmode=1;
+    data->bars=1;
+    data->rgbmode=0;
     data->enableoutput=0;
 
     adv717x_setmode(ENCODER_MODE_PAL60,client);

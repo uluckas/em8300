@@ -481,7 +481,7 @@ int init_module(void)
     int card;
     struct em8300_s *em;
 
-    memset(&em8300_cards, 0, sizeof(em8300_cards));
+    memset(&em8300, 0, sizeof(em8300));
     
     /* Find EM8300 cards */
     em8300_cards = find_em8300();

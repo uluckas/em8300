@@ -24,7 +24,7 @@
 #include <linux/fs.h>
 #include <linux/kernel.h>
 #include <linux/major.h>
-#include <linux/malloc.h>
+#include <linux/slab.h>
 #include <linux/vmalloc.h>
 #include <linux/mm.h>
 #include <linux/pci.h>
@@ -57,6 +57,12 @@ MODULE_AUTHOR("Henrik Johansson <henrikjo@post.utfors.se>");
 MODULE_DESCRIPTION("EM8300 MPEG-2 decoder");
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
 MODULE_PARM(remap,"1-" __MODULE_STRING(EM8300_MAX) "i");
+#endif
+
+#ifdef MODULE
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
+MODULE_LICENSE("GPL");
+#endif
 #endif
 
 static unsigned int use_bt865[EM8300_MAX]={};

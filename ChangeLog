@@ -1,3 +1,10 @@
+2001-10-27  Rick Haines  <rick@kuroyi.net>
+
+	* modules/Makefile,
+	  modules/*.c:
+	module license and malloc.h/slab.h changes
+	from Szabo Akos
+	
 2001-09-30  Rick Haines  <rick@kuroyi.net>
 
 	* em8300.spec.in,

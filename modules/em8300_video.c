@@ -7,7 +7,7 @@
 #include <linux/timer.h>
 #include <linux/delay.h>
 #include <linux/errno.h>
-#include <linux/malloc.h>
+#include <linux/slab.h>
 #include <linux/version.h>
 #include <linux/string.h>
 #include <linux/pci.h>

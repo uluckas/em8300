@@ -24,7 +24,7 @@
 #include <linux/fs.h>
 #include <linux/kernel.h>
 #include <linux/major.h>
-#include <linux/malloc.h>
+#include <linux/slab.h>
 #include <linux/mm.h>
 #include <linux/pci.h>
 #include <linux/signal.h>
@@ -51,6 +51,12 @@
 
 #define EEPROM_REG_MR0 0
 #define EEPROM_REG_TTXRQ_CTRL 0x24
+
+#ifdef MODULE
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
+MODULE_LICENSE("GPL");
+#endif
+#endif
 
 static int eeprom_attach_adapter(struct i2c_adapter *adapter);
 int eeprom_detach_client(struct i2c_client *client);

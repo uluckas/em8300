@@ -106,4 +106,4 @@ install-newkern : $(MODULES)
 	@echo Installed to kernel version of header files
 
 clean :
-	rm *.o
+	rm -f *.o

@@ -24,7 +24,7 @@
 #include <linux/fs.h>
 #include <linux/kernel.h>
 #include <linux/major.h>
-#include <linux/malloc.h>
+#include <linux/slab.h>
 #include <linux/mm.h>
 #include <linux/pci.h>
 #include <linux/signal.h>
@@ -52,6 +52,11 @@
 
 #ifdef MODULE
 int pixelport_16bit = 1;
+
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
+MODULE_LICENSE("GPL");
+#endif
+
 MODULE_PARM(pixelport_16bit, "i");
 
 int pixelport_other_pal = 1;

@@ -1,5 +1,10 @@
 2001-07-20  Rick Haines  <rick@kuroyi.net>
 
+	* modules/em8300_video.c:
+	From Daniel Chassot "Adds the dicom kmin computation"
+	
+2001-07-20  Rick Haines  <rick@kuroyi.net>
+
 	* xine/video_out_dxr3.c,
 	  xine/README:
 	Eduard fixed the priority, added tvmode option, and

@@ -105,6 +105,18 @@ int em8300_video_sync(struct em8300_s *em)
 	return 0;
 }
 
+void set_dicom_kmin (struct em8300_s *em)
+{
+	int kmin;
+
+	kmin = (em->overlay_70 + 10) * 150645 / em->mystery_divisor;
+	if (kmin > 0x900) {
+		kmin = 0x900;
+	}
+	write_ucregister(DICOM_Kmin, kmin);
+	pr_debug("em8300: register DICOM_Kmin = 0x%x\n", kmin);
+}
+
 int em8300_video_setup(struct em8300_s *em)
 {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
@@ -176,7 +188,7 @@ int em8300_video_setup(struct em8300_s *em)
 	em9010_write(em, 0xc, 0x8c);
 	em9010_write(em, 9, 0);
 
-	write_ucregister(DICOM_Kmin, 0x447); // was 0x613 for BT865, but this works too, now 0x447
+	set_dicom_kmin(em);
 
 	em9010_write(em, 7, 0x80);
 	em9010_write(em, 9, 0);

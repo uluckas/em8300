@@ -106,12 +106,8 @@ int em8300_video_sync(struct em8300_s *em)
 
 int em8300_video_flush(struct em8300_s *em)
 {
-	int pcirdptr = read_ucregister(MV_PCIRdPtr);
-	write_ucregister(MV_PCIWrPtr, pcirdptr);
-	*em->mvfifo->writeptr = *em->mvfifo->readptr;
-	em->mvfifo->waiting = 0;
-	em->video_ptsvalid = 0;
-	em->video_pts = 0;
+	em8300_video_release(em);
+	em8300_video_open(em);
 	return 0;
 }
 
@@ -398,5 +394,5 @@ int em8300_video_release(struct em8300_s *em)
 	em->irqmask &= ~(IRQSTATUS_VIDEO_FIFO | IRQSTATUS_VIDEO_VBL);
 	write_ucregister(Q_IrqMask, em->irqmask);
 
-	return em8300_video_setplaymode(em, EM8300_PLAYMODE_STOPPED);
+	return 0;
 }

@@ -421,6 +421,7 @@ int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 void em8300_video_check_ptsfifo(struct em8300_s *em);
 
 /* em8300_spu.c */
+int em8300_spu_flush(struct em8300_s *em);
 int em8300_spu_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos);
 int em8300_spu_open(struct em8300_s *em);

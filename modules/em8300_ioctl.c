@@ -264,7 +264,7 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 			case EM8300_SUBDEVICE_AUDIO:
 				return em8300_audio_flush(em);
 			case EM8300_SUBDEVICE_SUBPICTURE:
-				return -ENOSYS;
+				return em8300_spu_flush(em);
 			default:
 				return -EINVAL;
 			}

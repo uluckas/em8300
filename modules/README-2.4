@@ -17,5 +17,9 @@ devfs_symlinks file located in this dir, you will probably figure out how
 it works. If not, don't worry, just add those lines to your devfs config
 and restart devfsd (usually "killall -HUP devfsd") and you'll be just fine.
 
+If you get an error message saying "mtrr_reg undeclared" or similar try updating
+your kernel. Old 2.2 and 2.4 kernels seems to have a bug with it's mtrr code
+(whether you use it or not).
+
 If sound is configured in your kernel, the driver will register a /dev/dsp
 device.

@@ -60,17 +60,6 @@ int em8300_spu_button(struct em8300_s *em, em8300_button_t *btn)
 	return 0;
 }
 
-int em8300_spu_flush(struct em8300_s *em)
-{
-	int pcirdptr = read_ucregister(SP_PCIRdPtr);
-	write_ucregister(SP_PCIWrPtr, pcirdptr);
-	*em->spfifo->writeptr = *em->spfifo->readptr;
-	em->spfifo->waiting = 0;
-	em->sp_ptsfifo_waiting = 0;
-	em->sp_ptsvalid = 0;
-	return 0;
-}
-
 void em8300_spu_check_ptsfifo(struct em8300_s *em)
 {
 	int ptsfifoptr;

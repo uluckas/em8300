@@ -104,13 +104,6 @@ int em8300_video_sync(struct em8300_s *em)
 	return 0;
 }
 
-int em8300_video_flush(struct em8300_s *em)
-{
-	em8300_video_release(em);
-	em8300_video_open(em);
-	return 0;
-}
-
 void set_dicom_kmin(struct em8300_s *em)
 {
 	int kmin;

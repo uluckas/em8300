@@ -78,7 +78,6 @@ typedef struct {
 #define EM8300_IOCTL_SCR_SET _IOW('C',16,unsigned)
 #define EM8300_IOCTL_SCR_GETSPEED _IOR('C',17,unsigned)
 #define EM8300_IOCTL_SCR_SETSPEED _IOW('C',17,unsigned)
-#define EM8300_IOCTL_FLUSH _IOW('C',18,int)
 
 #define EM8300_OVERLAY_SIGNAL_ONLY 1
 #define EM8300_OVERLAY_SIGNAL_WITH_VGA 2
@@ -411,7 +410,6 @@ void em8300_dicom_fill_dispbuffers(struct em8300_s *em, int xpos, int ypos, int 
 void em8300_video_open(struct em8300_s *em);
 int em8300_video_setplaymode(struct em8300_s *em, int mode);
 int em8300_video_sync(struct em8300_s *em);
-int em8300_video_flush(struct em8300_s *em);
 int em8300_video_setup(struct em8300_s *em);
 int em8300_video_release(struct em8300_s *em);
 void em8300_video_setspeed(struct em8300_s *em, int speed);
@@ -421,7 +419,6 @@ int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 void em8300_video_check_ptsfifo(struct em8300_s *em);
 
 /* em8300_spu.c */
-int em8300_spu_flush(struct em8300_s *em);
 int em8300_spu_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos);
 int em8300_spu_open(struct em8300_s *em);

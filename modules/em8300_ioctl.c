@@ -251,26 +251,6 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		}
 	break;
 
-	case _IOC_NR(EM8300_IOCTL_FLUSH):
-		if (_IOC_DIR(cmd) & _IOC_WRITE) {
-			if (get_user(val, (unsigned*) arg))
-				return -EFAULT;
-			
-			switch (val) {
-			case EM8300_SUBDEVICE_CONTROL:
-				return -ENOSYS;
-			case EM8300_SUBDEVICE_VIDEO:
-				return em8300_video_flush(em);
-			case EM8300_SUBDEVICE_AUDIO:
-				return em8300_audio_flush(em);
-			case EM8300_SUBDEVICE_SUBPICTURE:
-				return em8300_spu_flush(em);
-			default:
-				return -EINVAL;
-			}
-		}
-	break;
-	
 	default:
 		return -ETIME;
 	}

@@ -3,7 +3,7 @@
 	  modules/em8300_audio.c,
 	  modules/em8300_video.c,
 	  modules/em8300_spu.c:
-	Fixed flushing of video, audio and spu device.
+	Removed video and spu flushing, never worked, never will
 	Added patch from Michael Roitzsch to fix playback of mono audio
 	on digital output. Some day we can debate if this should be done
 	in the driver or by software, for now lets just accept he made a

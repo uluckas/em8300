@@ -28,19 +28,10 @@
 *  Anton Altaparmakov <antona@bigfoot.com>
 *
 * Notes:
-*  I assume int to be 32bits in the following code! (do not compile on
-*  16 bit architectures!!!). Also short int is assumed 16bits and char 8bits
-*  for that matter, but that's standard stuff.
-*
 *  local1 = "in" = current inblock position pointer.
-*
 *  local3 = "i" = for loop counter.
-*
-*  local2 and local4 are untouched since I don't understand the functional
-*  significance of the whole algorithm and hence don't know what they do.
+*  Need unsigned everywhere, otherwise get into trouble with signed shift rights!
 */
-
-// Need unsigned otherwise get into trouble with signed shift rights!
 void sub_prepare_SPDIF(struct em8300_s *em, unsigned char *outblock, unsigned char *inblock, unsigned int inlength)
 {
     // 	ebp-4 = local1 = in	ebp-8 = local2
@@ -222,7 +213,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
     if (_SIOC_DIR(cmd) != _SIOC_NONE && _SIOC_DIR(cmd) != 0) {
 	/*
 	 * Have to validate the address given by the process.
-                 */
+	 */
 	len = _SIOC_SIZE(cmd);
 	if (len < 1 || len > 65536 || arg == 0)
 	    return -EFAULT;

@@ -1,0 +1,4 @@
+# Example udev permissions/ownership map for em8300 devices,
+# http://dxr3.sourceforge.net/
+
+em8300*:root:video:0660

@@ -1,0 +1,6 @@
+# udev rules for em8300 device symlinks, http://dxr3.sourceforge.net/
+
+KERNEL="em8300-0", SYMLINK="em8300"
+KERNEL="em8300_ma-0", SYMLINK="em8300_ma"
+KERNEL="em8300_mv-0", SYMLINK="em8300_mv"
+KERNEL="em8300_sp-0", SYMLINK="em8300_sp"

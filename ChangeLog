@@ -9,6 +9,11 @@
 	  overlay/dxr3view.desktop:
 	Add .desktop files, provided by Ville Skyttä.
 
+	* modules/em8300-udev.permissions,
+	  modules/em8300-udev.rules:
+	Add udev configuration files, provided by Ville Skyttä. Thanks
+	Ville for those contributions.
+
 2005-03-24  Nicolas Boullis  <nboullis@debian.org>
 	* modules/Makefile,
 	  modules/adv717x.c,

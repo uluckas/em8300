@@ -470,7 +470,7 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 	if (!(new_client = kmalloc(sizeof(struct i2c_client) + sizeof(struct adv717x_data_s), GFP_KERNEL))) {
 		return -ENOMEM;
 	}
-
+	memset(new_client, 0, sizeof(struct i2c_client) + sizeof(struct adv717x_data_s));
 	data = (struct adv717x_data_s *) (((struct i2c_client *) new_client) + 1);
 	new_client->addr = address;
 	new_client->data = data;

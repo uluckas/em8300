@@ -6,6 +6,12 @@
 	The variable jiffies has type unsigned long, not unsigned int;
 	thanks to Håkon Skjelten for pointing this.
 
+	* modules/adv717x.c,
+	  modules/bt865.c:
+	Erase (set to zero) the memory freshly allocated with
+	kmalloc for an i2c_client structure. Thanks again to Håkon
+	Skjelten.
+
 2004-03-14  Nicolas Boullis  <nboullis@debian.org>
 	* modules/Makefile:
 	When building modules, if $(I2C_LOCATION) is set, ensure that 

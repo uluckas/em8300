@@ -892,7 +892,7 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
 	if (!new_client) {
 		return -ENOMEM;
 	}
-
+	memset(new_client, 0, sizeof(struct i2c_client) + sizeof(struct bt865_data_s));
 	data = (struct bt865_data_s *) (((struct i2c_client *) new_client) + 1);
 	new_client->addr = address;
 	new_client->data = data;

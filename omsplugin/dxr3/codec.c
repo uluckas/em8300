@@ -25,6 +25,10 @@
  *
  */
 
+
+//#define TOAST_SPU
+//#define TOAST_SYNC 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -50,6 +54,7 @@ static int _dxr3_open (plugin_codec_t *plugin);
 static int _dxr3_read (plugin_codec_t *plugin, buf_t *buf, buf_entry_t *buf_entry);
 static int _dxr3_set_status (plugin_codec_t *plugin, u_int status);
 static int _dxr3_set_attributes (plugin_codec_t *plugin, u_int id, void *attr);
+static int _dxr3_install_firmware (struct dxr3_priv_struct *priv, char *ucode);
 
 
 static plugin_codec_t codec_dxr3 = {

@@ -12,7 +12,7 @@ libdir = $(OMS_PLUGINDIR)
 
 ## Lib
 lib_LTLIBRARIES = codec_dxr3.la
-codec_dxr3_la_SOURCES = codec.c dxr3-api.c
+codec_dxr3_la_SOURCES = codec.c dxr3-api.c audio_out_dxr3.c
 #codec_dxr3_la_DEPENDENCIES = libsdeps
 codec_dxr3_la_LDFLAGS = -avoid-version -module -Wl,-soname,codec_dxr3.so\
 	-lac3

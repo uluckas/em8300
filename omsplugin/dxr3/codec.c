@@ -138,7 +138,10 @@ static int _dxr3_init (plugin_codec_t *plugin, buf_t *_buf, char *output_path)
     ac3_config.num_output_ch = 2;
     ac3_config.flags = 0;
      
-    if(dxr3_open(vo,"/etc/dxr3.ux")) {
+    // FIXME - not the sexiest bug-fix in the world - however
+    // it does uphold the first law of a bug-fix, that is it
+    // fixes the bug. vo -> "/dev/em8300"
+    if(dxr3_open("/dev/em8300","/etc/dxr3.ux")) {
 	fprintf(stderr,"Can't open dxr3 driver\n");
 	return -1;
     }

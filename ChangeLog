@@ -1,7 +1,8 @@
 2001-11-29  Jonas Birme  <jonas@birme.se>
 
  	* modules/em8300_audio.c	
-	a bugfix submitted by David Holm
+	a bugfix submitted by David Holm. DSP_RESET fixed 
+	in em8300_audio
 	
 2001-11-25  Rick Haines  <rick@kuroyi.net>
 

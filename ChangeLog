@@ -1,3 +1,11 @@
+2001-08-05  Rick Haines  <rick@kuroyi.net>
+
+	* modules/Makefile,
+	  modules/Makefile.2.2,
+	  modules/em8300_main.c:
+	Makefile magic from Graeme to detect whether
+	sound and i2c bitbanging are configured
+	
 2001-08-04  Rick Haines  <rick@kuroyi.net>
 
 	* include/linux/em8300.h,

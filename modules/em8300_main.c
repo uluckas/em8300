@@ -49,6 +49,10 @@
 #include <linux/em8300.h>
 #include "em8300_fifo.h"
 
+#ifndef I2C_BITBANGING
+#error "This needs the I2C Bit Banging Interface in your Kernel"
+#endif
+
 MODULE_AUTHOR("Henrik Johansson <henrikjo@post.utfors.se>");
 MODULE_DESCRIPTION("EM8300 MPEG-2 decoder");
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
@@ -69,7 +73,6 @@ MODULE_PARM(dicom_fix, "i");
 
 int dicom_control = 1;
 MODULE_PARM(dicom_control, "i");
-
 
 int bt865_ucode_timeout = 0;
 MODULE_PARM(bt865_ucode_timeout, "i");

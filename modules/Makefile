@@ -7,7 +7,7 @@ KERNEL_LOCATION=/usr/src/linux
 
 CC=gcc
 
-EXTRA_CFLAGS = -g -I ../include -I $(KERNEL_LOCATION)/include/ -DREGISTER_DSP \
+EXTRA_CFLAGS = -g -I ../include -I $(KERNEL_LOCATION)/include/ \
 		-DEM8300_VIDEOMODE_DEFAULT=EM8300_VIDEOMODE_PAL \
 		-DEM8300_AUDIOMODE_DEFAULT=EM8300_AUDIOMODE_ANALOG
 
@@ -19,11 +19,33 @@ EM8300_OBJS = em8300_main.o em8300_i2c.o em8300_audio.o em8300_fifo.o \
 
 MODVERS=$(shell cat $(KERNEL_LOCATION)/include/config/modversions.h | cut -d " " -f 3)
 KERNVER=$(shell cat $(KERNEL_LOCATION)/include/linux/version.h | grep "UTS" | sed -e 's/.*"\(.*\)"/\1/')
- 
+
+SOUND_BUILTIN=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep " CONFIG_SOUND " | cut -d " " -f 3)
+SOUND_MODULE=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep " CONFIG_SOUND_MODULE " | cut -d " " -f 3)
+
+I2CALGO_BUILTIN=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep " CONFIG_I2C_ALGOBIT " | cut -d " " -f 3)
+I2CALGO_MODULE=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep " CONFIG_I2C_ALGOBIT_MODULE " | cut -d " " -f 3)
+
 CFLAGS=-D__KERNEL__ -DMODULE $(EM8300_DEBUG) -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer $(EXTRA_CFLAGS)
 
 ifeq "$(MODVERS)" "1"
 	CFLAGS+=-DMODVERSIONS -include $(KERNEL_LOCATION)/include/linux/modversions.h
+endif
+
+ifeq "$(SOUND_BUILTIN)" "1"
+	CFLAGS+=-DREGISTER_DSP
+else
+	ifeq "$(SOUND_MODULE)" "1"
+		CFLAGS+=-DREGISTER_DSP
+	endif
+endif
+
+ifeq "$(I2CALGO_BUILTIN)" "1"
+	CFLAGS+=-DI2C_BITBANGING
+else
+	ifeq "$(I2CALGO_MODULE)" "1"
+		CFLAGS+=-DI2C_BITBANGING
+	endif
 endif
 
 all : $(MODULES)

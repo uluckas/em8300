@@ -84,10 +84,6 @@ int em8300_video_setup(struct em8300_s *em) {
     int displaybuffer;
     int val;
     
-    em->clockgen = 0xb | CLOCKGEN_SAMPFREQ_48;
-    
-    em8300_clockgen_write(em,em->clockgen);
-    
     write_register(0x1f47,0x0);
     write_register(0x1f5e,0x9afe);
 

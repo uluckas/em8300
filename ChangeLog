@@ -1,3 +1,9 @@
+2001-07-29  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_ioctl.c:
+	Patch from Mike Lampard to fix overlay to
+	tv mode switching
+	
 2001-07-28  Rick Haines  <rick@kuroyi.net>
 
 	* include/linux/em8300.h,

@@ -23,6 +23,13 @@ ifeq "$(ARCH)" "ppc"
 ARCH_CFLAGS = -fsigned-char -msoft-float -pipe -ffixed-r2 -mmultiple -mstring
 endif
 
+ifeq "$(ARCH)" "sparc64"
+ARCH_CFLAGS = -m64 -pipe -mno-fpu -mcpu=ultrasparc -mcmodel=medlow \
+	      -ffixed-g4 -fcall-used-g5 -fcall-used-g7 -Wno-sign-compare \
+	      -Wa,--undeclared-regs
+LD += -m elf64_sparc
+endif
+
 EXTRA_CFLAGS = -g -I ../include -I $(KERNEL_LOCATION)/include/ \
 		-O2 -fomit-frame-pointer -Wall \
 		-DEM8300_VIDEOMODE_DEFAULT=EM8300_VIDEOMODE_PAL \

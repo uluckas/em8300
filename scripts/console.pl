@@ -402,13 +402,15 @@ while(<>) {
   elsif(/^sw /) { 
     s/sw ([0-9a-f]+)/ write_myst(hex($1));/e;
   }
-  elsif(/^w /) {
-    s/w 0x([0-9a-f]+) (0x)*([0-9a-f]+)/ em8300_write(hex($1),hex($2),0);/e;
-    s/w (\w+) ([0-9a-f]+)/
+  elsif(/^wu (\w+) [0-9a-f]+/) {
+    s/wu (\w+) ([0-9a-f]+)/
       if($microcode_registers{$1} ne '') {
 	em8300_write($microcode_registers{$1},hex($2),1);
       }
     /e;
+  } 
+  elsif(/^w /) {
+    s/w ([0-9a-f]+) ([0-9a-f]+)/ em8300_write(hex($1),hex($2),0);/e;
   } 
   elsif(/^win [0-9]+ [0-9]+ [0-9]+ [0-9]+/) {
     s/^win ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+)/
@@ -424,9 +426,10 @@ while(<>) {
     em8300_write($microcode_registers{dicom_framebottom}, $ypos+$height,1);
     em8300_write($microcode_registers{dicom_visiblebottom}, $ypos+$height,1); 
     em8300_write($microcode_registers{dicom_updateflag}, 1,1); 
- } elsif(/^r /) {
-    s/r 0x([0-9a-f]+)/ printf ("0x%x\n",em8300_read(hex($1),0));/e;
-    s/r (\w+)/ 
+ } elsif(/^r [0-9a-f]+/) {
+    s/r ([0-9a-f]+)/ printf ("0x%x\n",em8300_read(hex($1),0));/e;
+ } elsif(/^ru \w+/) {
+    s/ru (\w+)/ 
       if($microcode_registers{$1} ne '') {
 	printf ("0x%x\n",em8300_read($microcode_registers{$1},1));
       } else {

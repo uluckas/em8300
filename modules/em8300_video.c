@@ -261,11 +261,11 @@ void em8300_video_check_ptsfifo(struct em8300_s *em)
 	int ptsfifoptr;
     
 	if (em->video_ptsfifo_waiting) {
-		em->video_ptsfifo_waiting=0;
 
 		ptsfifoptr = ucregister(MV_PTSFifo) + 4*em->video_ptsfifo_ptr;
 
 		if (!(read_register(ptsfifoptr+1) & 1)) {
+			em->video_ptsfifo_waiting=0;
 			wake_up_interruptible(&em->video_ptsfifo_wait);
 		}
 	}

@@ -1,16 +1,3 @@
-#define OVERLAY_MAX_WIDTH       998
-#define OVERLAY_MAX_HEIGHT      767
-//#define DEFAULT_RATIO           1.75
-#define DEFAULT_RATIO           1.3333333333333333
-#define DEFAULT_WIDTH           720
-#define OVERLAY_X_OFFSET        251
-#define OVERLAY_Y_OFFSET        27
-
-#define FULLSCREEN_ON		GDK_KP_Multiply
-#define FULLSCREEN_OFF		GDK_KP_Divide
-
-#define KEY_COLOR 0x80a040
-
 #include <unistd.h>
 #include <gtk/gtk.h>
 #include <stdio.h>
@@ -22,208 +9,435 @@
 #include <gdk/gdkkeysyms.h>
 
 #include <linux/em8300.h>
-
 #include "overlay.h"
 
+#define DEFAULT_RATIO   1.33
+#define DEFAULT_WIDTH   720
+#define NUM_MONITORS    1
+
+#define FULLSCREEN	GDK_KP_Multiply
+#define QUIT		GDK_Escape
+#define RATIOSELECT	GDK_R
+#define RATIOSELECTLOW	GDK_r
+
+#define KEY_COLOR 	0x80a040
+
 typedef struct adjust_s {
-    GtkWidget *window,*area;
-    GtkWidget *aspect_frame;
-    GtkSpinButton *width;
-    GtkSpinButton *xoff;
-    GtkSpinButton *yoff;
-    GtkSpinButton *xcorr;
-    GtkSpinButton *jitter;
-    GtkSpinButton *stability;
-    GtkSpinButton *ratio;
+	GtkWidget *dialog;
+	GtkSpinButton *width;
+	GtkSpinButton *xoff;
+	GtkSpinButton *yoff;
+	GtkSpinButton *xcorr;
+	GtkSpinButton *jitter;
+	GtkSpinButton *stability;
+	GtkSpinButton *ratio;
 } adjust_t;
 
-static gboolean key_cb(GtkWidget *window,
-			GdkEventKey *kevent,
-			gpointer kdata);
+typedef struct menu_s {
+	GtkWidget *popup_menu;
+	GtkWidget *monitor_menu;
+	GtkWidget *aspect_menu;
+	GtkWidget *settings_menu;
+} menu_t;
 
-static gboolean expose_cb(GtkWidget *drawing_area,
-			  GdkEventExpose *event,
-			  adjust_t *aj);
-
-static void resizeoverlay(int width,
-			int height,
-			int xpos,
-			int ypos);
-
-static gpointer
-adjust_window(void);
-
-gint oldx,oldy,oldw,oldh;
-
-FILE *full;
-FILE *size ;     
-float ratio;
-int ratiotemp;
-overlay_t *ov;
-adjust_t *aj;
-GdkColor overlay_color;
-
-
-int main( int argc,
-          char *argv[] )
-{
+typedef struct _dxr3view_globals {
 	GtkWidget *window;
-	GtkWidget *drawing_area;
+	GtkWidget *area;
+	menu_t* menu;
+	adjust_t* aj;
+	overlay_t* ov;
+	GdkColor overlay_color;
+
+	int xpos, ypos, width;
+	gint oldx, oldy, oldw;
+	gint scr_wid, scr_hei;
+	int monitor_xoff;
+
+	gboolean fullscreen;
+	float ratio;
+
+	int ratiotoggle;
+	float* ratiolist;
+	int ratiolast;
+} dxr3view_globals;
+
+void create_window(dxr3view_globals *g);
+void create_adjust(dxr3view_globals *g);
+void create_popup_menu(dxr3view_globals *g);
+
+static gboolean
+update_ajwindow_cb(GtkObject *adjust,
+		   dxr3view_globals *g);
+
+static GtkSpinButton *
+create_spin_box(char *text,
+		GtkWidget *dialog,
+		gfloat start,
+		int low,
+		int high,
+		int places,
+		dxr3view_globals *g);
+
+static void
+resize_overlay(overlay_t *ov,
+	       int width,
+	       int height,
+	       int xpos,
+	       int ypos);
+
+static gboolean
+overlay_mode_off_cb(GtkMenuItem *item,
+		    overlay_t *ov);
+
+static gboolean
+overlay_mode_cb(GtkMenuItem *item,
+		overlay_t *ov);
+
+static gboolean
+rectangle_mode_cb(GtkMenuItem *item,
+		  overlay_t *ov);
+
+static gboolean
+monitor_cb(GtkMenuItem *item,
+	   dxr3view_globals *g);
+
+static gboolean
+ratio_cb(GtkMenuItem *item,
+	 dxr3view_globals *g);
+
+static gboolean
+fullscreen_cb(GtkMenuItem *item,
+	      dxr3view_globals *g);
+
+static gboolean 
+expose_cb(GtkWidget *area,
+	  GdkEventExpose *event,
+	  dxr3view_globals *g);
+
+static gboolean 
+event_cb(GtkWidget* window,
+	 GdkEventConfigure *event,
+	 dxr3view_globals *g);
+
+static gint
+popup_cb(GtkWidget *widget, 
+	 GdkEventButton *event, 
+	 menu_t *menu);
+
+static gboolean 
+key_cb(GtkWidget *window,
+       GdkEventKey *kevent,
+       dxr3view_globals *g);
+
+int main( int argc, char *argv[] )
+{
+	dxr3view_globals g;
 	GdkColormap *colormap;
 	FILE *dev;
+	float tmpratiolist[7] = {0,1.33,1.5,1.66,1.75,1.85,2.0};
 	
-	float ratio;
-	int initwidth;
-	int tmp;
-
 	dev = fopen("/dev/em8300","r");
-	ov = overlay_init(dev);
-	aj = malloc(sizeof(adjust_t));
+	g.ov = overlay_init(dev);
+	g.aj = malloc(sizeof(adjust_t));
+	g.menu = malloc(sizeof(menu_t));
+	g.xpos = 0;
+	g.ypos = 0;
+        g.monitor_xoff = 0; 
+	g.fullscreen = 0;
+	g.ratiotoggle = 0;
 
-	/* ****************************************************************
-	   This should be set to the actual video resolution of the X-server
-	   Henrik
-	*/
-	overlay_set_screen(ov,1280,1024,16);
+	g.ratiolast = 7;
+	g.ratiolist = malloc(7*sizeof(int));
+	memcpy(g.ratiolist, &tmpratiolist, 7*sizeof(int));
 
-	overlay_read_state(ov,NULL);
-	overlay_set_keycolor(ov, KEY_COLOR);
-	/*******************************************************************
-	   When this program can paint the background with the #80a040    		   color the mode could be changed to EM8300_OVERLAY_MODE_OVERLAY
-	*/
-	overlay_set_mode(ov, EM8300_OVERLAY_MODE_RECTANGLE  );
- 	if(argc == 1)
-	{
-	  ratio = DEFAULT_RATIO;
-	  initwidth = DEFAULT_WIDTH;
-	}
-	else if(argc == 2)
-	{
-	  ratio = (float)atof(argv[1]);
-	  initwidth = DEFAULT_WIDTH;
-	}
-	else
-	{
-	  ratio = (float)atof(argv[1]);
-	  initwidth = atoi(argv[2]);
+ 	if(argc == 1) {
+		g.ratio = DEFAULT_RATIO;
+		g.width = DEFAULT_WIDTH;
+		g.ratiolist[0] = g.ratio;
+	} else if(argc == 2) {
+		g.ratio = (float)atof(argv[1]);
+		g.width = DEFAULT_WIDTH;
+		g.ratiolist[0] = g.ratio;
+	} else {
+		g.ratio = (float)atof(argv[1]);
+		g.width = atoi(argv[2]);
+		g.ratiolist[0] = g.ratio;
 	}	
-	
-
-	ratiotemp = ((int)(ratio*100));
 
         gtk_init (&argc, &argv);
-
-        window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-
-        gtk_window_set_title (GTK_WINDOW (window), "Viewing Window");
-
-	gtk_window_set_policy(GTK_WINDOW(window),TRUE,TRUE,FALSE);
-
-	gtk_window_set_default_size (GTK_WINDOW (window),
-				     initwidth,
-				     (initwidth /(gfloat)ratio));	
-          
-
-
-	gtk_signal_connect (GTK_OBJECT (window), 
-					"destroy",
-                             		GTK_SIGNAL_FUNC(gtk_main_quit),
-					 NULL);
-
-        gtk_container_set_border_width (GTK_CONTAINER (window), 0);
-         
-        aj->aspect_frame = 
-	    gtk_aspect_frame_new (NULL, /* label */
-				  0.5, /* center x */
-				  0.5, /* center y */
-				  (gfloat)ratio, /* xsize/ysize */
-				  FALSE /* ignore child's aspect */);
+	gdk_rgb_init();
 	
+	/* Setup Overlay */	
+		
+	g.scr_wid = gdk_screen_width() / NUM_MONITORS;
+	g.scr_hei = gdk_screen_height();
+	printf("width: %i\theight: %i\n", g.scr_wid, g.scr_hei);
+
+	overlay_set_screen(g.ov, g.scr_wid, g.scr_hei, 24);
+
+	overlay_read_state(g.ov, NULL);
+	overlay_set_keycolor(g.ov, KEY_COLOR);
 	
-	gtk_container_add (GTK_CONTAINER(window), aj->aspect_frame);
 
-        gtk_widget_show (aj->aspect_frame);
-	
-	aj->window = window;
-	adjust_window();
+	overlay_set_mode(g.ov, EM8300_OVERLAY_MODE_RECTANGLE );
 
-        drawing_area = gtk_drawing_area_new ();
-	aj->area = drawing_area;
-        
-        gtk_widget_set_usize (drawing_area,
-			      initwidth,
-			      initwidth / (gfloat)ratio);
+	/* Build Interface */
 
-        gtk_container_add (GTK_CONTAINER(aj->aspect_frame), drawing_area);
+	create_window(&g);
 
+	update_ajwindow_cb(NULL, &g);
 
-	/* ****************************************************
-	   This is a try to change background color to the chroma key
-	   color. Obviously I've done it wrong, cause it doesn't work.
-	   Maybe someone with more experience with GTK+ programming
-	   could do this better.
-
-	   Henrik
-	*/
-	
-	overlay_color.red = ((KEY_COLOR >> 16)&0xff) * 256;
-	overlay_color.green = ((KEY_COLOR >> 8)&0xff) * 256;
-	overlay_color.blue = ((KEY_COLOR >> 0)&0xff) * 256;
+ 	g.overlay_color.red = ((KEY_COLOR >> 16)&0xff) * 256;
+ 	g.overlay_color.green = ((KEY_COLOR >> 8)&0xff) * 256;
+ 	g.overlay_color.blue = ((KEY_COLOR >> 0)&0xff) * 256;
 
 	/* Allocate color */
-        gdk_color_alloc (gtk_widget_get_colormap (drawing_area), 
-			 &overlay_color);
+        gdk_colormap_alloc_color(gtk_widget_get_colormap (g.area), &g.overlay_color, FALSE,TRUE);
 
-	/* Set window background color */
-	gtk_signal_connect(GTK_OBJECT(drawing_area),
-			   "expose_event",
-			   GTK_SIGNAL_FUNC(expose_cb),
-			   aj);
-
-	gtk_signal_connect(GTK_OBJECT(window),
-			   "key_press_event",
-			   GTK_SIGNAL_FUNC(key_cb),
-			   GINT_TO_POINTER(ratiotemp));
-
+	/* Show Widgets */
 	
+	gtk_widget_grab_focus(g.window);
 	
-	gtk_widget_grab_focus(window);
-	
-	gtk_widget_show (drawing_area);
+	gtk_widget_show (g.area);
          
-        gtk_widget_show (window);
+        gtk_widget_show (g.window);
+
         gtk_main ();
 
-	overlay_set_mode(ov, EM8300_OVERLAY_MODE_OFF);
-	overlay_release(ov);
+	overlay_set_mode(g.ov, EM8300_OVERLAY_MODE_OFF);
+	overlay_write_state(g.ov, NULL);
+	overlay_release(g.ov);
 
 	return 0;
 }
 
-static gboolean
-update_window(GtkObject *adjust,gpointer user_data) 
+void create_window(dxr3view_globals *g)
 {
-    gfloat ratio = gtk_spin_button_get_value_as_float(aj->ratio);
-    gtk_aspect_frame_set(GTK_ASPECT_FRAME(aj->aspect_frame),
-			 0.5,0.5,ratio,FALSE);
+	GtkWidget* window;
 
-    ov->xoffset = gtk_spin_button_get_value_as_int(aj->xoff);
-    ov->yoffset = gtk_spin_button_get_value_as_int(aj->yoff);
-    ov->xcorr = gtk_spin_button_get_value_as_int(aj->xcorr);
-    ov->jitter = gtk_spin_button_get_value_as_int(aj->jitter);
-    ov->stability = gtk_spin_button_get_value_as_int(aj->stability);
-    overlay_update_params(ov);
+        window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+	g->window = window;
 
-    gtk_widget_queue_draw(aj->area);
+        gtk_window_set_title (GTK_WINDOW (window), "Viewing Window");
+	gtk_window_set_policy(GTK_WINDOW(window),TRUE,TRUE,FALSE);
+	gtk_window_set_default_size (GTK_WINDOW (window),
+				     g->width,
+				     (g->width/g->ratio));	
+	gtk_container_set_border_width (GTK_CONTAINER (window), 0);
+
+	g->area = gtk_drawing_area_new ();
+
+        gtk_container_add (GTK_CONTAINER(window), g->area);
+
+	create_adjust(g);
+	create_popup_menu(g);
+
+	/* General Signal Connects */
+ 
+	gtk_signal_connect(GTK_OBJECT (window), 
+			   "destroy",
+			   GTK_SIGNAL_FUNC(gtk_main_quit),
+			   NULL);
+		
+	gtk_signal_connect(GTK_OBJECT(g->area),
+			   "expose_event",
+			   GTK_SIGNAL_FUNC(expose_cb),
+			   g);
+	
+	gtk_signal_connect(GTK_OBJECT(window),
+			   "key_press_event",
+			   GTK_SIGNAL_FUNC(key_cb),
+			   g);
+
+ 	gtk_signal_connect(GTK_OBJECT(window),
+			   "configure_event",
+			   GTK_SIGNAL_FUNC(event_cb),
+			   g);
+	
+ 	gtk_signal_connect(GTK_OBJECT(window),
+			   "button_press_event",
+			   GTK_SIGNAL_FUNC(popup_cb),
+			   g->menu);
+}
+
+void create_adjust(dxr3view_globals *g)
+{
+	GtkWidget *dialog;
+	adjust_t *aj = g->aj;
+
+	dialog = gtk_dialog_new();
+	aj->dialog = dialog;
+
+//	aj->width     = create_spin_box("width",     dialog,DEFAULT_WIDTH, 0, 4000,0,g);
+	aj->ratio     = create_spin_box("ratio",     dialog,DEFAULT_RATIO,.1, 5,   3,g);
+	aj->xoff      = create_spin_box("x-offset",  dialog,g->ov->xoffset,   0, 4000,0,g);
+	aj->yoff      = create_spin_box("y-offset",  dialog,g->ov->yoffset,   0, 4000,0,g);
+	aj->xcorr     = create_spin_box("correction",dialog,g->ov->xcorr,     0, 4000,0,g);
+	aj->jitter    = create_spin_box("jitter",    dialog,g->ov->jitter,    0, 4000,0,g);
+	aj->stability = create_spin_box("stability", dialog,g->ov->stability, 0, 4000,0,g);
+
+	gtk_widget_show_all(dialog);
+}
+
+static gboolean
+ratio_133_cb(GtkMenuItem *item, dxr3view_globals *g)
+{ g->ratiotoggle = 0; return ratio_cb(NULL, g); }
+
+static gboolean
+ratio_150_cb(GtkMenuItem *item, dxr3view_globals *g)
+{ g->ratiotoggle = 1; return ratio_cb(NULL, g); }
+
+static gboolean
+ratio_166_cb(GtkMenuItem *item, dxr3view_globals *g)
+{ g->ratiotoggle = 2; return ratio_cb(NULL, g); }
+
+static gboolean
+ratio_175_cb(GtkMenuItem *item, dxr3view_globals *g)
+{ g->ratiotoggle = 3; return ratio_cb(NULL, g); }
+
+static gboolean
+ratio_185_cb(GtkMenuItem *item, dxr3view_globals *g)
+{ g->ratiotoggle = 4; return ratio_cb(NULL, g); }
+
+static gboolean
+ratio_200_cb(GtkMenuItem *item, dxr3view_globals *g)
+{ g->ratiotoggle = 5; return ratio_cb(NULL, g); }
+
+void create_popup_menu(dxr3view_globals *g)
+{
+	GtkWidget *popup_item;
+	menu_t* menu = g->menu;
+
+	menu->popup_menu    = gtk_menu_new();
+	menu->monitor_menu  = gtk_menu_new();
+	menu->aspect_menu   = gtk_menu_new();
+	menu->settings_menu = gtk_menu_new();
+
+	popup_item = gtk_menu_item_new_with_label("Fullscreen");
+	gtk_signal_connect (GTK_OBJECT(popup_item),
+			    "activate",
+			    GTK_SIGNAL_FUNC(fullscreen_cb),
+			    g);
+	gtk_menu_append(GTK_MENU(menu->popup_menu),popup_item);
+
+	popup_item = gtk_menu_item_new_with_label("Multi-Monitor");
+	gtk_signal_connect (GTK_OBJECT(popup_item),
+			    "activate",
+			    GTK_SIGNAL_FUNC(monitor_cb),
+			    g);
+	gtk_menu_append(GTK_MENU(menu->popup_menu),popup_item);
+
+	popup_item = gtk_menu_item_new_with_label("Aspect Ratio");
+	gtk_menu_item_set_submenu(GTK_MENU_ITEM(popup_item),menu->aspect_menu);
+	gtk_menu_append(GTK_MENU(menu->popup_menu),popup_item);
+	
+	popup_item = gtk_menu_item_new_with_label("2.00");
+	gtk_signal_connect (GTK_OBJECT(popup_item),
+			    "activate",
+			    GTK_SIGNAL_FUNC(ratio_200_cb),
+			    g);
+	gtk_menu_append(GTK_MENU(menu->aspect_menu),popup_item);
+	
+	
+	popup_item = gtk_menu_item_new_with_label("1.85");
+	gtk_signal_connect (GTK_OBJECT(popup_item),
+			    "activate",
+			    GTK_SIGNAL_FUNC(ratio_185_cb),
+			    g);
+	gtk_menu_append(GTK_MENU(menu->aspect_menu),popup_item);
+	
+	popup_item = gtk_menu_item_new_with_label("1.75");
+	gtk_signal_connect (GTK_OBJECT(popup_item),
+			    "activate",
+			    GTK_SIGNAL_FUNC(ratio_175_cb),
+			    g);
+	gtk_menu_append(GTK_MENU(menu->aspect_menu),popup_item);
+	
+	popup_item = gtk_menu_item_new_with_label("1.66");
+	gtk_signal_connect (GTK_OBJECT(popup_item),
+			    "activate",
+			    GTK_SIGNAL_FUNC(ratio_166_cb),
+			    g);
+	gtk_menu_append(GTK_MENU(menu->aspect_menu),popup_item);
+	
+	popup_item = gtk_menu_item_new_with_label("1.50");
+	gtk_signal_connect (GTK_OBJECT(popup_item),
+			    "activate",
+			    GTK_SIGNAL_FUNC(ratio_150_cb),
+			    g);
+	gtk_menu_append(GTK_MENU(menu->aspect_menu),popup_item);
+	
+	popup_item = gtk_menu_item_new_with_label("1.33");
+	gtk_signal_connect (GTK_OBJECT(popup_item),
+			    "activate",
+			    GTK_SIGNAL_FUNC(ratio_133_cb),
+			    g);
+	gtk_menu_append(GTK_MENU(menu->aspect_menu),popup_item);
+	
+	popup_item = gtk_menu_item_new_with_label("Settings");
+	gtk_menu_item_set_submenu(GTK_MENU_ITEM(popup_item),menu->settings_menu);
+	gtk_menu_append(GTK_MENU(menu->popup_menu),popup_item);
+	
+	popup_item = gtk_menu_item_new_with_label("Adjustment");
+	gtk_signal_connect (GTK_OBJECT(popup_item),
+			    "activate",
+			    GTK_SIGNAL_FUNC(monitor_cb),
+			    g);
+	gtk_menu_append(GTK_MENU(menu->settings_menu),popup_item);
+	
+	popup_item = gtk_menu_item_new_with_label("Overlay");
+	gtk_signal_connect (GTK_OBJECT(popup_item),
+			    "activate",
+			    GTK_SIGNAL_FUNC(overlay_mode_cb),
+			    g->ov);
+	gtk_menu_append(GTK_MENU(menu->settings_menu),popup_item);
+	
+	popup_item = gtk_menu_item_new_with_label("Rectangle");
+	gtk_signal_connect (GTK_OBJECT(popup_item),
+			    "activate",
+			    GTK_SIGNAL_FUNC(rectangle_mode_cb),
+			    g->ov);
+	gtk_menu_append(GTK_MENU(menu->settings_menu),popup_item);
+
+	popup_item = gtk_menu_item_new_with_label("Off");
+	gtk_signal_connect (GTK_OBJECT(popup_item),
+			    "activate",
+			    GTK_SIGNAL_FUNC(overlay_mode_off_cb),
+			    g->ov);
+	gtk_menu_append(GTK_MENU(menu->settings_menu),popup_item);
+	
+	popup_item = gtk_menu_item_new_with_label("Exit");
+	gtk_signal_connect (GTK_OBJECT(popup_item),
+			    "activate",
+			    GTK_SIGNAL_FUNC(gtk_main_quit),
+			    NULL);
+	gtk_menu_append(GTK_MENU(menu->popup_menu),popup_item);
+}
+	
+static gboolean
+update_ajwindow_cb(GtkObject *adjust, dxr3view_globals *g) 
+{
+    g->ov->xoffset = gtk_spin_button_get_value_as_int(g->aj->xoff);
+    g->ov->yoffset = gtk_spin_button_get_value_as_int(g->aj->yoff);
+    g->ov->xcorr = gtk_spin_button_get_value_as_int(g->aj->xcorr);
+    g->ov->jitter = gtk_spin_button_get_value_as_int(g->aj->jitter);
+    g->ov->stability = gtk_spin_button_get_value_as_int(g->aj->stability);
+    overlay_update_params(g->ov);
+
+    if (g->ratiolist[0] != gtk_spin_button_get_value_as_float(g->aj->ratio)) {
+	    g->ratiolist[0] = gtk_spin_button_get_value_as_float(g->aj->ratio);
+	    g->ratiotoggle = -1;
+	    ratio_cb(NULL, g);
+    } else {
+	    gtk_widget_queue_draw(g->area);
+    }
 
     return TRUE;
 }
 
-
-
 static GtkSpinButton *
-spin_box(char *text,GtkWidget *dialog, gpointer aj,gfloat start,
-		int low, int high,int places)
+create_spin_box(char *text,GtkWidget *dialog, gfloat start,
+		int low, int high, int places, dxr3view_globals *g)
 {
     GtkWidget *label,*spin;
     GtkObject *adjust;
@@ -234,85 +448,169 @@ spin_box(char *text,GtkWidget *dialog, gpointer aj,gfloat start,
     spin = gtk_spin_button_new(GTK_ADJUSTMENT(adjust),1,places);
     gtk_box_pack_start_defaults(GTK_BOX(GTK_DIALOG(dialog)->vbox),spin);    
     gtk_signal_connect(GTK_OBJECT(adjust),"value-changed",
-		       GTK_SIGNAL_FUNC(update_window),NULL);
+		       GTK_SIGNAL_FUNC(update_ajwindow_cb), g);
     return GTK_SPIN_BUTTON(spin);
 }
 
-static gpointer
-adjust_window(void) 
+static void
+resize_overlay(overlay_t* ov, int width, int height, int xpos, int ypos)
 {
-    GtkWidget *dialog,*label,*spin;
-    GtkObject *adjust;
-
-    dialog = gtk_dialog_new();
-    
-//    aj->width     = spin_box("width",     dialog,aj,DEFAULT_WIDTH, 0, 4000,0);
-    aj->ratio     = spin_box("ratio",     dialog,aj,DEFAULT_RATIO,.1, 5,   3);
-    aj->xoff      = spin_box("x-offset",  dialog,aj,ov->xoffset,   0, 4000,0);
-    aj->yoff      = spin_box("y-offset",  dialog,aj,ov->yoffset,   0, 4000,0);
-    aj->xcorr     = spin_box("correction",dialog,aj,ov->xcorr,     0, 4000,0);
-    aj->jitter    = spin_box("jitter",    dialog,aj,ov->jitter,    0, 4000,0);
-    aj->stability = spin_box("stability", dialog,aj,ov->stability, 0, 4000,0);
-
-    gtk_widget_show_all(dialog);
-    return aj;
+	overlay_set_window(ov, xpos, ypos, width, height);
 }
 
-
-static void
-resizeoverlay(int width, int height, int xpos, int ypos)
+static gboolean
+overlay_mode_off_cb(GtkMenuItem *item, overlay_t* ov)
 {
-    overlay_set_window(ov,xpos,ypos,width,height);
+	overlay_set_mode(ov, EM8300_OVERLAY_MODE_OFF);
+	return TRUE;
+}
+
+static gboolean
+overlay_mode_cb(GtkMenuItem *item, overlay_t* ov)
+{
+	overlay_set_mode(ov, EM8300_OVERLAY_MODE_OVERLAY);
+	return TRUE;
+}
+
+static gboolean
+rectangle_mode_cb(GtkMenuItem *item, overlay_t* ov)
+{
+	overlay_set_mode(ov, EM8300_OVERLAY_MODE_RECTANGLE);
+	return TRUE;
+}
+
+static gboolean
+monitor_cb(GtkMenuItem *item, dxr3view_globals *g)
+{
+	if(g->monitor_xoff < 1)
+		g->monitor_xoff = g->scr_wid;
+	else
+		g->monitor_xoff = 0; 
+	resize_overlay(g->ov, g->width, (int)(g->width/g->ratio),
+		       (int)g->xpos+g->monitor_xoff, (int)g->ypos);
+	return TRUE;
+}
+
+static gboolean
+ratio_cb(GtkMenuItem *item, dxr3view_globals *g)
+{
+	g->ratiotoggle = (g->ratiotoggle + 1) % g->ratiolast;
+	g->ratio = g->ratiolist[g->ratiotoggle];
+	gtk_spin_button_set_value(g->aj->ratio, g->ratio);
+	if (g->fullscreen) {
+		g->ypos = (g->scr_hei-(g->scr_wid/g->ratio))/2;
+	}
+	gdk_window_move_resize(g->window->window, g->xpos, g->ypos,
+			       g->width, (g->width/g->ratio)-10);
+	resize_overlay(g->ov, g->width, (int)(g->width/g->ratio),
+		       (int)g->xpos, (int)g->ypos);
+	return TRUE;
+}
+ 
+gboolean
+fullscreen_cb(GtkMenuItem *item, dxr3view_globals *g)
+{
+	if (!g->fullscreen) {
+		g->oldw = g->width;
+		g->oldx = g->xpos;
+		g->oldy = g->ypos;
+		
+		g->width = g->scr_wid;
+		g->xpos = g->monitor_xoff;
+		g->ypos = (g->scr_hei-(g->scr_wid/g->ratio))/2;
+		gdk_window_move_resize(g->window->window, g->xpos, g->ypos,
+				       g->width, (g->width/g->ratio)-10);
+		g->fullscreen = TRUE;
+	} else {
+		g->width = g->oldw;
+		g->xpos = g->oldx;
+		g->ypos = g->oldy;
+		gdk_window_move_resize(g->window->window, g->xpos, g->ypos,
+				       g->width, (g->width/g->ratio)-10);
+		g->fullscreen = FALSE;
+	}
+	
+	resize_overlay(g->ov, g->width, (int)(g->width/g->ratio),
+		       (int)g->xpos, (int)g->ypos);
+ 	return TRUE;
 }
 
 static gboolean
 expose_cb(GtkWidget *drawing_area,
 	  GdkEventExpose *event,
-	  adjust_t *aj) 
+	  dxr3view_globals *g) 
 {
-    int w,h,x,y,d;
-    gdk_window_set_background(drawing_area->window,&overlay_color);
-    gdk_window_clear(drawing_area->window);
-    gdk_window_get_geometry(event->window,&x,&y,&w,&h,&d);
-    gdk_window_get_origin(event->window,&x,&y);
-    resizeoverlay(w,h,x,y);
-    oldx=x;
-    oldy=y;
-    oldw=w;
-    oldh=h;
-}    
-    
-static gboolean
-key_cb(GtkWidget *window, GdkEventKey *kevent, gpointer kdata)
-{
-	float ratio;
-	int width,height,xpos,ypos;
-	gint scr_wid, scr_hei;
+	int h,d;
+	gdk_window_set_background(g->area->window, &g->overlay_color);
+	gdk_window_clear(g->area->window);
 
-	ratio = GPOINTER_TO_INT(kdata) / 100.0;
- 
-	scr_wid = gdk_screen_width();
-	scr_hei = gdk_screen_height();
+	gdk_window_get_geometry(event->window, &g->xpos, &g->ypos, &g->width, &h, &d);
+	gdk_window_get_origin(event->window, &g->xpos, &g->ypos);
+	resize_overlay(g->ov, g->width, h, g->xpos, g->ypos);
 
-	switch (kevent->keyval)
-	  {
-	  case FULLSCREEN_ON:  		// Fullscreen
+	if (g->fullscreen)
+		return TRUE;
 
-		width = OVERLAY_MAX_WIDTH;
-		height = ((int)(OVERLAY_MAX_WIDTH / ratio)) * OVERLAY_MAX_HEIGHT / scr_hei;
-		xpos = OVERLAY_X_OFFSET;
-		ypos = OVERLAY_Y_OFFSET + (OVERLAY_MAX_HEIGHT - (OVERLAY_MAX_WIDTH / ratio)) / 2;
-		resizeoverlay(width,height,xpos,ypos);
-		break;
-
-	  case FULLSCREEN_OFF:			// Regular
-		width = oldw;
-		height = oldh;
-		xpos = oldx;
-		ypos = oldy;
-		resizeoverlay(width,height,xpos,ypos);
-		break;
-	  }
-
+	g->oldx = g->xpos;
+	g->oldy = g->ypos;
+	g->oldw = g->width;
+		
 	return TRUE;
+}
+
+gboolean
+event_cb(GtkWidget *window, GdkEventConfigure *event, dxr3view_globals *g)
+ {
+	 if(g->fullscreen)
+		 return FALSE;	
+
+	 g->xpos = (((event->x) + g->monitor_xoff));
+	 g->ypos = ((event->y));
+	 g->width = (event->width);
+	 resize_overlay(g->ov, (int)g->width, (int)(g->width/g->ratio),
+			(int)g->xpos, (int)g->ypos);
+	 
+	 g->oldx = g->xpos;
+	 g->oldy = g->ypos;
+	 g->oldw = g->width;
+	 
+	 return TRUE;
+}
+
+static gint
+popup_cb(GtkWidget *widget, GdkEventButton *event, menu_t* menu)
+{
+	printf("%d\n",event->type);
+	if(event->type == GDK_BUTTON_PRESS) {
+ 		gtk_widget_show_all(GTK_WIDGET(menu->popup_menu));
+		gtk_menu_popup (GTK_MENU(menu->popup_menu), NULL, NULL, NULL, NULL, 
+				event->button, event->time);
+	        return TRUE;
+	}
+	return FALSE;
+}
+     
+static gboolean
+key_cb(GtkWidget *window, GdkEventKey *kevent, dxr3view_globals *g)
+{
+	switch (kevent->keyval)	{
+	case FULLSCREEN:  		// Fullscreen
+		fullscreen_cb(NULL, g);
+		break;
+	case RATIOSELECT:    //Change Ratio
+	case RATIOSELECTLOW:
+		ratio_cb(NULL, g);
+		break;
+	case GDK_t:		//Popup Menu
+		gtk_widget_show_all(GTK_WIDGET(g->menu->popup_menu));
+		gtk_menu_popup (GTK_MENU(g->menu->popup_menu), NULL, NULL, NULL, NULL, 
+				0, kevent->time);
+ 		break;
+	case QUIT:
+		gtk_main_quit();
+		break;
+	default:
+		break;
+	}
+ 	return TRUE;
 }

@@ -107,7 +107,7 @@ install : $(MODULES)
 		/usr/include/linux/em8300.h
 	@echo Installed to running kernel
 
-uninstall : $(MODULES)
+uninstall :
 	@echo Uninstalling modules for $(KERNVER)
 	@for module in $^ ;\
 	do \

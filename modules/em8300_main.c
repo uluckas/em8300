@@ -349,7 +349,7 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 	em8300[card].inuse[subdevice]++;
 
 	clients++;
-	pr_info("em8300_main.o: Opening device %d, Clients:%d\n", subdevice, clients);
+	pr_debug("em8300_main.o: Opening device %d, Clients:%d\n", subdevice, clients);
 	MOD_INC_USE_COUNT;
   
 	return(0);
@@ -431,7 +431,7 @@ int em8300_io_release(struct inode* inode, struct file *filp)
 	em->inuse[subdevice]--;
 
 	clients--;
-	pr_info("em8300_main.o: Releasing device %d, clients:%d\n", subdevice, clients);
+	pr_debug("em8300_main.o: Releasing device %d, clients:%d\n", subdevice, clients);
 	MOD_DEC_USE_COUNT;
 
 	return(0);
@@ -479,7 +479,7 @@ static int em8300_dsp_open(struct inode* inode, struct file* filp)
 	em8300[card].inuse[EM8300_SUBDEVICE_AUDIO]++;
 
 	clients++;
-	pr_info("em8300_main.o: Opening device %d, Clients:%d\n", EM8300_SUBDEVICE_AUDIO, clients);
+	pr_debug("em8300_main.o: Opening device %d, Clients:%d\n", EM8300_SUBDEVICE_AUDIO, clients);
 	MOD_INC_USE_COUNT;
   
 	return(0);
@@ -500,7 +500,7 @@ int em8300_dsp_release(struct inode* inode, struct file* filp)
 	em->inuse[EM8300_SUBDEVICE_AUDIO]--;
 
 	clients--;
-	pr_info("em8300_main.o: Releasing device %d, clients:%d\n", EM8300_SUBDEVICE_AUDIO, clients);
+	pr_debug("em8300_main.o: Releasing device %d, clients:%d\n", EM8300_SUBDEVICE_AUDIO, clients);
 	MOD_DEC_USE_COUNT;
 
 	return(0);

@@ -110,9 +110,11 @@ int sub_40137(struct em8300_s *em)
 			eax += 0x7f;
 		local6 = local7 =  eax >> 7;
 	}
-	write_ucregister(DICOM_BCSLuma, (local1 << 8) | (local4 & 0xff));
-	write_ucregister(DICOM_BCSChroma, local7 << 8 | local6);
-	
+	if (em->encoder_type != ENCODER_BT865) {
+	  write_ucregister(DICOM_BCSLuma, (local1 << 8) | (local4 & 0xff));
+	  write_ucregister(DICOM_BCSChroma, local7 << 8 | local6);
+	}
+
 	return 1;
 }
 
@@ -173,7 +175,10 @@ int em8300_dicom_update(struct em8300_s *em)
 #endif
 #endif
     } else {
+      /* allows people with bt865 to load microcode more than once */
+      if (em->encoder_type != ENCODER_BT865) {
 	 write_register(0x1f47,0x18);
+      }
 
 #ifdef EM8300_DICOM_USE_OTHER_FOR_PAL
 	 if (em->video_mode == EM8300_VIDEOMODE_NTSC) {

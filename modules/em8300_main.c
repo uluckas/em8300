@@ -385,7 +385,11 @@ int em8300_init(struct em8300_s *em) {
 	  em->var_ucode_reg2 = 0x272;
 	  em->var_ucode_reg3 = 0x8272;
 	  if (0x20 & read_register(0x1c08)) {
-	     em->var_ucode_reg1 = 0x818;
+#ifdef EM8300_USE_BT865
+	      em->var_ucode_reg1 = 0x800;
+#else
+	      em->var_ucode_reg1 = 0x818;
+#endif
 	  }
        } else {
 	  em->var_video_value = 0xce4;

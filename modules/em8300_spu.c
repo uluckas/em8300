@@ -62,7 +62,6 @@ int em8300_spu_write(struct em8300_s *em, const char * buf,
     if(em->sp_ptsvalid) {
 	int ptsfifoptr;
 	
-	em->sp_ptsvalid=0;
 	ptsfifoptr = ucregister(SP_PTSFifo) + 2*em->sp_ptsfifo_ptr;
 	
 	if(read_register(ptsfifoptr+1) & 1) {
@@ -77,6 +76,8 @@ int em8300_spu_write(struct em8300_s *em, const char * buf,
 	write_register(ptsfifoptr+1, (em->sp_pts & 0xffff) | 1);
 	em->sp_ptsfifo_ptr++;
 	em->sp_ptsfifo_ptr &= read_ucregister(SP_PTSSize)/2 - 1;
+
+	em->sp_ptsvalid=0;
     }
 
     return em8300_fifo_writeblocking(em->spfifo, count, buf, flags);

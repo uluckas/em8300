@@ -101,8 +101,23 @@ int em8300_video_setup(struct em8300_s *em) {
 #endif	
 
     write_register(0x1f47,0x0);
-    write_register(0x1f5e,0x9afe);
-    write_ucregister(DICOM_Control,0x9afe);
+
+    if (em->encoder_type == ENCODER_BT865) {
+       write_register(0x1f42,0x8c);
+       write_register(0x1f43,0x2d0);
+       write_register(0x1f45,0x136);    
+       write_ucregister(DICOM_VSyncLo1,0x1); 
+       write_ucregister(DICOM_VSyncLo2,0x0);
+       write_ucregister(DICOM_VSyncDelay1,0xd2); 
+       write_ucregister(DICOM_VSyncDelay2,0x0);  
+       write_register(0x1f46,0x0); 
+       write_register(0x1f47,0x1c); 
+       write_register(0x1f5e,0x9efe);
+       write_ucregister(DICOM_Control,0x9efe);
+    } else {
+       write_register(0x1f5e,0x9afe);
+       write_ucregister(DICOM_Control,0x9afe);
+    }
 
     write_register(0x1f4d,0x3c3c);
     write_register(0x1f4e,0x3c00);
@@ -121,16 +136,28 @@ int em8300_video_setup(struct em8300_s *em) {
     udelay(100);
 
     write_ucregister(DICOM_UpdateFlag,0x0);
-    write_ucregister(DICOM_VisibleLeft,0x168);
-    write_ucregister(DICOM_VisibleTop,0x2e);
-    write_ucregister(DICOM_VisibleRight,0x36b);
-    write_ucregister(DICOM_VisibleBottom,0x11e);
-    write_ucregister(DICOM_FrameLeft,0x168);
-    write_ucregister(DICOM_FrameTop,0x2e);
-    write_ucregister(DICOM_FrameRight,0x36b);
-    write_ucregister(DICOM_FrameBottom,0x11e);
-    write_ucregister(DICOM_TvOut,0x4000);
-    write_ucregister(DICOM_UpdateFlag,0x1);
+
+    if (em->encoder_type == ENCODER_BT865) {
+      write_ucregister(DICOM_VisibleLeft,0x82);
+      write_ucregister(DICOM_VisibleTop,0x28);
+      write_ucregister(DICOM_VisibleRight,0x351);
+      write_ucregister(DICOM_VisibleBottom,0x207);
+      write_ucregister(DICOM_FrameLeft,0x82);
+      write_ucregister(DICOM_FrameTop,0x28);
+      write_ucregister(DICOM_FrameRight,0x351);
+      write_ucregister(DICOM_FrameBottom,0x207);
+      write_ucregister(DICOM_TvOut,0x4001); 
+    } else {
+      write_ucregister(DICOM_VisibleLeft,0x168);
+      write_ucregister(DICOM_VisibleTop,0x2e);
+      write_ucregister(DICOM_VisibleRight,0x36b);
+      write_ucregister(DICOM_VisibleBottom,0x11e);
+      write_ucregister(DICOM_FrameLeft,0x168);
+      write_ucregister(DICOM_FrameTop,0x2e);
+      write_ucregister(DICOM_FrameRight,0x36b);
+      write_ucregister(DICOM_FrameBottom,0x11e);
+      write_ucregister(DICOM_TvOut,0x4000);
+    }
 
     em9010_write16(em,0x8,0xff);
     em9010_write16(em,0x10,0xff);
@@ -157,19 +184,36 @@ int em8300_video_setup(struct em8300_s *em) {
     em9010_write(em,0xc,0x8c);
     em9010_write(em,9,0);
 
-    write_ucregister(DICOM_Kmin,0x447);
+    if (em->encoder_type == ENCODER_BT865) {
+      write_ucregister(DICOM_Kmin,0x613);
+    } else {
+      write_ucregister(DICOM_Kmin,0x447);
+    }
 
     em9010_write(em,7,0x80);
     em9010_write(em,9,0);
-    
-    write_register(0x1f47,0x18);
-    write_register(0x1f5e,0x9afe);
-    write_ucregister(DICOM_Control,0x9afe);
+
+    if(em->encoder_type == ENCODER_BT865) {
+       write_register(0x1f5e,0x9efe);
+       write_ucregister(DICOM_Control,0x9efe);
+    } else {
+       write_register(0x1f47,0x18);
+       write_register(0x1f5e,0x9afe);
+       write_ucregister(DICOM_Control,0x9afe);
+    }
+
+    write_ucregister(DICOM_UpdateFlag,0x1);
 
     udelay(100);
     
     write_ucregister(ForcedLeftParity,0x2);
-    write_ucregister(MV_Threshold,0x90);
+
+    if (em->encoder_type == ENCODER_BT865) {
+      write_ucregister(MV_Threshold,0x50);
+    } else {
+      write_ucregister(MV_Threshold,0x90);
+    }
+
     write_register(0x1ffa,0x2);
     write_ucregister(Q_IrqMask,0x0);
     write_ucregister(Q_IrqStatus,0x0);
@@ -271,7 +315,7 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
 	    startpts = em->video_pts + em->videodelay;
 	    write_ucregister(MV_SCRlo, startpts & 0xffff);
 	    write_ucregister(MV_SCRhi, (startpts >> 16) & 0xffff);
-	    printk("Setting SCR: %d\n",startpts);
+	    printk("MV Setting SCR: %d\n",startpts);
 
 	    em8300_video_setplaymode(em,savedplaymode);
 

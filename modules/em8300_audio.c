@@ -426,7 +426,7 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 
 	mpegaudio_command(em,MACOMMAND_PLAY);
 
-	printk("Setting SCR: %d\n",newscr);
+	printk("MA Setting SCR: %d\n",newscr);
 
 	em->audio_sync = AUDIO_SYNC_INACTIVE;
 	em->audio_ptsvalid = 0;

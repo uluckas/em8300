@@ -95,7 +95,7 @@ int bt865_setmode(int mode, struct i2c_client *client) {
     switch(mode) {
     case ENCODER_MODE_PAL:
 	printk("<1>bt865.o: Configuring for PAL\n");
-	i2c_smbus_write_byte_data(client,0xcc, 0xe4);
+	i2c_smbus_write_byte_data(client,0xcc, 0xe4); //or 0x24
 	i2c_smbus_write_byte_data(client,0xd0, 0x0);
 	break;
     case ENCODER_MODE_PAL_M:
@@ -162,11 +162,15 @@ int bt865_setup(struct i2c_client *client) {
 
   // noninterlaced mode, setup off, among other things
     
-    i2c_smbus_write_byte_data(client,0xcc, 0x42);
+    i2c_smbus_write_byte_data(client,0xcc, 0xe4); //was 0x42
 
   // normal video mode, ESTATUS = 0
     
-    i2c_smbus_write_byte_data(client,0xce, 0x2);
+    i2c_smbus_write_byte_data(client,0xce, 0x2); // add 0x10 for Internal Color Bars
+
+  //  macrovision mode off
+
+    i2c_smbus_write_byte_data(client, 0xd8, 0);
 
   // enable WSS/CGMS in second field
 

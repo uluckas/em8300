@@ -99,6 +99,10 @@ typedef struct {
 #define EM8300_DICOM_USE_OTHER_FOR_PAL
 /* #undef EM8300_DICOM_USE_OTHER_FOR_PAL */
 
+/* if you have a BT865 define this */
+/* #define EM8300_USE_BT865 */
+#undef EM8300_USE_BT865
+
 #define EM8300_AUDIOMODE_ANALOG 0
 #define EM8300_AUDIOMODE_DIGITALAC3 1
 #define EM8300_AUDIOMODE_DIGITALPCM 2

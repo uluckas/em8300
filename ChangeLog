@@ -1,5 +1,14 @@
 2001-05-10  Rick Haines  <rick@kuroyi.net>
 
+	* libdxr3/ac3spdif.c (output_spdif),
+	  modules/em8300_audio.c:
+	revert my change and merge Mattias Svensson's patch
+
+	* xine/xine-0.4.01_dxr3.patch.gz:
+	put this on the ftp site instead
+	
+2001-05-10  Rick Haines  <rick@kuroyi.net>
+
 	* modules/em8300_ioctl.c (em8300_control_ioctl):
 	add ov_scr and ov_cal to fix some type casting errors
 

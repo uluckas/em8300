@@ -26,6 +26,19 @@ __inline__ uint32_t my_abs(int32_t v) {
 	return v < 0 ? -v : v;
 }
 
+void set_swapbytes(struct em8300_s *em, int sb)
+{
+	switch(em->audio_mode) {
+	case EM8300_AUDIOMODE_ANALOG:
+	case EM8300_AUDIOMODE_DIGITALAC3:
+		em->swapbytes = sb;
+		break;
+	case EM8300_AUDIOMODE_DIGITALPCM:
+		em->swapbytes = !sb;
+		break;
+	}
+} 
+
 /* C decompilation of sub_prepare_SPDIF by 
 *  Anton Altaparmakov <antona@bigfoot.com>
 *
@@ -129,7 +142,7 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
 	int i;
 	unsigned char tmpbuf[0x600];
 
-	if (!em->swapbytes) {
+	if (em->swapbytes) {
 		for(i=0; i < inlength; i+=2) {
 			get_user(tmpbuf[i+1], inbuf_user++);
 			get_user(tmpbuf[i], inbuf_user++);
@@ -267,11 +280,11 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 
 		switch(val) {
 		case AFMT_S16_BE:
-			em->swapbytes = 0;
+			set_swapbytes(em, 0);
 			break;
 		default:
 			val = AFMT_S16_LE;
-			em->swapbytes = 1;
+			set_swapbytes(em, 1);
 		}
 		break;
 	case EM8300_IOCTL_AUDIO_SETPTS:
@@ -311,7 +324,7 @@ int em8300_audio_open(struct em8300_s *em)
 		return -ENODEV;
 	}
 	
-	em->swapbytes = 1;
+	set_swapbytes(em, 1);
 
 	em->audio_lastpts = 0;
 	em->audio_lag = 0;

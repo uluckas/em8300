@@ -108,10 +108,9 @@ output_spdif(uint8_t *data_start, uint8_t *data_end, int fd)
       sbuf[3] = syncinfo.frame_size * 16;
       sbuf[4] = 0x0b77;  // AC3 syncwork
       
-#if 0 /* see if this makes swap_bytes work for ac3 */
       // extract_ac3 seems to write swabbed data
       swab(&buf[10], &buf[10], syncinfo.frame_size * 2 - 2);
-#endif
+
       ret |= write(fd,buf, BLOCK_SIZE);
       bzero(buf,BLOCK_SIZE);
     }

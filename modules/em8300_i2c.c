@@ -14,7 +14,6 @@
 #include <asm/io.h>
 #include <asm/uaccess.h>
 
-#include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 
 #include "em8300_reg.h"
@@ -116,6 +115,14 @@ static int em8300_i2c_unreg(struct i2c_client *client)
 	return 0;
 }
 
+static void em8300_i2c_inc(struct i2c_adapter *adapter)
+{	
+}
+
+static void em8300_i2c_dec(struct i2c_adapter *adapter)
+{	
+}
+
 /* ----------------------------------------------------------------------- */
 /* I2C functions							   */
 /* ----------------------------------------------------------------------- */
@@ -169,6 +176,8 @@ int em8300_i2c_init(struct em8300_s *em)
 	em->i2c_ops_1.id = I2C_HW_B_EM8300;
 	em->i2c_ops_1.algo = NULL;
 	em->i2c_ops_1.algo_data = &em->i2c_data_1;
+	em->i2c_ops_1.inc_use = em8300_i2c_inc;
+	em->i2c_ops_1.dec_use = em8300_i2c_dec;
 	em->i2c_ops_1.client_register = em8300_i2c_reg;
 	em->i2c_ops_1.client_unregister = em8300_i2c_unreg;
 	em->i2c_ops_1.data = em;
@@ -202,16 +211,13 @@ int em8300_i2c_init(struct em8300_s *em)
 	em->i2c_ops_2.id = I2C_HW_B_EM8300;
 	em->i2c_ops_2.algo = NULL;
 	em->i2c_ops_2.algo_data = &em->i2c_data_2;
+	em->i2c_ops_2.inc_use = em8300_i2c_inc;
+	em->i2c_ops_2.dec_use = em8300_i2c_dec;
 	em->i2c_ops_2.client_register = em8300_i2c_reg;
 	em->i2c_ops_2.client_unregister = em8300_i2c_unreg;
 	em->i2c_ops_2.data = em;
 	
 	ret = i2c_bit_add_bus(&em->i2c_ops_2);
-
-#ifdef MODULE
-	MOD_INC_USE_COUNT;
-#endif
-
 	return ret;
 }
 
@@ -222,10 +228,6 @@ void em8300_i2c_exit(struct em8300_s *em)
 	kfree(em->i2c_data_2.data);
 	i2c_bit_del_bus(&em->i2c_ops_1);
 	i2c_bit_del_bus(&em->i2c_ops_2);
-
-#ifdef MODULE
-	MOD_DEC_USE_COUNT;
-#endif
 }
 
 void em8300_clockgen_write(struct em8300_s *em, int abyte)

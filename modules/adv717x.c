@@ -41,7 +41,6 @@
 #include <linux/version.h>
 #include <asm/uaccess.h>
 
-#include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 #include <linux/video_encoder.h>
 
@@ -101,6 +100,8 @@ MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be d
 static int adv717x_attach_adapter(struct i2c_adapter *adapter);
 int adv717x_detach_client(struct i2c_client *client);
 int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg);
+void adv717x_inc_use (struct i2c_client *client);
+void adv717x_dec_use (struct i2c_client *client);
 
 #define CHIP_ADV7175A 1
 #define CHIP_ADV7170  2
@@ -118,13 +119,14 @@ struct adv717x_data_s {
 
 /* This is the driver that will be inserted */
 static struct i2c_driver adv717x_driver = {
-  /* owner */           THIS_MODULE,
   /* name */		"ADV717X video encoder driver",
   /* id */		I2C_DRIVERID_ADV717X,
   /* flags */		I2C_DF_NOTIFY,
   /* attach_adapter */  &adv717x_attach_adapter,
   /* detach_client */   &adv717x_detach_client,
-  /* command */		&adv717x_command
+  /* command */		&adv717x_command,
+  /* inc_use */		&adv717x_inc_use,
+  /* dec_use */		&adv717x_dec_use
 };
 
 int adv717x_id = 0;
@@ -507,6 +509,22 @@ int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
 	return 0;
 }
 
+/* Nothing here yet */
+void adv717x_inc_use (struct i2c_client *client)
+{
+#ifdef MODULE
+	MOD_INC_USE_COUNT;
+#endif
+}
+
+/* Nothing here yet */
+void adv717x_dec_use (struct i2c_client *client)
+{
+#ifdef MODULE
+	MOD_DEC_USE_COUNT;
+#endif
+}
+
 /* ----------------------------------------------------------------------- */
 
 
@@ -517,7 +535,6 @@ int __init adv717x_init(void)
 	int pd_adj_ntsc;
 	int pd_adj_pal;
 	int bars;
-	int ret;
 
 	if (pixelport_16bit) {
 		pp_ntsc = pp_pal = 0x40;
@@ -571,21 +588,11 @@ int __init adv717x_init(void)
 	NTSC_config_7175[1] = (NTSC_config_7175[1] & ~0x80) | bars;
 
 	//request_module("i2c-algo-bit");
-	ret = i2c_add_driver(&adv717x_driver);
-	if (!ret) {
-#ifdef MODULE
-	MOD_INC_USE_COUNT;
-#endif
-	}
-
-	return ret;
+	return i2c_add_driver(&adv717x_driver);
 }
 
 void __exit adv717x_cleanup(void)
 {
-#ifdef MODULE
-	MOD_DEC_USE_COUNT;
-#endif
 	i2c_del_driver(&adv717x_driver);
 }
 

@@ -3,7 +3,7 @@
 # it should abort if you have the devfs filesystem mounted, em8300
 # supports devfs so there should be no need.
 
-DEVFS=`cat /proc/mounts | grep devfs`
+DEVFS=`cat /proc/mounts | grep " devfs "`
 
 if [ -z "$DEVFS" ] ; then
 	echo "Devfs not mounted creating device nodes"

@@ -557,7 +557,7 @@ void cleanup_module(void)
 	
 	for (card = 0; card < em8300_cards; card++) {
 #ifdef CONFIG_DEVFS_FS
-		for (frame = 0; frame < 4; frame++) {
+		for (frame = 3; frame >= 0; frame--) {
 			devfs_unregister(em8300_handle[(card * 4) + frame]);
 		}
 #endif
@@ -728,8 +728,8 @@ int init_module(void)
  err_chrdev:
 	while (card-- > 0) {
 #ifdef CONFIG_DEVFS_FS
-		for (frame = 0; frame < 3; frame++) {
-			devfs_unregister(em8300_handle[card+frame]);
+		while (frame-- > 0) {
+			devfs_unregister(em8300_handle[(card * 4) + frame]);
 		}
 #endif
 #ifdef REGISTER_DSP

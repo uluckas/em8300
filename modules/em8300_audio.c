@@ -194,6 +194,9 @@ int set_rate(struct em8300_s *em,int rate)
     em->clockgen &= ~CLOCKGEN_SAMPFREQ_MASK;
 
     switch(rate) {
+    case 66000:
+	em->clockgen |= CLOCKGEN_SAMPFREQ_66;
+	break;
     case 44100:
 	em->clockgen |= CLOCKGEN_SAMPFREQ_44;
 	break;

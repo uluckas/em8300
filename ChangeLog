@@ -2,6 +2,13 @@
 	* .cvsignore:
 	Add autom4te.cache to .cvsignore, as suggested by Ville Skyttä.
 
+	* dhc/Makefile.am,
+	  dhc/dhc.desktop,
+	  overlay/Makefile.am,
+	  overlay/autocal.desktop,
+	  overlay/dxr3view.desktop:
+	Add .desktop files, provided by Ville Skyttä.
+
 2005-03-24  Nicolas Boullis  <nboullis@debian.org>
 	* modules/Makefile,
 	  modules/adv717x.c,

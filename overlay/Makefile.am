@@ -1,4 +1,4 @@
-EXTRA_DIST = configs/
+EXTRA_DIST = configs/ autocal.desktop dxr3view.desktop
 
 AM_CFLAGS = @GLOBAL_CFLAGS@ $(GTK_CFLAGS)
 INCLUDES = -I@srcdir@/include -I/usr/local/include

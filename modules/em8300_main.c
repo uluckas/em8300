@@ -314,23 +314,14 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_CONTROL:
-		if (filp->f_flags == O_NONBLOCK)
-			em8300[card].nonblock[0] = 1;
-		else
-			em8300[card].nonblock[0] = 0;
+		em8300[card].nonblock[0] = (filp->f_flags == O_NONBLOCK);
 		break;
 	case EM8300_SUBDEVICE_AUDIO:
-		if (filp->f_flags == O_NONBLOCK)
-			em8300[card].nonblock[1] = 1;
-		else
-			em8300[card].nonblock[1] = 0;
+		em8300[card].nonblock[1] = (filp->f_flags == O_NONBLOCK);
 		err = em8300_audio_open(em);
 		break;
 	case EM8300_SUBDEVICE_VIDEO:
-		if (filp->f_flags == O_NONBLOCK)
-			em8300[card].nonblock[2] = 1;
-		else
-			em8300[card].nonblock[2] = 0;
+		em8300[card].nonblock[2] = (filp->f_flags == O_NONBLOCK);
 		if (!em->ucodeloaded) {
 			return -ENODEV;
 		}
@@ -341,10 +332,7 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 		em8300_video_setplaymode(em, EM8300_PLAYMODE_PLAY);
 		break;
 	case EM8300_SUBDEVICE_SUBPICTURE:
-		if (filp->f_flags == O_NONBLOCK)
-			em8300[card].nonblock[3] = 1;
-		else
-			em8300[card].nonblock[3] = 0;
+		em8300[card].nonblock[3] = (filp->f_flags == O_NONBLOCK);
 		if (!em->ucodeloaded) {
 			return -ENODEV;
 		}
@@ -371,7 +359,7 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 static int em8300_io_write(struct file *file, const char * buf,	size_t count, loff_t *ppos)
 {
 	struct em8300_s *em = file->private_data;
-	int subdevice = EM8300_MINOR(file->f_dentry->d_inode)%4;
+	int subdevice = EM8300_MINOR(file->f_dentry->d_inode) % 4;
 	
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_VIDEO:

@@ -948,12 +948,12 @@ int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg)
 
 	switch(cmd) {
 	case ENCODER_CMD_SETMODE:
-		bt865_setmode((int)arg, client);
-		bt865_update( client );
+		bt865_setmode((int) arg, client);
+		bt865_update(client);
 		break;
 	case ENCODER_CMD_ENABLEOUTPUT:
-		data->enableoutput = (int)arg;
-		bt865_update( client );
+		data->enableoutput = (int) arg;
+		bt865_update(client);
 		break;
 	default:
 		return -EINVAL;

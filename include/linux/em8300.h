@@ -193,10 +193,6 @@ typedef struct {
 #define EM8300_MAJOR 121
 #define EM8300_LOGNAME "em8300"
 
-#define DICOM_MODE_PAL 1
-#define DICOM_MODE_NTSC 2
-#define DICOM_MODE_PAL60 3
-
 struct dicom_s {
 	int luma;
 	int chroma;

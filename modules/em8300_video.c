@@ -320,10 +320,11 @@ int em8300_video_write(struct em8300_s *em, const char * buf, size_t count, loff
 		em->video_ptsvalid = 0;
 	}
 
-	if (em->nonblock[2])
+	if (em->nonblock[2]) {
 		written = em8300_fifo_write(em->mvfifo, count, buf, flags);
-	else
+	} else {
 		written = em8300_fifo_writeblocking(em->mvfifo, count, buf, flags);
+	}
 	if (written > 0) {
 		em->video_offset += written;
 	}

@@ -102,10 +102,11 @@ int em8300_spu_write(struct em8300_s *em, const char * buf, size_t count, loff_t
 		em->sp_ptsvalid = 0;
 	}
 
-	if (em->nonblock[3])
+	if (em->nonblock[3]) {
 		return em8300_fifo_write(em->spfifo, count, buf, flags);
-	else
+	} else {
 		return em8300_fifo_writeblocking(em->spfifo, count, buf, flags);
+	}
 }
 
 int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
@@ -113,7 +114,7 @@ int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 	int err;
 	unsigned clu[16];
 	
-	switch(cmd) {
+	switch (cmd) {
 	case EM8300_IOCTL_SPU_SETPTS:
 		if (get_user(em->sp_pts, (int *) arg)) {
 			return -EFAULT;

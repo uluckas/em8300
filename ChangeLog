@@ -18,6 +18,13 @@
 	Since kernel 2.5.67, the i2c_client and i2c_adapter structs have
 	no data field; once more, thanks to Håkon Skjelten for his patch.
 
+	* modules/adv717x.c,
+	  modules/bt865.c,
+	  modules/em8300_main.c:
+	Since kernel 2.5.18, no symbol is exported by default, so
+	EXPORT_NO_SYMBOLS is useless. Thanks again to Håkon Skjelten for
+	pointing this.
+
 2004-03-14  Nicolas Boullis  <nboullis@debian.org>
 	* modules/Makefile:
 	When building modules, if $(I2C_LOCATION) is set, ensure that 

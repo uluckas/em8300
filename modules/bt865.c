@@ -66,7 +66,9 @@ MODULE_PARM_DESC(rgb_mode, "If you set this to 1, RGB output is enabled. You wil
 MODULE_LICENSE("GPL");
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,18)
 EXPORT_NO_SYMBOLS;
+#endif
 
 #define i2c_is_isa_client(clientptr) \
 		((clientptr)->adapter->algo->id == I2C_ALGO_ISA)

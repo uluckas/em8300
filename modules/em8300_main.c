@@ -17,6 +17,7 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
+#include <linux/config.h>
 #include <linux/module.h>
 #include <linux/delay.h>
 #include <linux/init.h>
@@ -32,12 +33,20 @@
 #include <linux/signal.h>
 #include <linux/string.h>
 #include <linux/time.h>
+#ifdef CONFIG_PROC_FS
+#include <linux/proc_fs.h>
+#endif
+#ifdef CONFIG_DEVFS_FS
+#include <linux/devfs_fs_kernel.h>
+#endif
 #include <asm/io.h>
 #include <asm/pgtable.h>
 #include <asm/page.h>
 #include <linux/sched.h>
 #include <asm/segment.h>
+#ifdef CONFIG_MTRR
 #include <asm/mtrr.h>
+#endif
 
 #include <linux/version.h>
 #include <asm/uaccess.h>
@@ -49,6 +58,8 @@
 #include "em8300_reg.h"
 #include <linux/em8300.h>
 #include "em8300_fifo.h"
+
+#define EM8300_MINOR(inode) ((inode)->i_rdev & 0x0f)
 
 #ifndef I2C_BITBANGING
 #error "This needs the I2C Bit Banging Interface in your Kernel"
@@ -95,6 +106,13 @@ static unsigned int remap[EM8300_MAX]={};
 static struct em8300_s em8300[EM8300_MAX];
 #ifdef REGISTER_DSP
 static int dsp_num_table[16];
+#endif
+#ifdef CONFIG_DEVFS_FS
+static int em8300_major;
+devfs_handle_t em8300_handle[EM8300_MAX*4];
+#endif
+#ifdef CONFIG_PROC_FS
+struct proc_dir_entry *em8300_proc;
 #endif
 
 static void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
@@ -146,9 +164,11 @@ static void release_em8300(int max)
 			em->encoder->driver->command(em->encoder, ENCODER_CMD_ENABLEOUTPUT, (void *)0);
 		}
 	
+#ifdef CONFIG_MTRR	
 		if (em->mtrr_reg) {
 			mtrr_del(em->mtrr_reg,em->adr, em->memsize);
 		}
+#endif
 		
 		em8300_i2c_exit(em);
 
@@ -217,8 +237,10 @@ static int find_em8300(void)
 	
 		em->mem = ioremap(em->adr, em->memsize);
 		pr_info("em8300: mapped-memory at 0x%p\n",em->mem);
+#ifdef CONFIG_MTRR
 		em->mtrr_reg = mtrr_add( em->adr, em->memsize, MTRR_TYPE_UNCACHABLE, 1 );
 		if( em->mtrr_reg ) pr_info("em8300: using MTRR\n");
+#endif
 
 		result = request_irq(dev->irq, em8300_irq, SA_SHIRQ|SA_INTERRUPT,"em8300",(void *)em);
 	
@@ -242,7 +264,7 @@ static int find_em8300(void)
 static int em8300_io_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, unsigned long arg)
 {
 	struct em8300_s *em = filp->private_data;
-	int subdevice = MINOR(inode->i_rdev) & 3;
+	int subdevice = EM8300_MINOR(inode)%4;
 
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_AUDIO:
@@ -260,8 +282,8 @@ static int em8300_io_ioctl(struct inode* inode, struct file* filp, unsigned int 
 
 static int em8300_io_open(struct inode* inode, struct file* filp) 
 {
-	int card = MINOR(inode->i_rdev)/4;
-	int subdevice = MINOR(inode->i_rdev) & 3;
+	int card = EM8300_MINOR(inode)/4;
+	int subdevice = EM8300_MINOR(inode)%4;
 	struct em8300_s *em = &em8300[card];
 	int err=0;
   
@@ -320,7 +342,7 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 static int em8300_io_write(struct file *file, const char * buf,	size_t count, loff_t *ppos)
 {
 	struct em8300_s *em = file->private_data;
-	int subdevice = MINOR(file->f_dentry->d_inode->i_rdev) & 3;
+	int subdevice = EM8300_MINOR(file->f_dentry->d_inode)%4;
 	
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_VIDEO:
@@ -343,7 +365,7 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 {
 	struct em8300_s *em = file->private_data;
 	unsigned long size = vma->vm_end - vma->vm_start;
-	int subdevice = MINOR(file->f_dentry->d_inode->i_rdev) & 3;
+	int subdevice = EM8300_MINOR(file->f_dentry->d_inode)%4;
 
 	if (subdevice != EM8300_SUBDEVICE_CONTROL) {
 		return -EPERM;
@@ -378,7 +400,7 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 int em8300_io_release(struct inode* inode, struct file* filp) 
 {
 	struct em8300_s *em = filp->private_data;
-	int subdevice = MINOR(inode->i_rdev) & 3;
+	int subdevice = EM8300_MINOR(inode)%4;
 	
 	switch(subdevice) {
 	case EM8300_SUBDEVICE_AUDIO:
@@ -418,7 +440,7 @@ static int em8300_dsp_ioctl(struct inode* inode, struct file* filp, unsigned int
 
 static int em8300_dsp_open(struct inode* inode, struct file* filp) 
 {
-	int dsp_num = ((MINOR(inode->i_rdev) >> 4) & 0x0f);
+	int dsp_num = EM8300_MINOR(inode)/4;
 	int card = dsp_num_table[dsp_num]-1;
 	int err=0;
 
@@ -478,15 +500,64 @@ static struct file_operations em8300_dsp_audio_fops = {
 };
 #endif
 
+#ifdef CONFIG_PROC_FS
+int em8300_proc_read(char *page, char **start, off_t off, int count, int *eof, void *data)
+{
+        int len = 0;
+	struct em8300_s *em = (struct em8300_s *) data;    
+    
+        *start = 0;
+        *eof = 1;
+    
+        len += sprintf(page+len, "----- EM8300 Device Info -----\n");
+        if (em->ucodeloaded) {
+		/* Device information */
+		len += sprintf(page+len, "Device name: %s\n", em->name);
+		len += sprintf(page+len, "Revision %d:%d\n", em->chip_revision, em->pci_revision);
+		
+		len += sprintf(page+len, "Mystery divisor: %d\n", em->mystery_divisor);
+		
+		/* Microcode */
+		len += sprintf(page+len, "  Microcode registers\n");
+		len += sprintf(page+len, " Unknown reg1: %d\n", em->var_ucode_reg1);
+		len += sprintf(page+len, " Unknown reg2: %d\n", em->var_ucode_reg2);
+		len += sprintf(page+len, " Unknown reg3: %d\n", em->var_ucode_reg3);
+	}
+	else {
+		len += sprintf(page+len, "Microcode hasn't been loaded\n");
+	}
+	
+        return len;
+}
+#endif
+
 void cleanup_module(void)
 {
-#ifdef REGISTER_DSP
 	int card;
+	int frame;
+	char devname[64];
+	
 	for (card = 0; card < em8300_cards; card++) {
-		unregister_sound_dsp(em8300[card].dsp_num);
-	}
+#ifdef CONFIG_DEVFS_FS
+		for (frame = 0; frame < 4; frame++) {
+			devfs_unregister(em8300_handle[card+frame]);
+		}
 #endif
+#ifdef REGISTER_DSP
+		unregister_sound_dsp(em8300[card].dsp_num);
+#endif
+	}
+#ifdef CONFIG_PROC_FS
+	sprintf(devname, "%s", EM8300_LOGNAME );
+	if (em8300_proc != NULL) remove_proc_entry(devname, &proc_root);
+#endif
+#ifdef CONFIG_DEVFS_FS
+	sprintf(devname, "video/%s", EM8300_LOGNAME);
+	devfs_unregister_chrdev(em8300_major, devname);
+	devfs_dealloc_major(DEVFS_SPECIAL_CHR, em8300_major);
+#else
 	unregister_chrdev(EM8300_MAJOR, EM8300_LOGNAME);
+#endif
 	release_em8300(em8300_cards);
 }
 
@@ -549,13 +620,35 @@ int em8300_init(struct em8300_s *em) {
 int init_module(void)
 {
 	int card;
+	int frame;
 	struct em8300_s *em = NULL;
 
-	memset(&em8300, 0, sizeof(em8300));
+	char devname[32];
+#ifdef CONFIG_PROC_FS
+	struct proc_dir_entry *proc;
+#endif
+	memset(&em8300[0], 0, sizeof(em8300));
 #ifdef REGISTER_DSP
 	memset(&dsp_num_table, 0, sizeof(dsp_num_table));
 #endif
 
+#ifdef CONFIG_DEVFS_FS
+	em8300_major = devfs_alloc_major( DEVFS_SPECIAL_CHR );
+	sprintf(devname, "video/%s", EM8300_LOGNAME );
+	if( devfs_register_chrdev(em8300_major, devname, &em8300_fops) < 0 )
+		goto err_chrdev;
+#endif
+#ifdef CONFIG_PROC_FS
+	sprintf(devname, "%s", EM8300_LOGNAME );
+	em8300_proc = create_proc_entry(devname, S_IFDIR | S_IRUGO | S_IXUGO, &proc_root);
+	if( em8300_proc == NULL) {
+		printk(KERN_ERR "em8300: unable to register proc entry!\n");
+		goto err_chrdev;
+	}
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,2,0)
+	em8300_proc->owner = THIS_MODULE;
+#endif
+#endif
 	/* Find EM8300 cards */
 	em8300_cards = find_em8300();
 
@@ -572,9 +665,28 @@ int init_module(void)
 		
 		em8300_init(em);
 
+#ifdef CONFIG_PROC_FS
+		sprintf(devname, "%s-%d", EM8300_LOGNAME, card );
+		proc = create_proc_entry(devname, S_IFREG | S_IRUGO, em8300_proc);
+		proc->data = (void *) em;
+		proc->read_proc = em8300_proc_read;
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,2,0)
+		proc->owner = THIS_MODULE;
+#endif
+#endif
+#ifdef CONFIG_DEVFS_FS
+		sprintf(devname, "video/%s-%d", EM8300_LOGNAME, card );
+		em8300_handle[card] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major, card, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
+		sprintf(devname, "video/%s_mv-%d", EM8300_LOGNAME, card );
+		em8300_handle[card+1] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major, card+1, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
+		sprintf(devname, "video/%s_ma-%d", EM8300_LOGNAME, card );
+		em8300_handle[card+2] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major, card+2, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
+		sprintf(devname, "video/%s_sp-%d", EM8300_LOGNAME, card );
+		em8300_handle[card+3] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major, card+3, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
+#endif
 #ifdef REGISTER_DSP
 		if ((em8300[card].dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, -1)) < 0) {
-			printk(KERN_ERR "e8300: cannot register oss audio device!\n");
+			printk(KERN_ERR "em8300: cannot register oss audio device!\n");
 			goto err_audio_dsp;
 		}
 		dsp_num_table[em8300[card].dsp_num >> 4 & 0x0f] = card+1;
@@ -582,21 +694,32 @@ int init_module(void)
 #endif
 	}
 
+#ifndef CONFIG_DEVFS_FS
 	if (register_chrdev(EM8300_MAJOR, EM8300_LOGNAME, &em8300_fops)) {
 		printk(KERN_ERR "em8300: unable to get major %d\n", EM8300_MAJOR);
 		goto err_chrdev;
 	}
-    
+#endif
 	return 0;
 
 #ifdef REGISTER_DSP
  err_audio_dsp:
 #endif
  err_chrdev:
-#ifdef REGISTER_DSP
 	while (card-- > 0) {
+#ifdef CONFIG_DEVFS_FS
+		for (frame = 0; frame < 3; frame++) {
+			devfs_unregister(em8300_handle[card+frame]);
+		}
+#endif
+#ifdef REGISTER_DSP
 		unregister_sound_dsp(em[card].dsp_num);
+#endif
 	}
+#ifdef CONFIG_DEVFS_FS
+	sprintf(devname, "video/%s", EM8300_LOGNAME);
+	devfs_unregister_chrdev(em8300_major, devname);
+	devfs_dealloc_major(DEVFS_SPECIAL_CHR, em8300_major);
 #endif
 	release_em8300(em8300_cards);
 	return -ENODEV;

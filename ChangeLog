@@ -1,3 +1,46 @@
+2001-12-29  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300.sysv.in:
+	fix eeprom module name
+        (from Sergei 'Jin' Bostandjan)
+
+2001-12-28  David Holm  <dholm@iname.com>
+
+	* include/linux/em8300.h,
+	  modules/em8300_ioctl.h:
+	Added the following ioctls
+	  GET_VIDEOMODE
+	  GET_PLAYMODE
+	  GET_SPUMODE
+	Fixed typos
+	  
+	* modules/Makefile:
+	gcc sanity check
+	More intuitive install method by
+	Graeme Gregory <daemonprince@lordpain.uklinux.net>
+	
+	* modules/README-2.4:
+	Removed old install info and added part about
+	devfs support
+	
+	* modules/adv717x.c:
+	Fixed typo
+	
+	* modules/devfs_symlinks:
+	Example /etc/devfs/compat_symlinks for compatibility
+	
+	* modules/em8300_audio.c,
+	  modules/em8300_fifo.c,
+	  modules/em8300_fifo.h:
+	Lots of bugfixes including broken digital audio
+	output by Steven Brookes <stevenjb@mda.co.uk>
+	
+	* modules/em8300_main.c:
+	Added devfs fs support
+	Added proc fs support
+	Fixed multiple card support
+	(I hope, I'm unable to test it)
+	
 2001-12-18  Rick Haines  <rick@kuroyi.net>
 
 	Apply the following from Larice Robert.

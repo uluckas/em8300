@@ -92,12 +92,16 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 			bcs.saturation = em->dicom_saturation;
 			copy_to_user((void *)arg, &bcs, sizeof(em8300_bcs_t));
 		}
-	break;
+		break;
 
 	case _IOC_NR(EM8300_IOCTL_SET_VIDEOMODE):
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
 			get_user(val, (int *)arg);
 			em8300_ioctl_setvideomode(em, val);
+		}
+
+		if (_IOC_DIR(cmd) & _IOC_READ) {
+			copy_to_user((void *) arg, &em->video_mode, sizeof(em->video_mode));
 		}
 		break;
 
@@ -112,6 +116,10 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
 			get_user(val, (int *)arg);
 			em8300_ioctl_setaspectratio(em, val);
+		}
+		
+		if (_IOC_DIR(cmd) & _IOC_READ) {
+			copy_to_user((void *) arg, &em->aspect_ratio, sizeof(em->aspect_ratio));
 		}
 		break;
 
@@ -129,6 +137,10 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
 			get_user(val, (int *)arg);
 			em8300_ioctl_setspumode(em,val);
+		}
+		
+		if (_IOC_DIR(cmd) & _IOC_READ) {
+			copy_to_user((void *) arg, &em->sp_mode, sizeof(em->sp_mode));
 		}
 		break;
 
@@ -196,7 +208,7 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 			attr.value = em9010_get_attribute(em, attr.attribute);
 			copy_to_user((void *)arg, &attr, sizeof(em8300_attribute_t));
 		}
-	break;
+		break;
 
 	case _IOC_NR(EM8300_IOCTL_SCR_GET):
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {

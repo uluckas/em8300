@@ -461,7 +461,7 @@ int adv717x_detach_client(struct i2c_client *client)
 
 int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
 {
-	struct adv717x_data_s *data = client->data ;
+	struct adv717x_data_s *data = client->data;
 
 	switch(cmd) {
 	case ENCODER_CMD_SETMODE:

@@ -54,7 +54,8 @@ struct fifo_s {
 	char *fifobuffer;
 	
 	preprocess_cb_t preprocess_cb;
-	int preprocess_ratio,preprocess_maxbufsize;
+	int preprocess_ratio;
+	char *preprocess_buffer;
 	
 #if LINUX_VERSION_CODE < 0x020314    
 	struct wait_queue *wait;

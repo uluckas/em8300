@@ -57,7 +57,7 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 	f->em = em;
 	f->preprocess_ratio = 1;
 	f->preprocess_cb = NULL;
-	f->preprocess_maxbufsize = -1;
+	f->preprocess_buffer = NULL;
 	
 	f->type = fifotype;
 	
@@ -69,6 +69,9 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 		f->slotptrsize = 3;
 		f->slots.a = (struct audio_fifoslot_s *) ucregister_ptr(start);
 		f->nslots = read_ucregister(pcisize) / 3;
+		f->preprocess_buffer=kmalloc(slotsize, GFP_KERNEL);
+		if (!f->preprocess_buffer)
+			return -ENOMEM;
 		break;
 	case FIFOTYPE_VIDEO:
 		f->slotptrsize = 4;
@@ -126,6 +129,9 @@ void em8300_fifo_free(struct fifo_s *f)
 		if(f->valid && f->fifobuffer) {
 			kfree(f->fifobuffer);
 		}
+		if(f->valid && f->preprocess_buffer) {
+			kfree(f->preprocess_buffer);
+		}
 		kfree(f);
 	}
 }
@@ -147,7 +153,7 @@ int em8300_fifo_check(struct fifo_s *fifo)
 		return -1;
 	}
 
-	freeslots = ((*fifo->readptr - *fifo->writeptr) / fifo->slotptrsize + fifo->nslots - 1) % fifo->nslots;
+	freeslots = em8300_fifo_freeslots(fifo);
 
 	if ((freeslots > fifo->threshold) && fifo->waiting) {
 		fifo->waiting=0;
@@ -182,15 +188,11 @@ int em8300_fifo_write(struct fifo_s *fifo, int n, const char *userbuffer,
 		return -1;
 	}
 	
-	freeslots = ((*fifo->readptr - *fifo->writeptr) / fifo->slotptrsize + fifo->nslots - 1) % fifo->nslots;
+	freeslots = em8300_fifo_freeslots(fifo);
 
 	writeindex = (*fifo->writeptr - fifo->start) / fifo->slotptrsize;
 	for (i=0; i < freeslots && n; i++) {
-		copysize = n < fifo->slotsize / fifo->preprocess_ratio ? n : fifo->slotsize / fifo->preprocess_ratio;
-
-		if ((fifo->preprocess_maxbufsize > 0) && (copysize > fifo->preprocess_maxbufsize)) {
-			copysize = fifo->preprocess_maxbufsize;
-		}
+		copysize = n < fifo->slotsize/fifo->preprocess_ratio ? n : fifo->slotsize/fifo->preprocess_ratio;
 
 		switch (fifo->type) {
 		case FIFOTYPE_AUDIO:

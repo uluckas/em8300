@@ -134,7 +134,9 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
 			       const unsigned char *inbuf_user, int inlength)
 {
 	int i;
-	unsigned char tmpbuf[0x600];
+
+	if (!em->mafifo->preprocess_buffer)
+		return;
 
 #if BYTE_ORDER == BIG_ENDIAN
 	if (em->audio.format == AFMT_S16_BE) {
@@ -143,28 +145,22 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
 	    em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3) {
 #endif
 		for(i=0; i < inlength; i+=2) {
-			get_user(tmpbuf[i+1], inbuf_user++);
-			get_user(tmpbuf[i], inbuf_user++);
+			get_user(em->mafifo->preprocess_buffer[i+1], inbuf_user++);
+			get_user(em->mafifo->preprocess_buffer[i], inbuf_user++);
 		}
 	} else {
-		copy_from_user(tmpbuf, inbuf_user, inlength);
+		copy_from_user(em->mafifo->preprocess_buffer, inbuf_user, inlength);
 	}
 
-	sub_prepare_SPDIF(em,outbuf, tmpbuf, inlength);
+	sub_prepare_SPDIF(em,outbuf, em->mafifo->preprocess_buffer, inlength);
 }
 
 static void setup_mafifo(struct em8300_s *em) {
 	if (em->audio_mode == EM8300_AUDIOMODE_ANALOG) {
 		em->mafifo->preprocess_ratio = ((em->audio.channels == 2) ? 1 : 2);
 		em->mafifo->preprocess_cb = &preprocess_analog;
-#if 0 /* fix 1/2 second delay */
-		em->mafifo->preprocess_maxbufsize = -1;
-#else
-		em->mafifo->preprocess_maxbufsize = 3070;
-#endif
 	} else {
 		em->mafifo->preprocess_ratio = 2;
-		em->mafifo->preprocess_maxbufsize = 0x600;
 		em->mafifo->preprocess_cb = &preprocess_digital;
 	}
 }
@@ -297,6 +293,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	case SNDCTL_DSP_RESET: /* reset device */
 		pr_debug("em8300_audio.o: SNDCTL_DSP_RESET\n");
 		em8300_fifo_sync(em->mafifo);
+		em8300_fifo_sync(em->mvfifo);
 		return 0;
 		break;
 
@@ -391,10 +388,22 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	case SNDCTL_DSP_GETOSPACE:
 	{
 		audio_buf_info buf_info;
-		buf_info.fragments = ((*em->mafifo->readptr - *em->mafifo->writeptr)/em->mafifo->slotptrsize+em->mafifo->nslots-1)%em->mafifo->nslots;
-		buf_info.fragstotal = em->mafifo->nslots;
-		buf_info.fragsize = em->mafifo->slotsize;
-		buf_info.bytes = em->mafifo->nslots*em->mafifo->slotsize;
+		switch(em->audio_mode)
+		{
+			case EM8300_AUDIOMODE_ANALOG:
+				buf_info.fragments=
+					em8300_fifo_freeslots(em->mafifo)-
+					em->mafifo->nslots/2;
+				break;
+			default:
+				buf_info.fragments=
+					em8300_fifo_freeslots(em->mafifo)/2;
+				break;
+		}
+		buf_info.fragments = (buf_info.fragments>0)?buf_info.fragments:0;
+		buf_info.fragstotal = em->mafifo->nslots/2;
+		buf_info.fragsize = em->audio.slotsize;
+		buf_info.bytes = em->mafifo->nslots*em->audio.slotsize/2;
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETOSPACE\n");
 		return copy_to_user((void *)arg, &buf_info, sizeof(audio_buf_info));
 	}
@@ -433,7 +442,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	case SNDCTL_DSP_GETOPTR:
 	{
 		count_info ci;
-		ci.bytes = em->mafifo->bytes - (em8300_audio_calcbuffered(em) / em->mafifo->preprocess_ratio);
+		ci.bytes = em->mafifo->bytes - em8300_audio_calcbuffered(em);
 		if (ci.bytes < 0) ci.bytes = 0;
 		ci.blocks = 0;
 		ci.ptr = 0;
@@ -441,7 +450,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		return copy_to_user((void *)arg, &ci, sizeof(count_info));
 	}
 	case SNDCTL_DSP_GETODELAY:
-		val = em8300_audio_calcbuffered(em) / em->mafifo->preprocess_ratio;
+		val = em8300_audio_calcbuffered(em);
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETODELAY %i\n", val);
 		break;
 #if 0
@@ -572,7 +581,7 @@ int em8300_audio_setup(struct em8300_s *em)
 
 	em->audio.channels = 2;
 	em->audio.format = AFMT_S16_NE;
-	em->audio.slotsize = 0x1000;
+	em->audio.slotsize = em->mafifo->slotsize;
 
 	em->clockgen = em->clockgen_tvmode;
 
@@ -607,9 +616,10 @@ int em8300_audio_calcbuffered(struct em8300_s *em)
 	writeptr = read_ucregister(MA_Wrptr) | (read_ucregister(MA_Wrptr_Hi) << 16);
 	bufsize = read_ucregister(MA_BuffSize) | (read_ucregister(MA_BuffSize_Hi) << 16);
 
-	n = (bufsize+writeptr-readptr) % bufsize;
+	n = ((bufsize+writeptr-readptr) % bufsize);
 
-	return em8300_fifo_calcbuffered(em->mafifo) + n;
+	return em8300_fifo_calcbuffered(em->mafifo)/
+		em->mafifo->preprocess_ratio + n;
 }
 
 int em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
@@ -678,7 +688,7 @@ int em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff
 	
 	diff = vpts - master_vpts;
 	
-	if (my_abs(diff) > 3600) {
+	if (my_abs(diff) > 1500) {
 	        pr_info("em8300_audio.o: resyncing\n");
 		pr_debug("em8300_audio.o: master clock adjust time %d -> %d\n", master_vpts, vpts); 
 		write_ucregister(MV_SCRlo, vpts & 0xffff);

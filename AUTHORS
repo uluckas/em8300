@@ -49,7 +49,17 @@ Contributions (in semi-random order)
   James Farwell <sodorp@hotmail.com>
     additional reverse engineering
 
-  Graeme G. Gregory <dp@gladden-fields.demon.co.uk>
+  David Holm <dholm@iname.com>
+    devfs fs support
+    proc fs support
+    some missing ioctl's
+    cc sanity check
+
+  Graeme G. Gregory <daemonprince@lordpain.uklinux.net>
     dodgy simple Makefile for 2.4.x
+
+  Steven Brookes <stevenjb@mda.co.uk>
+    fixes for GETOSPACE, GETODELAY
+    fixes for broken digital audio code
 
 If you aren't here and should be, send us a diff.

@@ -67,6 +67,10 @@ Contributions (in semi-random order)
   Malcolm Lashley <?>
     em8300setup
 
+  Nicolas Boullis <Nicolas Boullis at free fr>
+    Alpha support
+    integrated the i2c-2.8.0 patch without removing support for older versions
+
   Jon Burgess <mplayer at jburgess dot uklinux dot net>
     Partial SPU lockup fix
 

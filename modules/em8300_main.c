@@ -616,7 +616,8 @@ void __exit em8300_exit(void)
 	int frame;
 #endif
 	char devname[64];
-	
+
+
 	for (card = 0; card < em8300_cards; card++) {
 #ifdef CONFIG_DEVFS_FS
 		for (frame = 3; frame >= 0; frame--) {

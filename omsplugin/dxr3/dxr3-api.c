@@ -145,7 +145,7 @@ int dxr3_audio_set_stereo(int val)
 	if(state.audiomode == DXR3_AUDIOMODE_DIGITALAC3)
 		return -1;
 
-	return ioctl(state.fd_audio,SNDCTL_DSP_STEREO, &val);
+	return ioctl(state.fd_audio, SNDCTL_DSP_STEREO, &val);
 }
 
 int dxr3_audio_set_rate(int rate)
@@ -153,7 +153,7 @@ int dxr3_audio_set_rate(int rate)
 	if(state.audiomode == DXR3_AUDIOMODE_DIGITALAC3)
 		return -1;
 
-	return ioctl(state.fd_audio,SNDCTL_DSP_SPEED, &rate);
+	return ioctl(state.fd_audio, SNDCTL_DSP_SPEED, &rate);
 }
 
 int dxr3_audio_set_samplesize(int val)
@@ -161,12 +161,7 @@ int dxr3_audio_set_samplesize(int val)
 	if(state.audiomode == DXR3_AUDIOMODE_DIGITALAC3)
 		return -1;
 
-	return ioctl(state.fd_audio,SNDCTL_DSP_SAMPLESIZE, &val);
-}
-
-int dxr3_audio_sync(void)
-{
-	return ioctl(state.fd_audio, EM8300_IOCTL_AUDIO_SYNC);
+	return ioctl(state.fd_audio, SNDCTL_DSP_SAMPLESIZE, &val);
 }
 
 /* probably move this to the driver eventually */
@@ -190,6 +185,21 @@ int dxr3_subpic_set_palette(char *palette)
 {
         swab_clut(palette);
 	return ioctl(state.fd_spu, EM8300_IOCTL_SPU_SETPALETTE, palette);
+}
+
+int dxr3_subpic_set_mode(int mode)
+{
+	state.spumode = mode;
+	return ioctl(state.fd_control, EM8300_IOCTL_SET_SPUMODE, &state.spumode);
+}
+
+
+int dxr3_subpic_get_mode(void)
+{
+	return -1;
+#if 0
+        return ioctl(state.fd_control, EM8300_IOCTL_GET_SPUMODE, &state.spumode);
+#endif
 }
 
 int dxr3_video_set_overlaymode(int mode)

@@ -1,5 +1,12 @@
 2001-03-03  Rick Haines  <rick@kuroyi.net>
 
+	* omsplugin/dxr3/em8300.h,
+	  omsplugin/dxr3/dxr3-api.h,
+	  omsplugin/dxr3/dxr3-api.c:
+	update oms plugin
+	
+2001-03-03  Rick Haines  <rick@kuroyi.net>
+
 	* modules/em8300.h,
 	  modules/em8300_audio.c,
 	  modules/em8300_video.c,

@@ -20,6 +20,9 @@
 #define DXR3_OVERLAY_MODE_RECTANGLE EM8300_OVERLAY_MODE_RECTANGLE
 #define DXR3_OVERLAY_MODE_OVERLAY EM8300_OVERLAY_MODE_OVERLAY
 
+#define DXR3_SPU_MODE_OFF EM8300_SPUMODE_OFF
+#define DXR3_SPU_MODE_ON EM8300_SPUMODE_ON
+
 #define DXR3_ASPECTRATIO_3_2 EM8300_ASPECTRATIO_3_2
 #define DXR3_ASPECTRATIO_16_9 EM8300_ASPECTRATIO_16_9
 #define DXR3_ASPECTRATIO_235_1 EM8300_ASPECTRATIO_235_1
@@ -43,6 +46,7 @@ typedef struct
 	
 	int open;
 	int audiomode;
+        int spumode;
 
 	em8300_bcs_t bcs;
 	em8300_bcs_t orig_bcs;
@@ -74,7 +78,6 @@ extern int dxr3_audio_get_mode(void);
 extern int dxr3_audio_set_stereo(int);
 extern int dxr3_audio_set_rate(int);
 extern int dxr3_audio_set_samplesize(int);
-extern int dxr3_audio_sync(void);
 
 // Video related functions
 extern int dxr3_video_set_overlaymode(int);
@@ -85,6 +88,8 @@ extern int dxr3_video_get_bcs(em8300_bcs_t *bcs);
 
 // Subpic related functions
 int dxr3_subpic_set_palette(char *palette);
+int dxr3_subpic_set_mode(int);
+int dxr3_subpic_get_mode(void);
 
 // Play control functions
 extern int dxr3_set_playmode(int);

@@ -57,12 +57,15 @@ typedef struct {
 #define EM8300_IOCTL_OVERLAY_SETSCREEN _IOWR('C',13,em8300_overlay_screen_t)
 #define EM8300_IOCTL_OVERLAY_GET_ATTRIBUTE _IOR('C',14,em8300_attribute_t)
 #define EM8300_IOCTL_OVERLAY_SET_ATTRIBUTE _IOW('C',14,em8300_attribute_t)
+#define EM8300_IOCTL_OVERLAY_SIGNALMODE _IOW('C',15,em8300_attribute_t)
+ 
+#define EM8300_OVERLAY_SIGNAL_ONLY 1
+#define EM8300_OVERLAY_SIGNAL_WITH_VGA 2
 
 #define EM8300_IOCTL_VIDEO_SETPTS 1
 #define EM8300_IOCTL_SPU_SETPTS 1
 #define EM8300_IOCTL_SPU_SETPALETTE 2
-#define EM8300_IOCTL_AUDIO_SETPTS _SIOWR('P', 31, int)
-#define EM8300_IOCTL_AUDIO_SYNC _SIO('P', 30)
+#define EM8300_IOCTL_AUDIO_SETPTS _SIOWR('P', 30, int)
 
 #define EM8300_ASPECTRATIO_3_2 0
 #define EM8300_ASPECTRATIO_16_9 1
@@ -153,10 +156,6 @@ typedef struct {
 #define IRQSTATUS_VIDEO_VBL 0x10
 #define IRQSTATUS_VIDEO_FIFO 0x2
 #define IRQSTATUS_AUDIO_FIFO 0x8
-
-#define AUDIO_SYNC_INACTIVE 0
-#define AUDIO_SYNC_REQUESTED 1
-#define AUDIO_SYNC_INPROGRESS 2 
 
 #define ENCODER_ADV7175 1 
 #define ENCODER_ADV7170 2
@@ -279,23 +278,22 @@ struct em8300_s
     int audio_mode;
     int swapbytes;
     int stereo;
-    int audio_ptsvalid;
-    int audio_pts;
     int audio_rate;
-    int audio_lag;
-    int audio_autosync;
-    int audio_sync,audio_syncpts;
-    int audio_first;
+    int audio_ptsvalid;
+    uint32_t audio_pts;
+    uint32_t audio_lastpts;
+    uint32_t audio_lag;
+    uint32_t last_calcbuf;
     int dword_DB4;
     unsigned char byte_D90[24];
 
     /* Video */
     int video_mode;
     int video_playmode;
-    int videodelay;
-    int max_videodelay;
     int aspect_ratio;
-    int video_pts,video_ptsvalid,video_offset,video_count;
+    uint32_t video_pts;
+    uint32_t video_lastpts;
+    int video_ptsvalid,video_offset,video_count;
     int video_ptsfifo_ptr;
 #if LINUX_VERSION_CODE < 0x020314    
     struct wait_queue *video_ptsfifo_wait;
@@ -417,6 +415,7 @@ int em8300_ioctl_overlay_calibrate(struct em8300_s *em, em8300_overlay_calibrate
 int em8300_ioctl_overlay_setwindow(struct em8300_s *em,em8300_overlay_window_t *w);
 int em8300_ioctl_overlay_setscreen(struct em8300_s *em,em8300_overlay_screen_t *s);
 int em8300_ioctl_overlay_setmode(struct em8300_s *em,int val);
+int em8300_ioctl_overlay_signalmode(struct em8300_s *em,int val);
 
 /* em9010.c */
 int em9010_cabledetect(struct em8300_s *em);

@@ -19,7 +19,7 @@ $oepin = 0x3c3c;
 $pin = 0x1c;
 $DATA = 0x8;
 $CLK = 0x10;
-$CLK2 = 0x4;
+$CLK2 = 0x2;
 
 while(<>) {
   if(/Write/ && /register 0x1f4[de]/) {

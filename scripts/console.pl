@@ -305,6 +305,61 @@ sub reset {
   write_register(0x1f4d,0x0808);
 }  
 
+
+sub sub_23660 {
+  local($arg1,$arg2)=@_;
+  I2C_clk(0);
+  I2C_out($arg1,8);
+  I2C_data($arg2);  
+  I2C_clk(1);
+}
+
+sub sub_236f0 {
+  local($arg1,$arg2,$arg3)=@_;
+  I2C_clk(1);
+  I2C_data(1);
+  I2C_clk(0);
+  I2C_data(1);
+  I2C_clk(1);
+  I2C_clk(0);
+
+  sub_23660(1,$arg2);
+
+  sub_23660($arg1,$arg3);
+}
+
+sub sub_237e0 {
+  local($arg1,$arg2,$arg3)=@_;
+  sub_236f0($arg1,1,0);
+  sub_23660($arg2,1);
+}
+
+sub myst_in {
+  my $bits = shift;
+  my $data;
+  
+  for(my $i=$bits-1; $i >= 0; $i--) {
+    $data |= I2C_read_data() << $i;
+    I2C_clk(0);
+    I2C_clk(1);
+  }
+  return $data;
+}
+
+sub sub_23780 {
+  local($arg1)=@_;
+
+  sub_236f0($arg1,0,0);
+  I2C_drivedata(0);
+  my $val = myst_in(8);
+  I2C_drivedata(1);
+  I2C_clk(0);
+  I2C_data(1);
+  I2C_clk(1);
+  return $val;
+  
+}
+
 sub usage {
   print "Valid Commands:\n\n";
   print "w <REGISTER> <VALUE>\tWrite to register. REGISTER\n\t\t\tis either a hexadecimal number or\n\t\t\ta symbolic register name. \n\t\t\tExample: w mv_command 3\n"; 
@@ -319,6 +374,15 @@ print "\n";
 }
 
 em8300_open;
+
+#&reset;
+write_register(0x1f4d,0x3c3c);
+write_register(0x1f4e,0x3c00);
+write_register(0x1f4e,0x3c3c);
+
+$useclk=1;
+I2C_data(1);
+I2C_clk(1);
 
 STDOUT->autoflush(1);
 
@@ -341,7 +405,21 @@ while(<>) {
       }
     /e;
   } 
-  elsif(/^r /) {
+  elsif(/^win [0-9]+ [0-9]+ [0-9]+ [0-9]+/) {
+    s/^win ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+)/
+      $width=$1;$height=$2;
+      $xpos=$3;$ypos=$4;
+    /e;    
+    em8300_write($microcode_registers{dicom_frametop}, $ypos,1);
+    em8300_write($microcode_registers{dicom_visibletop}, $ypos,1);
+    em8300_write($microcode_registers{dicom_frameleft}, $xpos,1);
+    em8300_write($microcode_registers{dicom_visibleleft}, $xpos,1);
+    em8300_write($microcode_registers{dicom_frameright}, $xpos+$width,1);
+    em8300_write($microcode_registers{dicom_visibleright}, $xpos+$width,1); 
+    em8300_write($microcode_registers{dicom_framebottom}, $ypos+$height,1);
+    em8300_write($microcode_registers{dicom_visiblebottom}, $ypos+$height,1); 
+    em8300_write($microcode_registers{dicom_updateflag}, 1,1); 
+ } elsif(/^r /) {
     s/r 0x([0-9a-f]+)/ printf ("0x%x\n",em8300_read(hex($1),0));/e;
     s/r (\w+)/ 
       if($microcode_registers{$1} ne '') {
@@ -388,6 +466,10 @@ while(<>) {
       $reg = em8300_getregister($microcode_registers{$r},1);
       print sprintf("%-20s (0x%04x): 0x%04x",$r,$reg,$val), "\n";
     }
+  } elsif(/^ow [0-9a-f]+ [0-9a-f]+/) {
+    s/^ow ([0-9a-f]+) ([0-9a-f]+)/sub_237e0(hex($1),hex($2))/e;
+  } elsif(/^or [0-9a-f]+/) {
+    s/^or ([0-9a-f]+)/printf "%02x\n",sub_23780($1)/e;
   } elsif(/^x/) {
     
     $displaybuffer=em8300_read($microcode_registers{dicom_displaybuffer},1) + 0x1000;

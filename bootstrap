@@ -2,5 +2,6 @@ aclocal -I autotools
 libtoolize --force --copy
 autoheader
 automake --gnu --add-missing --copy
+automake --gnu em8300setup/Makefile
 autoconf
 rm -f config.cache

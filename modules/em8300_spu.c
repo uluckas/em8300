@@ -40,6 +40,26 @@ int em8300_spu_setpalette(struct em8300_s *em, unsigned *pal)
 	return 0;
 }
 
+int em8300_spu_button(struct em8300_s *em, em8300_button_t *btn)
+{
+	write_ucregister(SP_Command, 0x2);
+	
+	if (btn == 0) /* btn = 0 means release button */
+		return 0;
+
+	write_ucregister(Button_Color,    btn->color);
+	write_ucregister(Button_Contrast, btn->contrast);
+	write_ucregister(Button_Top,      btn->top);
+	write_ucregister(Button_Bottom,   btn->bottom);
+	write_ucregister(Button_Left,     btn->left);
+	write_ucregister(Button_Right,    btn->right);
+
+	write_ucregister(DICOM_UpdateFlag, 1);
+	write_ucregister(SP_Command, 0x102);
+
+	return 0;
+}
+
 void em8300_spu_check_ptsfifo(struct em8300_s *em)
 {
 	int ptsfifoptr;
@@ -104,6 +124,19 @@ int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 		}
 		copy_from_user(clu,(void *)arg, 16*4);
 		em8300_spu_setpalette(em, clu);
+		break;
+	case EM8300_IOCTL_SPU_BUTTON:
+		{
+			em8300_button_t btn;
+			if (arg == 0) {
+				em8300_spu_button(em, 0);
+				break;
+			}
+			if ((err = verify_area(VERIFY_READ, (void *)arg, sizeof(btn)) < 0))
+				return err;
+			copy_from_user(&btn, (void*) arg, sizeof(btn));
+			em8300_spu_button(em, &btn);
+		}
 		break;
 	default:
 		return -EINVAL;

@@ -40,6 +40,15 @@ typedef struct {
 	int value;
 } em8300_attribute_t;
 
+typedef struct {
+	int color;
+	int contrast;
+	int top;
+	int bottom;
+	int left;
+	int right;
+} em8300_button_t;
+
 #define MAX_UCODE_REGISTER 110
 
 #define EM8300_IOCTL_INIT       _IOW('C',0,em8300_microcode_t)
@@ -77,6 +86,7 @@ typedef struct {
 
 #define EM8300_IOCTL_SPU_SETPTS 1
 #define EM8300_IOCTL_SPU_SETPALETTE 2
+#define EM8300_IOCTL_SPU_BUTTON 3
 
 #define EM8300_IOCTL_AUDIO_SETPTS _SIOWR('P', 30, int)
 

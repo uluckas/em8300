@@ -1,5 +1,12 @@
 2001-08-13  Rick Haines  <rick@kuroyi.net>
 
+	* modules/em8300_spu.c,
+	  include/linux/em8300.h:
+	Eduard added EM8300_IOCTL_SET_BUTTON ioctl for
+	menu support
+
+2001-08-13  Rick Haines  <rick@kuroyi.net>
+
 	* debian/*:
 	  updates
 

@@ -238,7 +238,6 @@ int em8300_fifo_write(struct fifo_s *fifo, int n, const char *userbuffer, int fl
 int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *userbuffer, int flags)
 {
 	int total_bytes_written = 0, copy_size;
-	unsigned int safe_jiff = jiffies;
 
 	if (!fifo->valid) {
 		return -EPERM;
@@ -257,19 +256,34 @@ int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *use
 		total_bytes_written += copy_size;
 
 		if (!copy_size) {
-			//printk("Fifo Full %p\n", fifo);
-			interruptible_sleep_on_timeout(&fifo->wait, HZ);
-			if time_after_eq(jiffies, safe_jiff + HZ) {
-				printk("Fifo still full, trying stop %p\n", fifo);
-				em8300_video_setplaymode(fifo->em, EM8300_PLAYMODE_STOPPED);
-				em8300_video_setplaymode(fifo->em, EM8300_PLAYMODE_PLAY);
+			struct em8300_s *em = fifo->em;
+			int running = 1;
 
-				safe_jiff = jiffies;
-				interruptible_sleep_on_timeout(&fifo->wait, 3 * HZ);
-				if time_after_eq(jiffies, safe_jiff + (3 * HZ)) {
-					printk(KERN_ERR "em8300.o: FIFO sync timeout during blocking write, n = %d, copy_size = %d, total = %d, free slots = %d\n", n, copy_size, total_bytes_written, em8300_fifo_freeslots(fifo));
-					return -EINTR;
+			//printk("Fifo Full %p\n", fifo);
+
+			running = (running && (read_ucregister(MV_SCRSpeed) > 0));
+			running = (running && (em->video_playmode == EM8300_PLAYMODE_PLAY));
+			/* FIXME: are these all conditions for a running DMA engine? */
+
+			if (running) {
+				interruptible_sleep_on_timeout(&fifo->wait, HZ);
+				if (!em8300_fifo_freeslots(fifo)) {
+					printk("Fifo still full, trying stop %p\n", fifo);
+					em8300_video_setplaymode(em, EM8300_PLAYMODE_STOPPED);
+					em8300_video_setplaymode(em, EM8300_PLAYMODE_PLAY);
+
+					interruptible_sleep_on_timeout(&fifo->wait, 3 * HZ);
+					if (!em8300_fifo_freeslots(fifo)) {
+						printk(KERN_ERR "em8300.o: FIFO sync timeout during blocking write, n = %d, copy_size = %d, total = %d, free slots = %d\n", n, copy_size, total_bytes_written, em8300_fifo_freeslots(fifo));
+						if (total_bytes_written) {
+							return total_bytes_written;
+						} else {
+							return -EINTR;
+						}
+					}
 				}
+			} else {
+				interruptible_sleep_on(&fifo->wait);
 			}
 		}
 

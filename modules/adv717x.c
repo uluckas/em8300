@@ -565,8 +565,8 @@ int __init adv717x_init(void)
 	PAL60_config_7175[7] = (PAL60_config_7175[7] & ~0x40) | pp_pal;
 	NTSC_config_7175[7] = (NTSC_config_7175[7] & ~0x40) | pp_ntsc;
 
-	PAL_config_7170[12] = (PAL_config_7170[12] & ~0xC0) | pd_adj_pal;
-	NTSC_config_7170[12] = (NTSC_config_7170[12] & ~0xC0) | pd_adj_ntsc;
+	PAL_config_7170[8] = (PAL_config_7170[8] & ~0xC0) | pd_adj_pal;
+	NTSC_config_7170[8] = (NTSC_config_7170[8] & ~0xC0) | pd_adj_ntsc;
 	PAL_M_config_7175[12] = (PAL_M_config_7175[12] & ~0xC0) | pd_adj_pal;
 	PAL_config_7175[12] = (PAL_config_7175[12] & ~0xC0) | pd_adj_pal;
 	PAL60_config_7175[12] = (PAL60_config_7175[12] & ~0xC0) | pd_adj_pal;

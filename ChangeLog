@@ -1,3 +1,10 @@
+2002-01-08  Rick Haines  <rick@kuroyi.net>
+
+        * modules/adv717x.c:
+        Apply a patch from Dofri Jonsson <imp at hell dot is>.
+        We were using the wrong index when applying
+        pixelport_adjust_pal on the ADV7170
+
 2003-11-22  David Holm  <dholm@gentoo.org>
 	* modules/adv717x.c,
 	  modules/bt865.c,

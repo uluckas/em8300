@@ -18,8 +18,6 @@
 
 dxr3_state_t state = { -1,-1,-1,-1,0,0 };
 
-static int _dxr3_install_microcode (char *ucode);
-
 extern int output_spdif (uint8_t *data_start, uint8_t *data_end, int fd);
 
 int dxr3_open(char *devname, char *ucodefile)
@@ -37,12 +35,6 @@ int dxr3_open(char *devname, char *ucodefile)
 		return -1;
 	}
     
-	// Upload microcode
-	if(_dxr3_install_microcode(ucodefile)) {
-		fprintf(stderr,"Microcode upload failed.\n");
-		return -1;
-	}
-	
 	// open video device
 	snprintf (tmpstr, sizeof(tmpstr), "%s_mv", devname);
 	if ((state.fd_video = open (tmpstr, O_WRONLY)) < 0) {
@@ -309,33 +301,4 @@ int dxr3_video_set_overlay_signalmode(int mode)
 int dxr3_set_playmode(int playmode)
 {
 	return ioctl(state.fd_control, EM8300_IOCTL_SET_PLAYMODE,&playmode);
-}
-
-static int _dxr3_install_microcode (char *ucode)
-{
-	int uCodeFD;
-	int uCodeSize;
-	em8300_microcode_t uCode;
-	
-	fprintf(stderr,"In install firmware\n");
-	
-	if ((uCodeFD = open (ucode, O_RDONLY)) < 0) {
-		perror (ucode);
-		return -1;
-	}
-	uCodeSize = lseek (uCodeFD, 0, SEEK_END);
-	if ((uCode.ucode = (void*) malloc (uCodeSize)) == NULL) {
-		perror ("malloc");
-		return -1;
-	}
-	lseek(uCodeFD, 0, SEEK_SET);
-	if (read (uCodeFD, uCode.ucode, uCodeSize) != uCodeSize) {
-		perror (ucode);
-		return -1;
-	}
-	close (uCodeFD);
-	uCode.ucode_size = uCodeSize;
-	
-	// upload ucode
-	return ioctl(state.fd_control, EM8300_IOCTL_INIT, &uCode);
 }

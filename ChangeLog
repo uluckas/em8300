@@ -1,5 +1,12 @@
 2001-06-13  Rick Haines  <rick@kuroyi.net>
 
+	* libdxr3/dxr3-api.c
+	remove microcode uploading from libdxr3
+	You must now manually upload the microcode before
+	using the device (post-install in /etc/modules.conf)
+	
+2001-06-13  Rick Haines  <rick@kuroyi.net>
+
 	* modules/Makefile,
 	  modules/Makefile.2.2,
 	  modules/README-2.2,

@@ -74,10 +74,10 @@ OPTIONAL:
 If you wish to do this by hand the following set of commands
 will create the basic set of device nodes.
 
-mknod /dev/em8300    c 121 0
-mknod /dev/em8300_mv c 121 1
-mknod /dev/em8300_ma c 121 2
-mknod /dev/em8300_sp c 121 3
+mknod /dev/em8300-0    c 121 0
+mknod /dev/em8300_mv-0 c 121 1
+mknod /dev/em8300_ma-0 c 121 2
+mknod /dev/em8300_sp-0 c 121 3
 
 You will probably want to set these so that a normal user can
 read/write them

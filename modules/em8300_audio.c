@@ -202,19 +202,15 @@ static int set_speed(struct em8300_s *em, int speed)
 	switch (speed) {
 	case 48000:
 		em->clockgen |= CLOCKGEN_SAMPFREQ_48;
-		speed = 48000;
 		break;
 	case 44100:
 		em->clockgen |= CLOCKGEN_SAMPFREQ_44;
-		speed = 44100;
 		break;
 	case 66000:
 		em->clockgen |= CLOCKGEN_SAMPFREQ_66;
-		speed = 66000;
 		break;
 	case 32000:
 		em->clockgen |= CLOCKGEN_SAMPFREQ_32;
-		speed = 32000;
 		break;
 	default:
 		em->clockgen |= CLOCKGEN_SAMPFREQ_48;
@@ -244,20 +240,29 @@ static int set_format(struct em8300_s *em, int fmt)
 #ifdef AFMT_AC3
 		case AFMT_AC3:
 			if (em->audio_mode != EM8300_AUDIOMODE_DIGITALAC3)
+            {
+			    set_speed(em, 48000);
 				set_audiomode(em, EM8300_AUDIOMODE_DIGITALAC3);
-			set_speed(em, 48000);
+                setup_mafifo(em);
+            }
 			em->audio.format = fmt;
 			break;
 #endif
 		case AFMT_S16_BE:
 		case AFMT_S16_LE:
 			if (em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3)
+            {
 				set_audiomode(em, em->pcm_mode);
+                setup_mafifo(em);
+            }
 			em->audio.format = fmt;
 			break;
 		default:
 			if (em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3)
+            {
 				set_audiomode(em, em->pcm_mode);
+                setup_mafifo(em);
+            }
 			fmt = AFMT_S16_BE;
 			break;
 		}
@@ -598,8 +603,8 @@ int em8300_audio_calcbuffered(struct em8300_s *em)
 
 	n = ((bufsize+writeptr-readptr) % bufsize);
 
-	return em8300_fifo_calcbuffered(em->mafifo) /
-		em->mafifo->preprocess_ratio + n;
+	return (em8300_fifo_calcbuffered(em->mafifo) + n) /
+		em->mafifo->preprocess_ratio;
 }
 
 int em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)

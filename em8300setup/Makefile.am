@@ -7,6 +7,8 @@ noinst_HEADERS =
 
 em8300setup_SOURCES = em8300setup.c
 
+EXTRA_DIST = $(man_MANS)
+
 debug:
 	$(MAKE) CFLAGS="$(DEBUG_CFLAGS)"
 

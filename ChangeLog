@@ -1,3 +1,18 @@
+2001-06-26  Rick Haines  <rick@kuroyi.net>
+
+	* scripts/microcode_upload.pl:
+	Remove the error message when it can't open a device.
+	You'll know it failed if you don't get success message(s).
+
+	* modules/Makefile
+	Add debug target (almost left VIDEOMODE_DEFAULT set to NTSC :)
+	I'm considering a nice way to add pal and ntsc targets as well.
+	
+	* modules/bt865.c,
+	  modules/adv717x.c:
+	Patch from cch to add color_bars module option to turn on
+	color bars when the modules load.
+	
 2001-06-23  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_ioctl.c:

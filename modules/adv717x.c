@@ -59,6 +59,9 @@ MODULE_PARM(pixelport_other_pal, "i");
 
 int swap_redblue_pal = 0;
 MODULE_PARM(swap_redblue_pal, "i");
+
+static int color_bars = 0;
+MODULE_PARM(color_bars, "i");
 #endif
 
 #define i2c_is_isa_client(clientptr) \
@@ -499,6 +502,7 @@ int adv717x_init(void)
 	int pp_ntsc;
 	int pp_pal;
 	int rb_pal;
+	int bars;
 
 	if (pixelport_16bit) {
 		pp_ntsc = pp_pal = 0x40;
@@ -518,8 +522,15 @@ int adv717x_init(void)
 		rb_pal = 0x70;
 	}
 
+	if( color_bars ) {
+		bars = 0x80;
+	} else {
+		bars = 0x00;
+	}
+
 	pr_debug("adv717x.o: pixelport_16bit: %d\n", pixelport_16bit);
 	pr_debug("adv717x.o: pixelport_other_pal: %d\n", pixelport_other_pal);
+	pr_debug("adv717x.o: color_bars: %d\n", color_bars);
 
 	PAL_config_7170[7] = (PAL_config_7170[7] & ~0x40) | pp_pal;
 	NTSC_config_7170[7] = (NTSC_config_7170[7] & ~0x40) | pp_ntsc;
@@ -530,6 +541,13 @@ int adv717x_init(void)
 
 	PAL_config_7175[12] = (PAL_config_7175[12] & ~0xF0) | rb_pal;
 	PAL60_config_7175[12] = (PAL60_config_7175[12] & ~0xF0) | rb_pal;
+
+	PAL_config_7170[1] = (PAL_config_7170[1] & ~0x80) | bars;
+	NTSC_config_7170[1] = (NTSC_config_7170[1] & ~0x80) | bars;
+	PAL_M_config_7175[1] = (PAL_M_config_7175[1] & ~0x80) | bars;
+	PAL_config_7175[1] = (PAL_config_7175[1] & ~0x80) | bars;
+	PAL60_config_7175[1] = (PAL60_config_7175[1] & ~0x80) | bars;
+	NTSC_config_7175[1] = (NTSC_config_7175[1] & ~0x80) | bars;
 
 	return i2c_add_driver(&adv717x_driver);
 }

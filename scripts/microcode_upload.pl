@@ -38,7 +38,7 @@ close UCODE;
 
 # Open device
 foreach (@devs){
-	open (DEV,"<$_") or die("Can't open $_");
+	open (DEV,"<$_") or exit(0);
 	
 # Prepare ioctl
 $initparams = pack("PI", $ucode, length($ucode));

@@ -48,6 +48,11 @@
 
 #include "encoder.h"
 
+#ifdef MODULE
+static int color_bars = 0;
+MODULE_PARM(color_bars, "i");
+#endif
+
 #define i2c_is_isa_client(clientptr) \
 		((clientptr)->adapter->algo->id == I2C_ALGO_ISA)
 #define i2c_is_isa_adapter(adapptr) \
@@ -447,7 +452,7 @@ static unsigned char NTSC_CONFIG_BT865[ 48 ] = {
 /* 19 C6 */	0x00,	// HSYNCF[7:0]
 /* 20 C8 */	0x00,	// HSYNCR[7:0]
 /* 21 CA */	0x00,	// SYNCDLY FIELD1 SYNCDIS ADJHSYNC HSYNCF[9:8] HSYNCR[9:8]
-/* 22 CC */	0x80,	// SETMODE SETUPDIS VIDFORM[3:0] NONINTL SQUARE
+/* 22 CC */	0x00,	// SETMODE SETUPDIS VIDFORM[3:0] NONINTL SQUARE
 /* 23 CE */	0x00,	// ESTATUS RGBO DCHROMA ECBAR SCRESET EVBI EACTIVE ECLIP
 /* 24 D0 */	0x00,	// RSRVD[6:0] PALN
 /* 25 D2 */	0x00,	// RSRVD[7:0]
@@ -974,6 +979,23 @@ int init_module(void)
 int bt865_init(void)
 #endif
 {
+	int bars;
+	
+        if( color_bars ) {
+		bars = 0x10;
+	} else {
+		bars = 0x00;
+        }
+	
+	pr_debug("bt865.o: color_bars: %d\n", color_bars);
+	
+	NTSC_CONFIG_BT865  [ 23 ] = ( NTSC_CONFIG_BT865  [ 23 ] & ~0x10) | bars;
+	NTSC60_CONFIG_BT865[ 23 ] = ( NTSC60_CONFIG_BT865[ 23 ] & ~0x10) | bars;
+	PALM_CONFIG_BT865  [ 23 ] = ( PALM_CONFIG_BT865  [ 23 ] & ~0x10) | bars;
+	PALM60_CONFIG_BT865[ 23 ] = ( PALM60_CONFIG_BT865[ 23 ] & ~0x10) | bars;
+	PAL_CONFIG_BT865   [ 23 ] = ( PAL_CONFIG_BT865   [ 23 ] & ~0x10) | bars;
+	PALNC_CONFIG_BT865 [ 23 ] = ( PALNC_CONFIG_BT865 [ 23 ] & ~0x10) | bars;
+
 	return i2c_add_driver(&bt865_driver);
 }
 

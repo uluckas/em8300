@@ -20,13 +20,16 @@ EM8300_OBJS = em8300_main.o em8300_i2c.o em8300_audio.o em8300_fifo.o \
 MODVERS=$(shell cat $(KERNEL_LOCATION)/include/config/modversions.h | cut -d " " -f 3)
 KERNVER=$(shell cat $(KERNEL_LOCATION)/include/linux/version.h | grep "UTS" | sed -e 's/.*"\(.*\)"/\1/')
  
-CFLAGS=-D__KERNEL__ -DMODULE -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer $(EXTRA_CFLAGS)
+CFLAGS=-D__KERNEL__ -DMODULE $(EM8300_DEBUG) -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer $(EXTRA_CFLAGS)
 
 ifeq "$(MODVERS)" "1"
 	CFLAGS+=-DMODVERSIONS -include $(KERNEL_LOCATION)/include/linux/modversions.h
 endif
 
 all : $(MODULES)
+
+debug :
+	EM8300_DEBUG="-DDEBUG" make
 
 em8300.o : $(EM8300_OBJS)
 	$(LD) $(EXTRA_LDFLAGS) -r -o $@ $(EM8300_OBJS)

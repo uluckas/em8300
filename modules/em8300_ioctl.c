@@ -345,10 +345,6 @@ int em8300_ioctl_setvideomode(struct em8300_s *em, int mode)
 
 	em8300_dicom_disable(em);
 
-	/* reenable tv mode */
-	em9010_write(em, 7, 0x80);
-	em9010_write(em, 9, 0);
-
 	if (em->encoder) {
 		em->encoder->driver->command(em->encoder, ENCODER_CMD_SETMODE, (void *)encoder);
 	}

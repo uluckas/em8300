@@ -1,3 +1,8 @@
+2001-08-18  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_ioctl.c (em8300_ioctl_setvideomode):
+	reenable tv mode code no longer necessary here
+	
 2001-08-17  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_ioctl.c,

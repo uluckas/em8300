@@ -1,3 +1,9 @@
+2001-03-21  Rick Haines  <rick@kuroyi.net>
+
+	* dhc/*
+	rescue dhc from zeev01 branch since people
+	still find it useful.  Updated it a bit.
+	
 2001-03-17  Rick Haines  <rick@kuroyi.net>
 
 	* scripts/microcode_extract.pl,

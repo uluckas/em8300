@@ -168,3 +168,8 @@ void em8300_dicom_enable(struct em8300_s *em)
     em->dicom_tvout=0x4001;
     write_ucregister(DICOM_TvOut, em->dicom_tvout);
 }
+
+void em8300_dicom_init(struct em8300_s *em)
+{
+    em8300_dicom_disable(em);
+}

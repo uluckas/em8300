@@ -21,8 +21,6 @@ EM8300_OBJS = em8300_main.o em8300_i2c.o em8300_audio.o em8300_fifo.o \
 	   em8300_video.o em8300_misc.o em8300_dicom.o em8300_ucode.o \
 	   em8300_ioctl.o em8300_spu.o em9010.o
 
-DEVFSD_CONF=$(shell find /etc -iname devfsd.conf)
-
 MODVERS=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep "CONFIG_MODVERSIONS" | cut -d " " -f 3)
 KERNVER=$(shell cat $(KERNEL_LOCATION)/include/linux/version.h | grep "UTS" | sed -e 's/.*"\(.*\)"/\1/')
 

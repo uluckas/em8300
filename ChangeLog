@@ -1,3 +1,14 @@
+2001-05-10  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_ioctl.c (em8300_control_ioctl):
+	add ov_scr and ov_cal to fix some type casting errors
+
+	* libdxr3/ac3spdif.c (output_spdif):
+	comment out the swab for ac3 data, this should fix digitalac3
+
+	* modules/em8300_spu.c (em8300_spu_check_ptsfifo):
+	merge disappearing subtitle patch from Eduard Hasenleithner
+	
 2001-04-23  Rick Haines  <rick@kuroyi.net>
 
 	* modules/*:

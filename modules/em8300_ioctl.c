@@ -28,6 +28,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 	int val, len, err;
 	em8300_bcs_t bcs;
 	em8300_overlay_window_t ov_win;
+	em8300_overlay_screen_t ov_scr;
+	em8300_overlay_calibrate_t ov_cal;
 	em8300_attribute_t attr;
 	
 	if (_IOC_DIR(cmd) != 0) {
@@ -165,26 +167,26 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 
 	case _IOC_NR(EM8300_IOCTL_OVERLAY_SETSCREEN):
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
-			copy_from_user(&ov_win, (void *)arg, sizeof(em8300_overlay_screen_t));
-			if (!em8300_ioctl_overlay_setscreen(em, &ov_win)) {
+			copy_from_user(&ov_scr, (void *)arg, sizeof(em8300_overlay_screen_t));
+			if (!em8300_ioctl_overlay_setscreen(em, &ov_scr)) {
 				return -EINVAL;
 			}
 		}
 		if (_IOC_DIR(cmd) & _IOC_READ) {
-			copy_to_user((void *)arg, &ov_win, sizeof(em8300_overlay_screen_t));
+			copy_to_user((void *)arg, &ov_scr, sizeof(em8300_overlay_screen_t));
 		}
 	break;
 
 	case _IOC_NR(EM8300_IOCTL_OVERLAY_CALIBRATE):
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
-			copy_from_user(&ov_win, (void *)arg, sizeof(em8300_overlay_calibrate_t));
-			if(!em8300_ioctl_overlay_calibrate(em, &ov_win)) {
+			copy_from_user(&ov_cal, (void *)arg, sizeof(em8300_overlay_calibrate_t));
+			if(!em8300_ioctl_overlay_calibrate(em, &ov_cal)) {
 				return -EIO;
 			}
 		}
 	
 		if (_IOC_DIR(cmd) & _IOC_READ) {
-			copy_to_user((void *)arg, &ov_win, sizeof(em8300_overlay_calibrate_t));
+			copy_to_user((void *)arg, &ov_cal, sizeof(em8300_overlay_calibrate_t));
 		}
 	break;
 

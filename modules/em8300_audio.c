@@ -34,6 +34,7 @@ __inline__ uint32_t my_abs(int32_t v) {
 *  local3 = "i" = for loop counter.
 *  Need unsigned everywhere, otherwise get into trouble with signed shift rights!
 */
+
 void sub_prepare_SPDIF(struct em8300_s *em, unsigned char *outblock, unsigned char *inblock, unsigned int inlength)
 {
 	// 	ebp-4 = local1 = in	ebp-8 = local2
@@ -123,7 +124,7 @@ static void preprocess_analog(struct em8300_s *em, unsigned char *outbuf, const 
 }
 
 static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
-				 const unsigned char *inbuf_user, int inlength)
+			       const unsigned char *inbuf_user, int inlength)
 {
 	int i;
 	unsigned char tmpbuf[0x600];

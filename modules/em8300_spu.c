@@ -45,11 +45,11 @@ void em8300_spu_check_ptsfifo(struct em8300_s *em)
 	int ptsfifoptr;
 	
 	if (em->sp_ptsfifo_waiting) {
-		em->sp_ptsfifo_waiting=0;
 
 		ptsfifoptr = ucregister(SP_PTSFifo) + 2*em->sp_ptsfifo_ptr;
 
 		if (!(read_register(ptsfifoptr+1) & 1)) {
+		        em->sp_ptsfifo_waiting=0;
 			wake_up_interruptible(&em->sp_ptsfifo_wait);
 		}
 	}

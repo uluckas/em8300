@@ -1,3 +1,9 @@
+2002-10-20  David Holm  <david@realityrift.com>
+	* modules/em8300_ioctl.c:
+	Fixed a bug that would cause a kernel oops if you tried
+	to change the em8300 settings without the microcode
+	loaded.
+
 2002-05-03  David Holm  <dholm@telia.com>
 	* modules/em8300_audio.c:
 	Hopefully fixed a bug which would leave data in the audio

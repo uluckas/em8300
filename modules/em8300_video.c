@@ -106,9 +106,10 @@ int em8300_video_sync(struct em8300_s *em)
 
 int em8300_video_flush(struct em8300_s *em)
 {
-	*em->mvfifo->writeptr = *em->mvfifo->readptr;
+	*em->mvfifo->readptr = *em->mvfifo->writeptr;
 	em->mvfifo->waiting = 0;
 	em->video_ptsvalid = 0;
+	em->video_pts = 0;
 	return 0;
 }
 

@@ -1,3 +1,7 @@
+2003-07-28  David Holm  <david@realityrift.com>
+	* configure.in:
+	Fixed version. Spotted by Volker Moell.
+
 2003-07-25  David Holm  <david@realityrift.com>
 	* modules/adv717x.c,
 	  modules/bt865.c,

@@ -48,7 +48,9 @@ struct fifo_s {
 	int *readptr;
 	int localreadptr;
 	int threshold;
-	
+
+	int bytes;
+
 	char *fifobuffer;
 	
 	preprocess_cb_t preprocess_cb;

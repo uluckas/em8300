@@ -117,10 +117,14 @@ int sub_40137(struct em8300_s *em)
 		}
 		local6 = local7 =  eax >> 7;
 	}
+#if 0
 	if (em->encoder_type != ENCODER_BT865) {
+#endif
 		write_ucregister(DICOM_BCSLuma, (local1 << 8) | (local4 & 0xff));
 		write_ucregister(DICOM_BCSChroma, local7 << 8 | local6);
+#if 0
 	}
+#endif
 
 	return 1;
 }
@@ -191,12 +195,16 @@ int em8300_dicom_update(struct em8300_s *em)
 
 		if (em->encoder_type == ENCODER_BT865) {
 			write_register(0x1f47, 0x0);
-			write_register(EM8300_HSYNC_LO, 62);
-			write_register(EM8300_HSYNC_HI, 796);
-			if( vmode_ntsc ) {
-				write_register(EM8300_VSYNC_HI, 0x100);
+			if (em->video_mode == EM8300_VIDEOMODE_NTSC) {
+				write_register(EM8300_HSYNC_LO, 145);
+				write_register(EM8300_HSYNC_HI, 704);
+			} else {
+				write_register(EM8300_HSYNC_LO, 0x8c);
+				write_register(EM8300_HSYNC_HI, 0x2d0);
 			}
-			else {
+			if (vmode_ntsc) {
+				write_register(EM8300_VSYNC_HI, 0x104);
+			} else {
 				write_register(EM8300_VSYNC_HI, 0x136);	 
 			}
 
@@ -204,6 +212,7 @@ int em8300_dicom_update(struct em8300_s *em)
 			write_ucregister(DICOM_VSyncLo2, 0x0);
 			write_ucregister(DICOM_VSyncDelay1, 0xd2); 
 			write_ucregister(DICOM_VSyncDelay2, 0x0);  
+
 			write_register(0x1f46, 0x0); 
 			write_register(0x1f47, 0x1c);  
 

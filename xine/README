@@ -17,7 +17,6 @@ is later solved with a priority mechanism (not yet coded).
 I used:
 
 cvs -z3 -d:pserver:anonymous@cvs.xine.sourceforge.net:/cvsroot/xine co xine-lib
-patch -p0 <em8300/xine/xine-lib.diff
 cd xine-lib
 ./cvscompile.sh --prefix=/tmp
 make

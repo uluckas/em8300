@@ -65,6 +65,7 @@ typedef struct {
  
 #define EM8300_OVERLAY_SIGNAL_ONLY 1
 #define EM8300_OVERLAY_SIGNAL_WITH_VGA 2
+#define EM8300_OVERLAY_VGA_ONLY 3
 
 #define EM8300_IOCTL_VIDEO_SETPTS 1
 #define EM8300_IOCTL_VIDEO_GETSCR _IOR('C',2,unsigned)
@@ -202,6 +203,14 @@ struct displaybuffer_info_s {
 	int unknown3;
 };
 
+struct em8300_audio_s {
+	int channels;
+	int format;
+	int speed;
+	int slotsize;
+	int enable_bits;
+};
+
 struct em8300_s
 {
 	char name[40];
@@ -273,15 +282,16 @@ struct em8300_s
 	int scr;
 	
 	/* Audio */
+	struct em8300_audio_s audio;
 	int audio_mode;
-	int swapbytes;
-	int stereo;
-	int audio_rate;
+/* remove these when audio sync goes away */
+	int audio_sync;
 	int audio_ptsvalid;
 	uint32_t audio_pts;
 	uint32_t audio_lastpts;
 	uint32_t audio_lag;
 	uint32_t last_calcbuf;
+/* */
 	int dword_DB4;
 	unsigned char byte_D90[24];
 	
@@ -413,13 +423,13 @@ int em8300_ioctl_overlay_calibrate(struct em8300_s *em, em8300_overlay_calibrate
 int em8300_ioctl_overlay_setwindow(struct em8300_s *em,em8300_overlay_window_t *w);
 int em8300_ioctl_overlay_setscreen(struct em8300_s *em,em8300_overlay_screen_t *s);
 int em8300_ioctl_overlay_setmode(struct em8300_s *em,int val);
-int em8300_ioctl_overlay_signalmode(struct em8300_s *em,int val);
 
 /* em9010.c */
 int em9010_cabledetect(struct em8300_s *em);
 int em9010_calibrate_xoffset(struct em8300_s *em);
 int em9010_calibrate_yoffset(struct em8300_s *em);
 int em9010_init(struct em8300_s *em);
+int em9010_overlay_set_signalmode(struct em8300_s *em, int val);
 int em9010_overlay_update(struct em8300_s *em);
 int em9010_overlay_set_res(struct em8300_s *em, int xres, int yres);
 void sub_4288c(struct em8300_s *em, int pa, int pb, int pc, int pd, int pe, int pf,

@@ -317,15 +317,15 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
 int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 {
     unsigned scr,val;
-	switch (cmd) {
-	case EM8300_IOCTL_VIDEO_SETPTS:
+	switch (_IOC_NR(cmd)) {
+	case _IOC_NR(EM8300_IOCTL_VIDEO_SETPTS):
 		if (get_user(em->video_pts, (int *)arg)) {
 			return -EFAULT;
 		}
 		em->video_ptsvalid = 1;
 		break;
 
-	case EM8300_IOCTL_VIDEO_SETSCR:
+	case _IOC_NR(EM8300_IOCTL_VIDEO_SETSCR):
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
 			if (get_user(val,(unsigned*)arg))
 				return -EFAULT;

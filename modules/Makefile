@@ -7,7 +7,7 @@ KERNEL_LOCATION=/usr/src/linux
 
 CC=gcc
 
-EXTRA_CFLAGS = -g -I $(KERNEL_LOCATION)/include/ -I../include -I/usr/local/include \
+EXTRA_CFLAGS = -g -I ../include -I $(KERNEL_LOCATION)/include/ \
 		-DEM8300_VIDEOMODE_DEFAULT=EM8300_VIDEOMODE_PAL \
 		-DEM8300_AUDIOMODE_DEFAULT=EM8300_AUDIOMODE_ANALOG
 

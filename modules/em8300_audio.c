@@ -22,9 +22,13 @@
 
 #include <linux/soundcard.h>
 
+#include <endian.h>
+
 __inline__ uint32_t my_abs(int32_t v) {
 	return v < 0 ? -v : v;
 }
+
+int em8300_audio_calcbuffered(struct em8300_s *em);
 
 /* C decompilation of sub_prepare_SPDIF by 
 *  Anton Altaparmakov <antona@bigfoot.com>
@@ -93,9 +97,15 @@ static void preprocess_analog(struct em8300_s *em, unsigned char *outbuf, const 
 {
 	int i;
 	
-	if (em->swapbytes) {
-		if (em->stereo) {
-			for (i=0; i < inlength; i+=2) {
+#if BYTE_ORDER == BIG_ENDIAN
+	if (em->audio.format == AFMT_S16_BE) {
+#elif BYTE_ORDER == LITTLE_ENDIAN
+	if (em->audio.format == AFMT_S16_LE) {
+#endif
+		if (em->audio.channels == 2) {
+			for (i=0; i < inlength; i+=4) {
+				get_user(outbuf[i+3], inbuf_user++);
+				get_user(outbuf[i+2], inbuf_user++);
 				get_user(outbuf[i+1], inbuf_user++);
 				get_user(outbuf[i], inbuf_user++);
 			}
@@ -121,7 +131,11 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
 	int i;
 	unsigned char tmpbuf[0x600];
 
-	if (em->swapbytes) {
+#if BYTE_ORDER == BIG_ENDIAN
+	if (em->audio.format == AFMT_S16_BE) {
+#elif BYTE_ORDER == LITTLE_ENDIAN
+        if (em->audio.format == AFMT_S16_LE) {
+#endif
 		for(i=0; i < inlength; i+=2) {
 			get_user(tmpbuf[i+1], inbuf_user++);
 			get_user(tmpbuf[i], inbuf_user++);
@@ -135,7 +149,7 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
 
 static void setup_mafifo(struct em8300_s *em) {
 	if (em->audio_mode == EM8300_AUDIOMODE_ANALOG) {
-		em->mafifo->preprocess_ratio = em->stereo ? 1 : 2;
+		em->mafifo->preprocess_ratio = ((em->audio.channels == 2) ? 1 : 2);
 		em->mafifo->preprocess_cb = &preprocess_analog;
 #if 0 /* fix 1/2 second delay */
 		em->mafifo->preprocess_maxbufsize = -1;
@@ -153,6 +167,8 @@ int mpegaudio_command(struct em8300_s *em, int cmd) {
 	em8300_waitfor(em,ucregister(MA_Command), 0xffff, 0xffff);
 
 	if (cmd == 2) {
+		em->audio_sync = 0;
+		em->audio_ptsvalid = 0;
 		em->audio_lag = 0;
 		em->audio_lastpts = 0;
 	}
@@ -166,54 +182,73 @@ int mpegaudio_command(struct em8300_s *em, int cmd) {
 static int audio_start(struct em8300_s *em) {
 	em->irqmask |= IRQSTATUS_AUDIO_FIFO;
 	write_ucregister(Q_IrqMask, em->irqmask);
+	em->audio.enable_bits = PCM_ENABLE_OUTPUT;
 	return mpegaudio_command(em, MACOMMAND_PLAY);
 }
 
 static int audio_stop(struct em8300_s *em) {
 	em->irqmask &= ~IRQSTATUS_AUDIO_FIFO;
 	write_ucregister(Q_IrqMask, em->irqmask);
+	em->audio.enable_bits = 0;
 	return mpegaudio_command(em, MACOMMAND_STOP);
 }
 
-static int set_stereo(struct em8300_s *em, int val) {
-	em->stereo = val;
-	setup_mafifo(em);
-
-	return val;
-}
-
-static
-int set_rate(struct em8300_s *em,int rate)
+static int set_speed(struct em8300_s *em, int speed)
 {
 	em->clockgen &= ~CLOCKGEN_SAMPFREQ_MASK;
 
-	switch(rate) {
-	case 66000:
-		em->clockgen |= CLOCKGEN_SAMPFREQ_66;
+	switch(speed) {
+	case 48000:
+		em->clockgen |= CLOCKGEN_SAMPFREQ_48;
+		speed = 48000;
 		break;
 	case 44100:
 		em->clockgen |= CLOCKGEN_SAMPFREQ_44;
+		speed = 44100;
+		break;
+	case 66000:
+		em->clockgen |= CLOCKGEN_SAMPFREQ_66;
+		speed = 66000;
 		break;
 	case 32000:
 		em->clockgen |= CLOCKGEN_SAMPFREQ_32;
+		speed = 32000;
 		break;
-	case 48000:
 	default:
 		em->clockgen |= CLOCKGEN_SAMPFREQ_48;
-		rate = 48000;
+		speed = 48000;
 	}
 	
-	em->audio_rate = rate; 
+	em->audio.speed = speed;
 
 	em8300_clockgen_write(em, em->clockgen);
 	
-	return rate;
+	return speed;
+}
+
+static int set_channels(struct em8300_s *em, int val) {
+	if (val > 2) val = 2;
+	em->audio.channels = val;
+	setup_mafifo(em);
+	
+	return val;
+}
+
+static int set_format(struct em8300_s *em, int fmt)
+{
+	if (fmt != AFMT_QUERY) {
+		if (!(fmt & (AFMT_S16_BE | AFMT_S16_LE))) {
+			fmt = AFMT_S16_BE;
+		}
+		em->audio.format = fmt;
+	}
+	return em->audio.format;
 }
 
 int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 {
 	int err, len = 0;
-	int val;
+	int val = 0;
 
 	if (_SIOC_DIR(cmd) != _SIOC_NONE && _SIOC_DIR(cmd) != 0) {
 		/*
@@ -236,50 +271,169 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	}
 
 	switch(cmd) { 
-	case SNDCTL_DSP_RESET:
+	case SNDCTL_DSP_RESET: /* reset device */
+		pr_debug("em8300_audio.o: SNDCTL_DSP_RESET\n");
+/*		em8300_fifo_sync(em->mafifo);*/
 		return 0;
-	case SOUND_PCM_WRITE_RATE:
+		break;
+
+	case SNDCTL_DSP_SYNC:  /* wait until last byte is played and reset device */
+		pr_debug("em8300_audio.o: SNDCTL_DSP_SYNC\n");
+		em8300_fifo_sync(em->mafifo);
+		val = 0;
+		break;
+
+	case SNDCTL_DSP_SPEED: /* set sample rate */
 		if (get_user(val, (int *)arg)) {
 			return -EFAULT;
 		}
-		val = set_rate(em,val);
+		pr_debug("em8300_audio.o: SNDCTL_DSP_SPEED %i ", val);
+		val = set_speed(em, val);
+		printk("%i\n", val);
 		break;
-	case SNDCTL_DSP_GETBLKSIZE:
-		val = 0x1000;
+
+	case SOUND_PCM_READ_RATE: /* read sample rate */
+		pr_debug("em8300_audio.o: SNDCTL_DSP_RATE %i ", val);
+		val = em->audio.speed;
+		pr_debug("%i\n", val);
 		break;
-	case SNDCTL_DSP_STEREO:
+
+	case SNDCTL_DSP_STEREO: /* set stereo or mono mode */
 		if (get_user(val, (int *)arg)) {
 			return -EFAULT;
 		}
 		if (val > 1 || val < 0) {
 			return -EINVAL;
 		}
-		set_stereo(em, val);
+		pr_debug("em8300_audio.o: SNDCTL_DSP_STEREO %i\n", val);
+		set_channels(em, val + 1);
 		break;
-	case SNDCTL_DSP_SETFMT:
+
+	case SNDCTL_DSP_GETBLKSIZE: /* get fragment size */
+		val = em->audio.slotsize;
+		pr_debug("em8300_audio.o: SNDCTL_DSP_GETBLKSIZE %i\n", val);
+		break;
+
+	case SNDCTL_DSP_CHANNELS: /* set number of channels */
 		if (get_user(val, (int *)arg)) {
 			return -EFAULT;
 		}
-
-		switch(val) {
-		case AFMT_S16_BE:
-			em->swapbytes = 0;
-			break;
-		default:
-			val = AFMT_S16_LE;
-			em->swapbytes = 1;
+		if (val > 2 || val < 1) {
+			return -EINVAL;
 		}
+		pr_debug("em8300_audio.o: SNDCTL_DSP_CHANNELS %i\n", val);
+		set_channels(em, val);
 		break;
-	case EM8300_IOCTL_AUDIO_SETPTS:
-		if (get_user(em->audio_pts, (int *)arg)) {
+
+	case SOUND_PCM_READ_CHANNELS: /* read number of channels */
+		val = em->audio.channels;
+		pr_debug("em8300_audio.o: SOUND_PCM_READ_CHANNELS %i\n", val);
+		break;
+
+	case SNDCTL_DSP_POST: /* "there is likely to be a pause in the output" */
+		pr_debug("em8300_audio.o: SNDCTL_DSP_POST\n");
+		pr_info("em8300_audio.o: SNDCTL_DSP_GETPOST not implemented yet\n");
+		return -EINVAL;
+		break;
+
+	case SNDCTL_DSP_SETFRAGMENT: /* set fragment size */
+		pr_debug("em8300_audio.o: SNDCTL_DSP_SETFRAGMENT %i\n", val);
+		pr_info("em8300_audio.o: SNDCTL_DSP_SETFRAGMENT not implemented yet\n");
+		return -EINVAL;
+		break;
+
+	case SNDCTL_DSP_GETFMTS: /* get possible formats */
+		val = AFMT_S16_BE;
+		pr_debug("em8300_audio.o: SNDCTL_DSP_GETFMTS\n");
+		break;
+
+	case SNDCTL_DSP_SETFMT: /* set sample format */
+		if (get_user(val, (int *)arg)) {
 			return -EFAULT;
 		}
-	
+		pr_debug("em8300_audio.o: SNDCTL_DSP_SETFMT %i ", val);
+		val = set_format(em, val);
+		pr_debug("%i\n", val);
+		break;
+
+	case SOUND_PCM_READ_BITS: /* read sample format */
+		val = em->audio.format;
+		pr_debug("em8300_audio.o: SOUND_PCM_READ_BITS\n");
+		break;
+
+	case SNDCTL_DSP_GETOSPACE:
+		pr_debug("em8300_audio.o: SNDCTL_DSP_GETOSPACE\n");
+		pr_info("em8300_audio.o: SNDCTL_DSP_GETOSPACE not implemented yet\n");
+		return -EINVAL;
+		break;
+
+	case SNDCTL_DSP_GETISPACE:
+		pr_debug("em8300_audio.o: SNDCTL_DSP_GETISPACE\n");
+		pr_info("em8300_audio.o: SNDCTL_DSP_GETOSPACE not implemented yet\n");
+		return -EINVAL;
+#if 0
+		fragments =;
+		fragstotal =;
+		fragsize = 0x1000;
+		bytes = fragments * fragsize;
+#endif
+		break;
+
+	case SNDCTL_DSP_GETCAPS:
+		val = DSP_CAP_REALTIME | DSP_CAP_BATCH | DSP_CAP_TRIGGER;
+		pr_debug("em8300_audio.o: SNDCTL_DSP_GETCAPS\n");
+		break;
+
+	case SNDCTL_DSP_GETTRIGGER:
+		val = em->audio.enable_bits;
+		pr_debug("em8300_audio.o: SNDCTL_DSP_GETTRIGGER\n");
+		break;
+
+	case SNDCTL_DSP_SETTRIGGER:
+		if (val & PCM_ENABLE_OUTPUT) {
+			if (em->audio.enable_bits & PCM_ENABLE_OUTPUT) {
+				em->audio.enable_bits |= PCM_ENABLE_OUTPUT;
+				mpegaudio_command(em, MACOMMAND_PLAY);
+			}
+		}
+		pr_debug("em8300_audio.o: SNDCTL_DSP_SETTRIGGER\n");
+		pr_info("em8300_audio.o: SNDCTL_DSP_SETTRIGGER not implemented properly yet\n");
+		break;
+
+	case SNDCTL_DSP_GETIPTR:
+		pr_debug("em8300_audio.o: SNDCTL_DSP_GETIPTR\n");
+		pr_info("em8300_audio.o: SNDCTL_DSP_GETIPTR not implemented yet\n");
+		return -EINVAL;
+		break;
+
+	case SNDCTL_DSP_GETOPTR:
+	{
+		count_info ci;
+		ci.bytes = em->mafifo->bytes - em8300_audio_calcbuffered(em);
+		ci.blocks = 0;
+		ci.ptr = 0;
+		pr_debug("em8300_audio.o: SNDCTL_DSP_GETOPTR %i\n", ci.bytes);
+		return copy_to_user((void *)arg, &ci, sizeof(count_info));
+	}
+	case SNDCTL_DSP_GETODELAY:
+		val = em8300_audio_calcbuffered(em);
+		pr_debug("em8300_audio.o: SNDCTL_DSP_GETODELAY %i\n", val);
+		break;
+#if 0
+	case SOUND_DSP_GETERROR:
+		return -EINVAL;
+		break;
+#endif
+	case EM8300_IOCTL_AUDIO_SETPTS:
+		if (get_user(em->audio_pts, (int *)arg))
+			return -EFAULT;
 		em->audio_pts >>= 1;
 		em->audio_ptsvalid=1;
-		val=0;
+		em->audio_sync = 1;
 		break;
+
 	default:
+		pr_info("em8300_audio.o: unknown ioctl called\n");
 		return -EINVAL;
 	}
 
@@ -307,8 +461,6 @@ int em8300_audio_open(struct em8300_s *em)
 		return -ENODEV;
 	}
 	
-	em->swapbytes = 1;
-
 	em->audio_lastpts = 0;
 	em->audio_lag = 0;
 	em->last_calcbuf = 0;
@@ -343,7 +495,7 @@ static int set_audiomode(struct em8300_s *em, int mode)
 
 	em->byte_D90[1]=0x98;
 
-	switch (em->audio_rate) {
+	switch (em->audio.speed) {
 	case 32000:
 		em->byte_D90[3] = 0xc0;
 		break;
@@ -387,9 +539,13 @@ int em8300_audio_setup(struct em8300_s *em)
 {
 	int ret;
 
+	em->audio.channels = 2;
+	em->audio.format = AFMT_S16_NE;
+	em->audio.slotsize = 0x1000;
+
 	em->clockgen = 0xb;
 
-	set_rate(em, 48000);
+	set_speed(em, 48000);
 	
 	set_audiomode(em, EM8300_AUDIOMODE_DEFAULT);
 	
@@ -406,6 +562,8 @@ int em8300_audio_setup(struct em8300_s *em)
 	
 	mpegaudio_command(em, MACOMMAND_PLAY);
 	mpegaudio_command(em, MACOMMAND_PAUSE);
+
+	em->audio.enable_bits = 0;
 
 	return 0;
 }
@@ -435,6 +593,7 @@ int em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff
 	static uint32_t rollover_startpts = 0;
 	static uint32_t lastpts_count = 0;
 
+	if (em->audio_sync) {
 	if (em->audio_ptsvalid) {
 		em->audio_ptsvalid=0;
 		if (em->audio_lastpts == 0) {
@@ -475,7 +634,7 @@ int em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff
 	pr_debug("em8300_audio.o: calcbuf: %u since_last_pts: %i\n", calcbuf, em->audio_lag);
 #endif
 	
-	vpts = basepts + em->audio_lag - (calcbuf * 45000/4 / em->audio_rate);
+	vpts = basepts + em->audio_lag - (calcbuf * 45000/4 / em->audio.speed);
 	master_vpts = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);
 
 	if (rollover && (rollover_pts == 0)) {
@@ -502,9 +661,10 @@ int em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff
 		pr_debug("Setting SCR: %d\n", vpts);
 	}
 
-	em->audio_lag += (count * 45000/4 / em->audio_rate);
+	em->audio_lag += (count * 45000/4 / em->audio.speed);
 	em->last_calcbuf = calcbuf + count;
-	lastpts_count += (count * 45000/4 / em->audio_rate);
+	lastpts_count += (count * 45000/4 / em->audio.speed);
+	}
 
 	return em8300_fifo_writeblocking(em->mafifo, count, buf,0);
 }
@@ -517,6 +677,7 @@ int em8300_ioctl_setaudiomode(struct em8300_s *em, int mode)
 	set_audiomode(em, mode);
 	setup_mafifo(em);
 	mpegaudio_command(em, MACOMMAND_PLAY);
+	em->audio.enable_bits = PCM_ENABLE_OUTPUT;
 	return 0;
 }
 

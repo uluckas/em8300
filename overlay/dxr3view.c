@@ -51,8 +51,8 @@ typedef struct _dxr3view_globals {
 	overlay_t* ov;
 	GdkColor overlay_color;
 
-	int xpos, ypos, width;
-	gint oldx, oldy, oldw;
+	int xpos, ypos, width, height;
+	gint oldx, oldy, oldw, oldh;
 	gint scr_wid, scr_hei, scr_dep;
 	int monitor_xoff;
 
@@ -293,8 +293,8 @@ void create_adjust(dxr3view_globals *g)
 	aj->xoff      = create_spin_box("x-offset",  dialog,g->ov->xoffset,   0, 4000,0,g);
 	aj->yoff      = create_spin_box("y-offset",  dialog,g->ov->yoffset,   0, 4000,0,g);
 	aj->xcorr     = create_spin_box("correction",dialog,g->ov->xcorr,     0, 4000,0,g);
-	aj->jitter    = create_spin_box("jitter",    dialog,g->ov->jitter,    0, 4000,0,g);
-	aj->stability = create_spin_box("stability", dialog,g->ov->stability, 0, 4000,0,g);
+	aj->jitter    = create_spin_box("jitter",    dialog,g->ov->jitter,    0, 15,0,g);
+	aj->stability = create_spin_box("stability", dialog,g->ov->stability, 0, 255,0,g);
 
 	gtk_widget_show_all(dialog);
 }
@@ -520,8 +520,9 @@ ratio_cb(GtkMenuItem *item, dxr3view_globals *g)
 	if (g->fullscreen) {
 		g->ypos = (g->scr_hei-(g->scr_wid/g->ratio))/2;
 	}
+	g->height = (int)g->width/g->ratio;
 	gdk_window_move_resize(g->window->window, g->xpos, g->ypos,
-			       g->width, (g->width/g->ratio)-10);
+			       g->width, g->height);
 	resize_overlay(g->ov, g->width, (int)(g->width/g->ratio),
 		       (int)g->xpos, (int)g->ypos);
 	return TRUE;
@@ -532,6 +533,7 @@ fullscreen_cb(GtkMenuItem *item, dxr3view_globals *g)
 {
 	if (!g->fullscreen) {
 		g->oldw = g->width;
+		g->oldh = g->height;
 		g->oldx = g->xpos;
 		g->oldy = g->ypos;
 		
@@ -545,10 +547,11 @@ fullscreen_cb(GtkMenuItem *item, dxr3view_globals *g)
 		g->fullscreen = TRUE;
 	} else {
 		g->width = g->oldw;
+		g->height = g->oldh;
 		g->xpos = g->oldx;
 		g->ypos = g->oldy;
 		gdk_window_move_resize(g->window->window, g->xpos, g->ypos,
-				       g->width, (g->width/g->ratio)-10);
+				       g->width, g->height);
 		overlay_mode_cb(NULL,g->ov);
 		overlay_signalmode(g->ov,EM8300_OVERLAY_SIGNAL_WITH_VGA );
 		g->fullscreen = FALSE;
@@ -564,13 +567,13 @@ expose_cb(GtkWidget *drawing_area,
 	  GdkEventExpose *event,
 	  dxr3view_globals *g) 
 {
-	int h,d;
+	int d;
 	gdk_window_set_background(g->area->window, &g->overlay_color);
 	gdk_window_clear(g->area->window);
 
-	gdk_window_get_geometry(event->window, &g->xpos, &g->ypos, &g->width, &h, &d);
+	gdk_window_get_geometry(event->window, &g->xpos, &g->ypos, &g->width, &g->height, &d);
 	gdk_window_get_origin(event->window, &g->xpos, &g->ypos);
-	resize_overlay(g->ov, g->width, h, g->xpos, g->ypos);
+	resize_overlay(g->ov, g->width, g->height, g->xpos, g->ypos);
 
 	if (g->fullscreen)
 		return TRUE;
@@ -578,6 +581,7 @@ expose_cb(GtkWidget *drawing_area,
 	g->oldx = g->xpos;
 	g->oldy = g->ypos;
 	g->oldw = g->width;
+	g->oldh = g->height;
 		
 	return TRUE;
 }
@@ -591,12 +595,14 @@ event_cb(GtkWidget *window, GdkEventConfigure *event, dxr3view_globals *g)
 	 g->xpos = (((event->x) + g->monitor_xoff));
 	 g->ypos = ((event->y));
 	 g->width = (event->width);
-	 resize_overlay(g->ov, (int)g->width, (int)(g->width/g->ratio),
+	 g->height = (event->height);
+	 resize_overlay(g->ov, (int)g->width, (int)g->height,
 			(int)g->xpos, (int)g->ypos);
 	 
 	 g->oldx = g->xpos;
 	 g->oldy = g->ypos;
 	 g->oldw = g->width;
+	 g->oldh = g->height;
 	 
 	 return TRUE;
 }

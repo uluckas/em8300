@@ -1,3 +1,45 @@
+2001-07-19  Rick Haines  <rick@kuroyi.net>
+
+	* modules/Makefile:
+	Patch from Graeme to change include path order to find
+	local em8300.h first
+	
+	* modules/em8300_audio.c:
+	Patch from Daniel Chassot "swaps the left and the right
+	channel on the dxr3 analog output."
+
+	* modules/em9010.c,
+	  modules/em8300_ioctl.c,
+	  include/linux/em8300.h:
+	Patch from Daniel Chassot "implements the jitter and the
+	stability control that are available on the dxr3view window.
+	It also clips the visible area of the DICOM to the visible
+	area of the screen when in overlay mode."
+
+	* overlay/dxr3view.c:
+	Patch from Daniel Chassot "keeps the actual window size when
+	you move the viewing window around the screen."
+
+	* modules/em8300_audio.c,
+	  modules/em8300_fifo.c,
+	  include/linux/em8300.h:
+	Add OSS ioctl's.  Still needs AFMT_AC3 support.
+	Audio sync is only activated when the SETPTS ioctl is called.
+	
+	* modules/em8300_video.c:
+	Eduard fixed a bug in my ioctl modifications
+
+	* modules/em8300_dicom.c:
+	Patch from Chris to use the old SYNC values in pal mode
+	to prevent us breaking it (with slight modifications).
+	sub_40137 wasn't updating Luma/Chroma with bt865 encoders.
+	
+	* xine/xine-lib.diff:
+	Removed due to merge in Xine cvs.
+	
+	* AUTHORS:
+	Graeme wants email about bugs in his Makefile
+	
 2001-07-17  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_dicom.c:

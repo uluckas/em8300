@@ -82,6 +82,8 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 	f->threshold = f->nslots / 2;
 	f->waiting=0;
 
+	f->bytes = 0;
+
 	if (f->fifobuffer) {
 		kfree(f->fifobuffer);
 	}
@@ -211,6 +213,7 @@ int em8300_fifo_write(struct fifo_s *fifo, int n, const char *userbuffer,
 		n -= copysize;
 		userbuffer += copysize;
 		bytes_transferred += copysize;
+		fifo->bytes += copysize;
 	}
 	*fifo->writeptr = fifo->start + writeindex*fifo->slotptrsize;
 

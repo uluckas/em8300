@@ -133,26 +133,52 @@ int sub_2AC2D(struct em8300_s *em)
  */
 void sub_4288c(struct em8300_s *em, int pa, int pb, int pc, int pd, int pe, int pf, int pg, int ph)
 {
+  int pav, pbv, pcv, pdv;
 	/*	pr_debug("sub_4288c:  xpos=%d, ypos=%d, xwin=%d, ywin=%d, xoff=%d, yoff=%d, xcorr=%d, xd=%d\n", 
 	  pa,pb,pc,pd,pe,pf,pg,ph); */
-	if (pg >= 800) { 
-		pa = (pa * 1000) / pg;
-		pc = (pc * 1000) / pg;
-
-		if (read_ucregister(DICOM_UpdateFlag) != 1) {
-			write_ucregister(DICOM_UpdateFlag, 0);
-		}
-
+	if (pg >= 800) {
 		if (ph) {
 			pb >>= 1;
 			pd >>= 1;
 			pf >>= 1;
 		}
-	
-		write_ucregister(DICOM_VisibleLeft, pe+pa);
-		write_ucregister(DICOM_VisibleRight, pe+pa+pc-1);
-		write_ucregister(DICOM_VisibleTop, pf+pb);
-		write_ucregister(DICOM_VisibleBottom, pf+pb+pd-1);
+		if (pa < 0) {
+			pav = 0;
+			pcv = pc + pa;
+		}
+		else {
+			pav = pa;
+			pcv = pc;
+		}  
+		if (pb < 0) {
+			pbv = 0;
+			pdv = pd + pb;
+		}
+		else {
+			pbv = pb;
+			pdv = pd;
+		}  
+		if (pav+pcv>em->overlay_xres) {
+			pcv=em->overlay_xres-pav;
+		}
+		if (pb+pd > em->overlay_yres) {
+		  pdv=em->overlay_yres-pb;
+		}
+  
+		pa = (pa * 1000) / pg;
+		pc = (pc * 1000) / pg;
+		pav = (pav * 1000) / pg;
+		pcv = (pcv * 1000) / pg;
+
+		if (read_ucregister(DICOM_UpdateFlag) != 1) {
+			write_ucregister(DICOM_UpdateFlag, 0);
+		}
+
+
+		write_ucregister(DICOM_VisibleLeft, pe+pav);
+		write_ucregister(DICOM_VisibleRight, pe+pav+pcv-1);
+		write_ucregister(DICOM_VisibleTop, pf+pbv);
+		write_ucregister(DICOM_VisibleBottom, pf+pbv+pdv-1);
 
 		write_ucregister(DICOM_FrameLeft, pe+pa);
 		write_ucregister(DICOM_FrameRight, pe+pa+pc-1);
@@ -578,6 +604,26 @@ static int set_keycolor(struct em8300_s *em, unsigned upper, unsigned lower)
 	return 1;
 }
 
+int em9010_overlay_set_signalmode(struct em8300_s *em, int val)
+{
+	switch (val) {
+	case EM8300_OVERLAY_SIGNAL_ONLY:
+		em9010_write(em, 7, em->overlay_a[EM9010_ATTRIBUTE_JITTER]);
+		break;
+	case EM8300_OVERLAY_SIGNAL_WITH_VGA:
+		em9010_write(em, 7, em->overlay_a[EM9010_ATTRIBUTE_JITTER] | 0x40);
+		break;
+	case EM8300_OVERLAY_VGA_ONLY:
+		em9010_write(em, 7, em->overlay_a[EM9010_ATTRIBUTE_JITTER] | 0x80);
+		break;
+	default:
+		return 0;
+	}
+	pr_debug("em9010: overlay reg 7 = %x \n", em9010_read(em, 7));
+
+	return 1;
+}
+
 int em9010_overlay_update(struct em8300_s *em)
 {
 	pr_debug("em9010: Update overlay: enabled=%d, gamma_enabled=%d\n", em->overlay_enabled, em->overlay_gamma_enable);
@@ -585,13 +631,13 @@ int em9010_overlay_update(struct em8300_s *em)
 	
 	
 	em9010_write(em, 5, 0);
-	em9010_write(em, 4, 0);
+	//em9010_write(em, 4, 0);
 	em9010_write(em, 6, em->overlay_a[EM9010_ATTRIBUTE_STABILITY]);
 
 	if (em->overlay_enabled) {
-		em9010_write(em, 7, em->overlay_a[EM9010_ATTRIBUTE_JITTER] | 0x40);
+		em9010_overlay_set_signalmode(em, EM8300_OVERLAY_SIGNAL_WITH_VGA);
 	} else {
-		em9010_write(em, 7, em->overlay_a[EM9010_ATTRIBUTE_JITTER] | 0x80);
+		em9010_overlay_set_signalmode(em, EM8300_OVERLAY_VGA_ONLY);
 	}
 	
 	em9010_write(em, 8, 0x80);
@@ -640,6 +686,14 @@ int em9010_set_attribute(struct em8300_s *em, int attribute, int value)
 {
 	if (attribute <= EM9010_ATTRIBUTE_MAX) {
 		em->overlay_a[attribute] = value;
+		switch(attribute) {
+		case EM9010_ATTRIBUTE_JITTER:
+			em9010_write(em, 7, (em9010_read(em, 7) & 0xf0) | value);
+			break;
+		case EM9010_ATTRIBUTE_STABILITY:
+			em9010_write(em, 6, value);
+			break;
+		}
 		return 0;
 	} else {
 		return -1;

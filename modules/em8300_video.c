@@ -244,7 +244,7 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
     }
 
     em->video_offset += count;
-    return em8300_fifo_writeblocking(em->mvfifo, count, buf,0,flags);
+    return em8300_fifo_writeblocking(em->mvfifo, count, buf,flags);
 }
 
 int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)

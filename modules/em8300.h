@@ -33,8 +33,8 @@ typedef struct {
 #endif
 
 #define EM8300_AUDIOMODE_ANALOG 0
-#define EM8300_AUDIOMODE_DIGITALPCM 1
-#define EM8300_AUDIOMODE_DIGITALAC3 2
+#define EM8300_AUDIOMODE_DIGITALAC3 1
+#define EM8300_AUDIOMODE_DIGITALPCM 2
 #ifndef EM8300_AUDIOMODE_DEFAULT
 #define EM8300_AUDIOMODE_DEFAULT EM8300_AUDIOMODE_ANALOG
 #endif
@@ -180,11 +180,14 @@ struct em8300_s
     /* Audio */
     int audio_mode;
     int swapbytes;
+    int stereo;
     int audio_ptsvalid;
     int audio_pts;
     int audio_rate;
     int audio_lag;
     int audio_sync,audio_syncpts;
+    int dword_DB4;
+    unsigned char byte_D90[24];
 
     /* Video */
     int video_mode;

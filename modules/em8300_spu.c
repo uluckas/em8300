@@ -78,7 +78,7 @@ int em8300_spu_write(struct em8300_s *em, const char * buf,
 	em->sp_ptsfifo_ptr &= read_ucregister(SP_PTSSize)/2 - 1;
     }
 
-    return em8300_fifo_writeblocking(em->spfifo, count, buf, 0, flags);
+    return em8300_fifo_writeblocking(em->spfifo, count, buf, flags);
 }
 
 int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)

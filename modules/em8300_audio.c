@@ -23,138 +23,137 @@
 
 #include <linux/soundcard.h>
 
-unsigned digitalpcm_mute_pattern[] = {
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000050,0x1000050,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000050,0x1000050,0x2000050,
-    0x1000050,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000050,0x1000050,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,
-    0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,0x2000010
 
-};
-unsigned digitalac3_mute_pattern[] = {
-    0x10,0x1000010,0x2000050,0x1000050,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000050,0x1000050,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000050,0x1000050,
-    0x2000050,0x1000050,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000050,0x1000050,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010,
-    0x2000010,0x1000010,0x2000010,0x1000010,0x2000010,0x1000010
-};
+/* C decompilation of sub_prepare_SPDIF by 
+*  Anton Altaparmakov <antona@bigfoot.com>
+*
+* Notes:
+*  I assume int to be 32bits in the following code! (do not compile on
+*  16 bit architectures!!!). Also short int is assumed 16bits and char 8bits
+*  for that matter, but that's standard stuff.
+*
+*  local1 = "in" = current inblock position pointer.
+*
+*  local3 = "i" = for loop counter.
+*
+*  local2 and local4 are untouched since I don't understand the functional
+*  significance of the whole algorithm and hence don't know what they do.
+*/
+
+// Need unsigned otherwise get into trouble with signed shift rights!
+void sub_prepare_SPDIF(struct em8300_s *em, unsigned char *outblock, unsigned char *inblock, unsigned int inlength)
+{
+    // 	ebp-4 = local1 = in	ebp-8 = local2
+    //	ebp-0ch = local3 = i	ebp-10h = local4
+
+    unsigned char *in; // 32 bit points to array of 8 bit chars
+    unsigned short int local2; // 16 bit, unsigned
+    unsigned int i; // 32 bit, signed
+    unsigned char local4; // 8 bit, unsigned
+
+    in = inblock;
+
+    for (i = 0; i < (inlength >> 2); i++)
+	{
+	    if (em->dword_DB4 == 0xc0)
+		em->dword_DB4 = 0;
+	    {
+		register int ebx;
+		if (em->dword_DB4 < 0)
+		    ebx = em->byte_D90[(em->dword_DB4 + 7) >> 3] & 0xff \
+		          << (!((!em->dword_DB4 + 1) & 7) + 1) & 0xff;
+		else 
+		    ebx = (em->byte_D90[em->dword_DB4 >> 3] & 0xff) << (em->dword_DB4 & 7);
+		local4 = (unsigned char)((ebx & 0x80) >> 1);
+	    }
+	    if (em->audio_mode == 1)
+		local2 = in[0] << 8 | in[1];
+	    else
+		local2 = in[1] << 8 | in[0];
+	    in += 2;
+
+	    if (em->dword_DB4 != 0)
+		outblock[i*8+3] = 2;
+	    else
+		outblock[i*8+3] = 0;
+
+	    outblock[i*8+2] = local2 << 4;
+	    outblock[i*8+1] = local2 >> 4;
+	    outblock[i*8] = local2 >> 12 | local4;
+
+	    if (em->audio_mode == 1)
+		local2 = in[0] << 8 | in[1];
+	    else
+		local2 = in[1] << 8 | in[0];
+	    in += 2;
+
+	    outblock[i*8+7] = 1;
+	    outblock[i*8+6] = local2 << 4;
+	    outblock[i*8+5] = local2 >> 4;
+	    outblock[i*8+4] = local2 >> 12 | local4;
+
+	    ++em->dword_DB4;
+	}
+    return;
+}
+
+static void preprocess_analog(struct em8300_s *em, unsigned char *outbuf,
+			     const unsigned char *inbuf_user, int inlength)
+{
+    int i;
+    
+    if(em->swapbytes) {
+	if(em->stereo) {
+	    for(i=0; i < inlength; i+=2) {
+		get_user(outbuf[i+1], inbuf_user++);
+		get_user(outbuf[i], inbuf_user++);
+	    }
+	} else {
+	    for(i=0; i < inlength; i+=2) {
+		get_user(outbuf[2*i+1], inbuf_user++);
+		get_user(outbuf[2*i], inbuf_user++);
+		outbuf[2*i+3] = outbuf[2*i+1];
+		outbuf[2*i+2] = outbuf[2*i];
+	    }
+	}
+    } else {
+	for(i=0;i<inlength/2;i++) {
+	    outbuf[2*i] = inbuf_user[i];
+	    outbuf[2*i+1] = inbuf_user[i];
+	}
+	    
+    }
+}
+
+static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
+			     const unsigned char *inbuf_user, int inlength)
+{
+    int i;
+    unsigned char tmpbuf[0x600];
+
+    if(em->swapbytes) {
+	for(i=0; i < inlength; i+=2) {
+	    get_user(tmpbuf[i+1], inbuf_user++);
+	    get_user(tmpbuf[i], inbuf_user++);
+	}
+    } else
+	copy_from_user(tmpbuf, inbuf_user, inlength);
+
+    sub_prepare_SPDIF(em,outbuf, tmpbuf, inlength);
+}
+
+static void setup_mafifo(struct em8300_s *em) {
+    if(em->audio_mode == EM8300_AUDIOMODE_ANALOG) {
+	em->mafifo->preprocess_ratio = em->stereo ? 1 : 2;
+	em->mafifo->preprocess_cb = &preprocess_analog;
+	em->mafifo->preprocess_maxbufsize = -1;
+    }
+    else {
+	em->mafifo->preprocess_ratio = 2;
+	em->mafifo->preprocess_maxbufsize = 0x600;
+	em->mafifo->preprocess_cb = &preprocess_digital;
+    }
+}
 
 int mpegaudio_command(struct em8300_s *em, int cmd) {
     em8300_waitfor(em,ucregister(MA_Command), 0xffff, 0xffff);
@@ -177,6 +176,14 @@ int audio_stop(struct em8300_s *em) {
     em->irqmask &= ~IRQSTATUS_AUDIO_FIFO;
     write_ucregister(Q_IrqMask,em->irqmask);
     return mpegaudio_command(em,MACOMMAND_STOP);
+}
+
+static
+int set_stereo(struct em8300_s *em, int val) {
+    em->stereo = val;
+    setup_mafifo(em);
+
+    return val;
 }
 
 static
@@ -240,7 +247,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	    return -EFAULT;
 	if (val > 1 || val < 0)
 	    return -EINVAL;
-	val = 1;
+	set_stereo(em,val);
 	break;
     case SNDCTL_DSP_SETFMT:
 	if (get_user(val, (int *)arg))
@@ -303,13 +310,12 @@ int em8300_audio_release(struct em8300_s *em)
     return audio_stop(em);    
 }
 
-int em8300_audio_setup(struct em8300_s *em) {
-    int ret;
-
-    em->audio_mode = EM8300_AUDIOMODE_DEFAULT;
+static int set_audiomode(struct em8300_s *em, int mode) {
+    unsigned char mutepattern_src[0x300];
+    unsigned char mutepattern[0x600];
     
-    em->clockgen = 0xb | CLOCKGEN_SAMPFREQ_44;
-
+    em->audio_mode = mode;
+	
     em->clockgen &= ~CLOCKGEN_OUTMASK;
     if(em->audio_mode == EM8300_AUDIOMODE_ANALOG)
 	em->clockgen |= CLOCKGEN_ANALOGOUT;
@@ -317,8 +323,64 @@ int em8300_audio_setup(struct em8300_s *em) {
 	em->clockgen |= CLOCKGEN_DIGITALOUT;
     
     em8300_clockgen_write(em,em->clockgen);
+
+    memset(mutepattern_src, 0, sizeof(mutepattern_src));
+    memset(em->byte_D90, 0, sizeof(em->byte_D90));
+
+    em->byte_D90[1]=0x98;
+
+   switch(em->audio_rate) {
+    case 32000:
+        em->byte_D90[3] = 0xc0;
+        break;
+    case 44100:
+        em->byte_D90[3] = 0;
+        break;
+    case 48000:
+        em->byte_D90[3] = 0x40;
+        break;
+    }
+     
+    switch(em->audio_mode) {
+    case EM8300_AUDIOMODE_ANALOG:
+	write_register(0x1fb0,0x62);
+	em8300_setregblock(em, 2*ucregister(Mute_Pattern), 0, 0x600);
+	printk("em8300_audio.o: Analog audio enabled\n");
+	break;
+    case EM8300_AUDIOMODE_DIGITALPCM:
+	write_register(0x1fb0,0x3a0);
+
+	em->byte_D90[0]=0x0;
+	sub_prepare_SPDIF(em,mutepattern,mutepattern_src,0x300);
+	
+	em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)mutepattern, 0x600);
+	printk("em8300_audio.o: Digital PCM audio enabled\n");
+	break;
+    case EM8300_AUDIOMODE_DIGITALAC3:
+	write_register(0x1fb0,0x3a0);
+
+	em->byte_D90[0]=0x40;
+	sub_prepare_SPDIF(em,mutepattern,mutepattern_src,0x300);
+
+	em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)mutepattern, 0x600);
+	printk("em8300_audio.o: Digital AC3 audio enabled\n");
+	break;
+    }
+    return 0;
+}
+
+int em8300_audio_setup(struct em8300_s *em) {
+    int ret;
+
+    em->clockgen = 0xb;
+
+    set_rate(em,48000);
+    
+    set_audiomode(em,EM8300_AUDIOMODE_DEFAULT);
     
     ret = em8300_audio_flush(em);
+
+    setup_mafifo(em);
     
     if(ret) {
 	printk("em8300_audio.o: Couldn't zero audio buffer\n");
@@ -331,23 +393,6 @@ int em8300_audio_setup(struct em8300_s *em) {
     write_register(0x1f47, 0x18);
     mpegaudio_command(em,MACOMMAND_PAUSE);
 
-    switch(em->audio_mode) {
-    case EM8300_AUDIOMODE_ANALOG:
-	write_register(0x1fb0,0x62);
-	em8300_setregblock(em, 2*ucregister(Mute_Pattern), 0, 0x600);
-	printk("em8300_audio.o: Analog audio enabled\n");
-	break;
-    case EM8300_AUDIOMODE_DIGITALPCM:
-	write_register(0x1fb0,0x3a0);
-	em8300_writeregblock(em, 2*ucregister(Mute_Pattern), digitalpcm_mute_pattern, 0x600);
-	printk("em8300_audio.o: Digital PCM audio enabled\n");
-	break;
-    case EM8300_AUDIOMODE_DIGITALAC3:
-	write_register(0x1fb0,0x3a0);
-	em8300_writeregblock(em, 2*ucregister(Mute_Pattern), digitalac3_mute_pattern, 0x600);
-	printk("em8300_audio.o: Digital AC3 audio enabled\n");
-	break;
-    }    
     return 0;
 }
 
@@ -372,7 +417,7 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 	//	em8300_fifo_sync(em->mafifo);
 	em8300_audio_flush(em);
 
-	ret = em8300_fifo_writeblocking(em->mafifo, count, buf,1,0);
+	ret = em8300_fifo_writeblocking(em->mafifo, count, buf,0);
 
 	write_ucregister(MV_SCRlo, em->audio_pts & 0xffff);
 	write_ucregister(MV_SCRhi, em->audio_pts >> 16);
@@ -416,5 +461,5 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
     } 
 
     
-    return em8300_fifo_writeblocking(em->mafifo, count, buf,1,0);
+    return em8300_fifo_writeblocking(em->mafifo, count, buf,0);
 }

@@ -21,7 +21,13 @@ struct pts_fifoslot_s {
     unsigned pts_lo;
 };
 
+struct em8300_s;
+typedef void (*preprocess_cb_t)(struct em8300_s *, unsigned char *,
+				const unsigned char *, int);
+
 struct fifo_s {
+    struct em8300_s *em;
+    
     int valid;
 
     int type;
@@ -42,6 +48,9 @@ struct fifo_s {
 
     char *fifobuffer;
 
+    preprocess_cb_t preprocess_cb;
+    int preprocess_ratio,preprocess_maxbufsize;
+    
 #if LINUX_VERSION_CODE < 0x020314    
     struct wait_queue *wait;
 #else
@@ -63,9 +72,9 @@ struct fifo_s * em8300_fifo_alloc(void);
 void em8300_fifo_free(struct fifo_s *f);
 
 int em8300_fifo_write(struct fifo_s *fifo, int n, const char *userbuffer,
-		      int swapbyteorder, int flags);
+		      int flags);
 int em8300_fifo_writeblocking(struct fifo_s *fifo, int n,
-			      const char *userbuffer,int swapbyteorder, int flags);
+			      const char *userbuffer, int flags);
 int em8300_fifo_check(struct fifo_s *fifo);
 int em8300_fifo_sync(struct fifo_s *fifo);
 int em8300_fifo_freeslots(struct fifo_s *fifo);

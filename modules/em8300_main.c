@@ -35,6 +35,9 @@
 #include <linux/string.h>
 #include <linux/time.h>
 #include <linux/poll.h>
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
+#include <linux/wrapper.h>	/* for mem_map_reserve */
+#endif
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
 #include <linux/kcomp.h>
 #endif
@@ -152,6 +155,17 @@ devfs_handle_t em8300_handle[EM8300_MAX*4];
 #endif
 #ifdef CONFIG_PROC_FS
 struct proc_dir_entry *em8300_proc;
+#endif
+
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
+/* structure to keep track of the memory that has been allocated by
+   the user via mmap() */
+struct memory_info
+{
+	struct list_head item;
+	long length;
+	char *ptr;
+};
 #endif
 
 static void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
@@ -337,6 +351,10 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
   
 	filp->private_data = &em8300[card];
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
+	/* initalize the memory list */
+	INIT_LIST_HEAD(&em->memory);
+#endif
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_CONTROL:
 		em8300[card].nonblock[0] = (filp->f_flags == O_NONBLOCK);
@@ -416,6 +434,58 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 #else	
 	switch (vma->vm_pgoff) {
 #endif	
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
+	case 1: {
+		/* fixme: we should count the total size of allocated memories
+		   so we don't risk a out-of-memory or denial-of-service attack... */
+
+		char *mem = 0;
+		struct memory_info *info = NULL;
+		unsigned long adr = 0;
+		unsigned long size = vma->vm_end - vma->vm_start;
+		unsigned long pages = (size+(PAGE_SIZE-1))/PAGE_SIZE;
+		/* round up the memory */
+		size = pages * PAGE_SIZE;
+
+		/* allocate the physical contiguous memory */
+		mem = (char*)kmalloc(pages*PAGE_SIZE, GFP_KERNEL);
+		if( mem == NULL) {
+			return -ENOMEM;
+		}
+		/* clear out the memory for sure */
+		memset(mem, 0x00, pages*PAGE_SIZE);
+	
+		/* reserve all pages */
+		for(adr = (long)mem; adr < (long)mem + size; adr += PAGE_SIZE) {
+			mem_map_reserve(virt_to_page(adr));
+		}
+
+		/* lock the area*/
+		vma->vm_flags |=VM_LOCKED;	
+	
+		/* remap the memory to user space */
+		if (remap_page_range(vma->vm_start, virt_to_phys((void *)mem), size, vma->vm_page_prot)) {
+			kfree(mem);
+			return -EAGAIN;
+		}
+		
+		/* put the physical address into the first dword of the memory */
+		*((long*)mem) = virt_to_phys((void *)mem);
+
+		/* keep track of the memory we have allocated */
+		info = (struct memory_info*)vmalloc(sizeof(struct memory_info));
+		if( NULL == info ) {
+			kfree(mem);
+			return -ENOMEM;
+		}
+
+		info->ptr = mem;
+		info->length = size;
+		list_add_tail(&info->item,&em->memory);
+
+		break;
+	}
+#endif
 	case 0:
 		if (size > em->memsize) {
 			return -EINVAL;
@@ -496,6 +566,22 @@ int em8300_io_release(struct inode* inode, struct file *filp)
 		em8300_spu_release(em);
 		break;
 	}
+
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
+	while( 0 == list_empty(&em->memory)) {
+		unsigned long adr = 0;
+	
+		struct memory_info *info = list_entry(em->memory.next, struct memory_info, item);
+		list_del(&info->item);
+
+		for(adr = (long)info->ptr; adr < (long)info->ptr + info->length; adr += PAGE_SIZE) {
+			mem_map_unreserve(virt_to_page(adr));
+		}
+
+		kfree(info->ptr);
+		vfree(info);
+	}
+#endif
 	
 	em->inuse[subdevice]--;
 

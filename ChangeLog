@@ -1,3 +1,8 @@
+2002-11-21  David Holm  <david@realityrift.com>
+	* include/linux/em8300.h,
+	  modules/em8300_main.c:
+	mmap() updates from MiHu.
+
 2002-11-17  David Holm  <david@realityrift.com>
 	* modules/em8300_ioctl.c,
 	  modules/em8300_main.c,

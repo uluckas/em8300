@@ -361,6 +361,11 @@ struct em8300_s
 	int overlay_xcorr_default;
 	int overlay_70;
 	int overlay_dword_24bb8;
+
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
+	/* Memory exported via mmap() */
+	struct list_head  memory;
+#endif	
 };
 
 #define TIMEDIFF(a,b) a.tv_usec - b.tv_usec + \

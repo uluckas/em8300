@@ -25,6 +25,12 @@
 	EXPORT_NO_SYMBOLS is useless. Thanks again to Håkon Skjelten for
 	pointing this.
 
+	* modules/adv717x.c,
+	  modules/bt865.c,
+	  modules/em8300_main.c:
+	Since kernel 2.5.48, MOD_INC_USE_COUNT and MOD_DEC_USE_COUNT are
+	deprecated. Thanks again to Håkon Skjelten.
+
 2004-03-14  Nicolas Boullis  <nboullis@debian.org>
 	* modules/Makefile:
 	When building modules, if $(I2C_LOCATION) is set, ensure that 

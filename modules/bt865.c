@@ -943,7 +943,7 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
 			return -1;
 		}
 
-#ifdef MODULE
+#if defined(MODULE) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
 		MOD_INC_USE_COUNT;
 #endif
 
@@ -970,7 +970,7 @@ int bt865_detach_client(struct i2c_client *client)
 		return err;
 	}
 
-#ifdef MODULE
+#if defined(MODULE) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
 	MOD_DEC_USE_COUNT;
 #endif
 

@@ -525,7 +525,7 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 
 		adv717x_setup(new_client);
 
-#ifdef MODULE
+#if defined(MODULE) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
 		MOD_INC_USE_COUNT;
 #endif
 
@@ -554,7 +554,7 @@ int adv717x_detach_client(struct i2c_client *client)
 		return err;
 	}
 
-#ifdef MODULE
+#if defined(MODULE) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
 	MOD_DEC_USE_COUNT;
 #endif
 

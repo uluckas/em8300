@@ -365,7 +365,10 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 
 	clients++;
 	pr_debug("em8300_main.o: Opening device %d, Clients:%d\n", subdevice, clients);
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
 	MOD_INC_USE_COUNT;
+#endif
 
 	return(0);
 }
@@ -547,7 +550,10 @@ int em8300_io_release(struct inode* inode, struct file *filp)
 
 	clients--;
 	pr_debug("em8300_main.o: Releasing device %d, clients:%d\n", subdevice, clients);
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
 	MOD_DEC_USE_COUNT;
+#endif
 
 	return(0);
 }
@@ -600,7 +606,10 @@ static int em8300_dsp_open(struct inode* inode, struct file* filp)
 
 	clients++;
 	pr_debug("em8300_main.o: Opening device %d, Clients:%d\n", EM8300_SUBDEVICE_AUDIO, clients);
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
 	MOD_INC_USE_COUNT;
+#endif
 
 	return(0);
 }
@@ -635,7 +644,10 @@ int em8300_dsp_release(struct inode* inode, struct file* filp)
 
 	clients--;
 	pr_debug("em8300_main.o: Releasing device %d, clients:%d\n", EM8300_SUBDEVICE_AUDIO, clients);
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
 	MOD_DEC_USE_COUNT;
+#endif
 
 	return(0);
 }

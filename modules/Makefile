@@ -12,6 +12,7 @@ I2C_LOCATION?=
 # when compiling module(s)
 
 ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/arm/ -e s/sa110/arm/)
+BUILD_IOCTL32 := no
 
 ARCH_CFLAGS =
 
@@ -28,6 +29,7 @@ ARCH_CFLAGS = -m64 -pipe -mno-fpu -mcpu=ultrasparc -mcmodel=medlow \
 	      -ffixed-g4 -fcall-used-g5 -fcall-used-g7 -Wno-sign-compare \
 	      -Wa,--undeclared-regs
 LD += -m elf64_sparc
+BUILD_IOCTL32 := $(shell echo -e '\#include <linux/config.h>\n\#ifdef CONFIG_SPARC32_COMPAT\nyes\n\#else\nno\n\#endif' | cpp -E -I $(KERNEL_LOCATION)/include - | egrep -v '^(\#.*)? *$$')
 endif
 
 EXTRA_CFLAGS = -g -I ../include -I $(KERNEL_LOCATION)/include/ \
@@ -38,12 +40,18 @@ EXTRA_CFLAGS = -g -I ../include -I $(KERNEL_LOCATION)/include/ \
 		-DCONFIG_ADV717X_PIXELPORT16BIT -DCONFIG_ADV717X_PIXELPORTPAL \
 		-DCONFIG_EM8300_DICOMPAL -DCONFIG_EM8300_DICOMFIX \
 		-DCONFIG_EM8300_DICOMCTRL
+ifeq ($(BUILD_IOCTL32),yes)
+EXTRA_CFLAGS += -DCONFIG_EM8300_IOCTL32=1
+endif
 
 MODULES = em8300.o adv717x.o bt865.o
 
 EM8300_OBJS = em8300_main.o em8300_i2c.o em8300_audio.o em8300_fifo.o \
 	   em8300_video.o em8300_misc.o em8300_dicom.o em8300_ucode.o \
 	   em8300_ioctl.o em8300_spu.o em9010.o
+ifeq ($(BUILD_IOCTL32),yes)
+EM8300_OBJS += em8300_ioctl32.o
+endif
 
 MODVERS:=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep "CONFIG_MODVERSIONS" | cut -d " " -f 3)
 KERNVER?=$(shell cat $(KERNEL_LOCATION)/include/linux/version.h | grep "UTS" | sed -e 's/.*"\(.*\)"/\1/')

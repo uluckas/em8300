@@ -66,6 +66,10 @@
 #include <linux/em8300.h>
 #include "em8300_fifo.h"
 
+#ifdef CONFIG_EM8300_IOCTL32
+#include "em8300_ioctl32.h"
+#endif
+
 /* It seems devfs will implement a new scheme of enumerating minor numbers.
  * Currently it seems broken. But that is why we added these macros.
  */
@@ -792,6 +796,9 @@ void __exit em8300_exit(void)
 #endif
 	char devname[64];
 
+#ifdef CONFIG_EM8300_IOCTL32
+	em8300_ioctl32_exit();
+#endif
 
 	for (card = 0; card < em8300_cards; card++) {
 #ifdef CONFIG_DEVFS_FS
@@ -901,6 +908,11 @@ int __init em8300_init(void)
 		printk(KERN_ERR "em8300: unable to get major %d\n", EM8300_MAJOR);
 		goto err_chrdev;
 	}
+
+#ifdef CONFIG_EM8300_IOCTL32
+	em8300_ioctl32_init();
+#endif
+
 	return 0;
 
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)

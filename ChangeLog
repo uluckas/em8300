@@ -1,3 +1,23 @@
+2001-08-04  Rick Haines  <rick@kuroyi.net>
+
+	* include/linux/em8300.h,
+	  modules/em8300_audio.c:
+	move static vars to struct em8300_s
+
+	* modules/em8300_main.c,
+	  modules/em8300_ioctl.c:
+	add overlay_tv_switching module option
+
+	* modules/README-greeenscreen,
+	  modules/README-modoptions:
+	renamed
+	
+	* xine/README,
+	  xine/dxr3_decoder.c,
+	  xine/video_out_dxr3.c,
+	  xine/Makefile:
+	plugin removed until necessary
+	
 2001-08-03  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_main.c,

@@ -302,6 +302,13 @@ struct em8300_s
 	uint32_t audio_lastpts;
 	uint32_t audio_lag;
 	uint32_t last_calcbuf;
+  /* the following used to be static in em8300_audio_write() */
+	int rollover;
+	uint32_t basepts;
+	uint32_t rollover_pts;
+	uint32_t rollover_lastpts;
+	uint32_t rollover_startpts;
+	uint32_t lastpts_count;
 /* */
 	int dword_DB4;
 	unsigned char byte_D90[24];

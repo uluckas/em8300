@@ -613,12 +613,6 @@ int em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff
 	int32_t diff;
 	uint32_t vpts, master_vpts;
 	uint32_t calcbuf;
-	static int rollover = 0;
-	static uint32_t basepts = 0;
-	static uint32_t rollover_pts = 0;
-	static uint32_t rollover_lastpts = 0;
-	static uint32_t rollover_startpts = 0;
-	static uint32_t lastpts_count = 0;
 
 	if (em->audio_sync) {
 	if (em->audio_ptsvalid) {
@@ -627,8 +621,8 @@ int em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff
 			em->audio_lastpts = em->audio_pts;
 		}
 
-		if (rollover) {
-			rollover_lastpts += (em->audio_pts - em->audio_lastpts);
+		if (em->rollover) {
+			em->rollover_lastpts += (em->audio_pts - em->audio_lastpts);
 			em->audio_lag -= (em->audio_pts - em->audio_lastpts);
 			em->audio_lastpts = em->audio_pts;
 		}
@@ -636,23 +630,23 @@ int em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff
 		/* rollover detected */
 		if (em->audio_pts < em->audio_lastpts) {
 			pr_debug("em8300_audio.o: ROLLOVER DETECTED! lastpts: %u pts: %u\n", em->audio_lastpts, em->audio_pts);
-			rollover = 1;
-			rollover_pts = 0;
-			rollover_startpts = em->audio_pts;
-			rollover_lastpts = em->audio_lastpts + lastpts_count;
+			em->rollover = 1;
+			em->rollover_pts = 0;
+			em->rollover_startpts = em->audio_pts;
+			em->rollover_lastpts = em->audio_lastpts + em->lastpts_count;
 			em->audio_lastpts = em->audio_pts;
-			em->audio_lag -= lastpts_count;
+			em->audio_lag -= em->lastpts_count;
 		} else {
 			em->audio_lag -= (em->audio_pts - em->audio_lastpts);
 			em->audio_lastpts = em->audio_pts;
 		}
-		lastpts_count = 0;
+		em->lastpts_count = 0;
 	}
 
-	if (!rollover) {
-		basepts = em->audio_pts;
+	if (!em->rollover) {
+		em->basepts = em->audio_pts;
 	} else {
-		basepts = rollover_lastpts;
+		em->basepts = em->rollover_lastpts;
 	}
 
 	calcbuf = em8300_audio_calcbuffered(em);
@@ -661,17 +655,17 @@ int em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff
 	pr_debug("em8300_audio.o: calcbuf: %u since_last_pts: %i\n", calcbuf, em->audio_lag);
 #endif
 	
-	vpts = basepts + em->audio_lag - (calcbuf * 45000/4 / em->audio.speed);
+	vpts = em->basepts + em->audio_lag - (calcbuf * 45000/4 / em->audio.speed);
 	master_vpts = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);
 
-	if (rollover && (rollover_pts == 0)) {
+	if (em->rollover && (em->rollover_pts == 0)) {
 	  /* I'm not sure if there's any significance to this 45000/4 */
 	  /* I had to add some pts, so I just picked it	   -RH	 */
-		rollover_pts = basepts + em->audio_lag + 45000/4;
+		em->rollover_pts = em->basepts + em->audio_lag + 45000/4;
 	}
-	if (rollover && (vpts > rollover_pts)) {
-		rollover = 0;
-		vpts -= rollover_startpts;
+	if (em->rollover && (vpts > em->rollover_pts)) {
+		em->rollover = 0;
+		vpts -= em->rollover_startpts;
 	}
 
 #ifdef DEBUG_SYNC
@@ -690,7 +684,7 @@ int em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff
 
 	em->audio_lag += (count * 45000/4 / em->audio.speed);
 	em->last_calcbuf = calcbuf + count;
-	lastpts_count += (count * 45000/4 / em->audio.speed);
+	em->lastpts_count += (count * 45000/4 / em->audio.speed);
 	}
 
 	return em8300_fifo_writeblocking(em->mafifo, count, buf,0);

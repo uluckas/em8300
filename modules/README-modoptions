@@ -1,6 +1,9 @@
 General fixes:
 
  em8300:
+   overlay_tv_switching -- set to 1 to enable switching back from
+                           overlay mode to tv mode.  Squished overlay
+                           display for some people.
    activate_loopback   -- set to 1 if you lose video signal
                           when uploading the microcode
    bt865_ucode_timeout -- set to 1 if you have a bt865 and get timeouts
@@ -16,7 +19,7 @@ If your red and blue colors channels are switched:
  adv717x:
    swap_redblue_pal    -- swaps the red and blue channels for pal modes
 
-Greenscreen fixes:
+Greenscreen (tvout only) fixes:
 
  adv717x:
    pixelport_16bit     -- use 16bit pixelport control

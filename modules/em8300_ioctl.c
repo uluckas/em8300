@@ -22,6 +22,8 @@
 
 #include "encoder.h"
 
+extern int overlay_tv_switching;
+
 int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 {
 	em8300_register_t reg;
@@ -348,10 +350,11 @@ int em8300_ioctl_setvideomode(struct em8300_s *em, int mode)
 
 	em8300_dicom_disable(em);
 
-#if 0 /* this does reenables tv mode but squishes overlay mode for me - RH */
-        em9010_write(em, 7, 0x80);
-        em9010_write(em, 9, 0);
-#endif
+	/* this does reenables tv mode but squishes overlay mode for me - RH */
+	if (overlay_tv_switching) {
+		em9010_write(em, 7, 0x80);
+		em9010_write(em, 9, 0);
+	}
 
 	if (em->encoder) {
 		em->encoder->driver->command(em->encoder, ENCODER_CMD_SETMODE, (void *)encoder);

@@ -16,6 +16,8 @@ Run it with:
 
 xine_dxr3 -A dxr3
 or
+xine_dxr3 -A dxr3 -t pal
+or
 xine_dxr3 -S -A dxr3
 or
 xine_dxr3 -a1 -u0 -A dxr3

@@ -4,6 +4,8 @@
 #include <sys/ioctl.h>
 #include <linux/em8300.h>
 
+#define DXR3_MICROCODE_LOCATION "/etc/dxr3.ux"
+
 #define DXR3_STATUS_CLOSED 0
 #define DXR3_STATUS_OPENED 1
 #define DXR3_STATUS_MICROCODE_LOADED 2

@@ -8,7 +8,7 @@ lib_LTLIBRARIES = libdxr3.la
 
 libdxr3_la_SOURCES = dxr3-api.c ac3spdif.c
 libdxr3_la_LIBADD = libac3/libac3.la
-# libdxr3_la_LDFLAGS = -version-info $EM8300_MAJOR.$EM8300_MINOR.$EM8300_SUB$EM8300_PRE
+#libdxr3_la_LDFLAGS = -version-info $EM8300_MAJOR.$EM8300_MINOR.$EM8300_SUB
 
 localdebug:
 	$(MAKE) CFLAGS="$(DEBUG_CFLAGS)"

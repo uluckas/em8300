@@ -18,6 +18,8 @@ dxr3_state_t state = { -1,-1,-1,-1,0,0 };
 
 static int _dxr3_install_microcode (char *ucode);
 
+extern int output_spdif (uint8_t *data_start, *data_end, int fd);
+
 int dxr3_open(char *devname, char *ucodefile)
 { 
 	char tmpstr[100];
@@ -108,9 +110,13 @@ int dxr3_subpic_write(const char *buf, int n)
 
 int dxr3_audio_write(const char *buf, int n)
 {
-	// Fixme: In digital mode the data should be packeted in sub frames
-	//	      like it's done in Sebastien Djinn Grosland's ac3spdif
-	return write(state.fd_audio, buf, n);
+	// TODO: Add DIGITALPCM support
+
+  	if (audiomode == DXR3_AUDIOMODE_DIGITALAC3) {
+	  return output_spdif(buf, buf+n, state.fd_audio);
+	} else {
+	  return write(state.fd_audio, buf, n);
+	}
 }
 
 int dxr3_video_set_pts(long pts)

@@ -1,5 +1,15 @@
 2001-03-11  Rick Haines  <rick@kuroyi.net>
 
+	* include/libdxr3/api.h,
+	  libdxr3/dxr3-api.c:
+	patch from James Farwell to make dxr3_audio_write
+	handle DIGITALAC3 instead of the plugins.
+
+	* xine/xine_dxr3.patch.gz
+	now uses the new libdxr3
+	
+2001-03-11  Rick Haines  <rick@kuroyi.net>
+
 	* include/*
 	move the includes that should get installed here.
 

@@ -5,6 +5,10 @@
 	devfs_register. Thanks to Peter Zijlstra for his patch (forwarded
 	by Håkon Skjelten).
 
+	* modules/ldm:
+	Update ldm to support .ko modules (since kernel 2.5.51), thanks to
+	Håkon Skjelten.
+
 2004-03-23  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Since before kernel 2.4.0, the file_operations structure has an

@@ -178,7 +178,7 @@ int main( int argc, char *argv[] )
 	overlay_set_screen(g.ov, g.scr_wid, g.scr_hei, 24);
 	overlay_read_state(g.ov, NULL);
 	overlay_set_keycolor(g.ov, KEY_COLOR);
-	overlay_set_mode(g.ov, EM8300_OVERLAY_MODE_RECTANGLE );
+	overlay_set_mode(g.ov, EM8300_OVERLAY_MODE_OVERLAY );
 
 	overlay_set_mode(g.ov, EM8300_OVERLAY_MODE_OFF);
 	overlay_write_state(g.ov, NULL);
@@ -188,7 +188,7 @@ int main( int argc, char *argv[] )
 	overlay_set_screen(g.ov, g.scr_wid, g.scr_hei, 24);
 	overlay_read_state(g.ov, NULL);
 	overlay_set_keycolor(g.ov, KEY_COLOR);
-	overlay_set_mode(g.ov, EM8300_OVERLAY_MODE_RECTANGLE ); 
+	overlay_set_mode(g.ov, EM8300_OVERLAY_MODE_OVERLAY ); 
 
 	/* Build Interface */
 

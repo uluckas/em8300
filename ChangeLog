@@ -1,5 +1,8 @@
 2001-04-19  Rick Haines  <rick@kuroyi.net>
 
+	* overlay/dxr3view.c:
+	make overlay mode default since it works for me now
+
 	* overlay/autocal.c:
 	fix another hardcoded resolution
 	NUM_MONITORS needs to go somewhere better

@@ -38,11 +38,6 @@ typedef struct {
     int value;
 } em8300_attribute_t;
 
-typedef struct {
-    int bytes_left;   /* bytes currently in buffer */
-    int bufsize;      /* buffer size (maybe)       */
-} em8300_buf_info_t;
-
 #define EM8300_IOCTL_INIT       _IOW('C',0,em8300_microcode_t)
 #define EM8300_IOCTL_READREG    _IOWR('C',1,em8300_register_t)
 #define EM8300_IOCTL_WRITEREG   _IOW('C',2,em8300_register_t)
@@ -62,14 +57,12 @@ typedef struct {
 #define EM8300_IOCTL_OVERLAY_SETSCREEN _IOWR('C',13,em8300_overlay_screen_t)
 #define EM8300_IOCTL_OVERLAY_GET_ATTRIBUTE _IOR('C',14,em8300_attribute_t)
 #define EM8300_IOCTL_OVERLAY_SET_ATTRIBUTE _IOW('C',14,em8300_attribute_t)
-#define EM8300_IOCTL_VIDEO_GET_BUF_INFO _IOR('C', 15, em8300_buf_info_t)
 
 #define EM8300_IOCTL_VIDEO_SETPTS 1
 #define EM8300_IOCTL_SPU_SETPTS 1
 #define EM8300_IOCTL_SPU_SETPALETTE 2
 #define EM8300_IOCTL_AUDIO_SETPTS _SIOWR('P', 31, int)
 #define EM8300_IOCTL_AUDIO_SYNC _SIO('P', 30)
-#define EM8300_IOCTL_AUDIO_GET_BUF_INFO _SIOR('P', 32, em8300_buf_info_t)
 
 #define EM8300_ASPECTRATIO_3_2 0
 #define EM8300_ASPECTRATIO_16_9 1
@@ -83,28 +76,6 @@ typedef struct {
 #ifndef EM8300_VIDEOMODE_DEFAULT
 #define EM8300_VIDEOMODE_DEFAULT EM8300_VIDEOMODE_NTSC
 #endif
-
-/* 8-bit or 16-bit pixel port control           */
-/* fixes black bar/green screen for some people */
-#define EM8300_ADV717X_16BITPIXELPORTCONTROL
-/* #undef EM8300_ADV717X_16BITPIXELPORTCONTROL */
-
-/* if you only use/care about NTSC or PAL don't define this */
-/* if you use both you may need to define this              */
-/* #define EM8300_ADV717X_USE_OTHER_FOR_PAL */
-#undef EM8300_ADV717X_USE_OTHER_FOR_PAL
-
-/* I don't know what these registers or values mean */
-/* fixes black bar/green screen for some people     */
-/* #define EM8300_DICOM_0x1f5e_0x1efe */
-#undef EM8300_DICOM_0x1f5e_0x1efe
-/* #define EM8300_DICOM_CONTROL_0x9efe */
-#undef EM8300_DICOM_CONTROL_0x9efe
-
-/* if you only use/care about NTSC or PAL don't define this */
-/* if you use both you may need to define this              */
-#define EM8300_DICOM_USE_OTHER_FOR_PAL
-/* #undef EM8300_DICOM_USE_OTHER_FOR_PAL */
 
 #define EM8300_AUDIOMODE_ANALOG 0
 #define EM8300_AUDIOMODE_DIGITALAC3 1
@@ -189,6 +160,7 @@ typedef struct {
 
 #define ENCODER_ADV7175 1 
 #define ENCODER_ADV7170 2
+#define ENCODER_BT865   3
 
 #ifdef __KERNEL__
 
@@ -270,7 +242,7 @@ struct em8300_s
 
     /* different between revision 1 and revision 2 boards */
     int mystery_divisor;
-    
+
     /* I2C bus 1*/
     struct i2c_algo_bit_data i2c_data_1;
     struct i2c_adapter i2c_ops_1;

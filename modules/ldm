@@ -4,6 +4,8 @@ modprobe i2c-algo-bit
 
 insmod eeprom.o
 insmod adv717x.o
+# pixelport_16bit=1 pixelport_other_pal=0
 insmod bt865.o
 insmod em8300.o
+# use_bt865=0 dicom_fix=0 dicom_control=0 dicom_other_pal=0
 

@@ -77,32 +77,6 @@ typedef struct {
 #define EM8300_VIDEOMODE_DEFAULT EM8300_VIDEOMODE_NTSC
 #endif
 
-/* 8-bit or 16-bit pixel port control           */
-/* fixes black bar/green screen for some people */
-#define EM8300_ADV717X_16BITPIXELPORTCONTROL
-/* #undef EM8300_ADV717X_16BITPIXELPORTCONTROL */
-
-/* if you only use/care about NTSC or PAL don't define this */
-/* if you use both you may need to define this              */
-#define EM8300_ADV717X_USE_OTHER_FOR_PAL
-/* #undef EM8300_ADV717X_USE_OTHER_FOR_PAL */
-
-/* I don't know what these registers or values mean */
-/* fixes black bar/green screen for some people     */
-#define EM8300_DICOM_0x1f5e_0x1efe
-/* #undef EM8300_DICOM_0x1f5e_0x1efe */
-#define EM8300_DICOM_CONTROL_0x9efe
-/* #undef EM8300_DICOM_CONTROL_0x9efe */
-
-/* if you only use/care about NTSC or PAL don't define this */
-/* if you use both you may need to define this              */
-#define EM8300_DICOM_USE_OTHER_FOR_PAL
-/* #undef EM8300_DICOM_USE_OTHER_FOR_PAL */
-
-/* if you have a BT865 define this */
-/* #define EM8300_USE_BT865 */
-#undef EM8300_USE_BT865
-
 #define EM8300_AUDIOMODE_ANALOG 0
 #define EM8300_AUDIOMODE_DIGITALAC3 1
 #define EM8300_AUDIOMODE_DIGITALPCM 2

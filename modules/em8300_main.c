@@ -50,6 +50,23 @@ MODULE_AUTHOR("Henrik Johansson <henrikjo@post.utfors.se>");
 MODULE_DESCRIPTION("EM8300 MPEG-2 decoder");
 MODULE_PARM(remap,"1-" __MODULE_STRING(EM8300_MAX) "i");
 
+/*
+ * Module params by Jonas Birmé (birme@jpl.nu)
+ */
+int dicom_other_pal = 1;
+MODULE_PARM(dicom_other_pal, "i");
+
+int dicom_fix = 1;
+MODULE_PARM(dicom_fix, "i");
+
+int dicom_control = 1;
+MODULE_PARM(dicom_control, "i");
+
+static int use_bt865 = 0;
+MODULE_PARM(use_bt865, "i");
+
+
+
 static int em8300_cards,clients;
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
@@ -385,11 +402,10 @@ int em8300_init(struct em8300_s *em) {
 	  em->var_ucode_reg2 = 0x272;
 	  em->var_ucode_reg3 = 0x8272;
 	  if (0x20 & read_register(0x1c08)) {
-#ifdef EM8300_USE_BT865
-	      em->var_ucode_reg1 = 0x800;
-#else
-	      em->var_ucode_reg1 = 0x818;
-#endif
+	      if(use_bt865)
+		      em->var_ucode_reg1 = 0x800;
+	      else
+		      em->var_ucode_reg1 = 0x818;	      
 	  }
        } else {
 	  em->var_video_value = 0xce4;
@@ -406,6 +422,7 @@ int em8300_init(struct em8300_s *em) {
        em->var_ucode_reg3 = 0x8c7;
     }
 
+    printk("em8300_main.o: use_bt865: %d\n", use_bt865);
     printk("em8300_main.o: Chip revision: %d\n",em->chip_revision);
     
     em8300_i2c_init(em);

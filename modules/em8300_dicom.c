@@ -20,6 +20,10 @@
 
 #include "em8300.h"
 
+extern int dicom_other_pal;
+extern int dicom_fix;
+extern int dicom_control;
+
 struct dicom_tvmode {
     int vertsize;
     int horizsize;
@@ -130,6 +134,7 @@ void em8300_dicom_setBCS(struct em8300_s *em, int brightness, int contrast, int 
 int em8300_dicom_update(struct em8300_s *em) 
 {
     int ret;
+    int vmode_ntsc = 1;
     
     if( (ret=em8300_waitfor(em, ucregister(DICOM_UpdateFlag), 0, 1)) )
 	return ret;
@@ -194,35 +199,40 @@ int em8300_dicom_update(struct em8300_s *em)
       } else { /* ADV7170 or ADV7175A */
 	 write_register(0x1f47,0x18);
 
-#ifdef EM8300_DICOM_USE_OTHER_FOR_PAL
-	 if (em->video_mode == EM8300_VIDEOMODE_NTSC) {
-#endif
-#ifdef EM8300_DICOM_0x1f5e_0x1efe
-	   write_register(0x1f5e,0x1efe);
-#else
-	   write_register(0x1f5e,0x1afe);
-#endif
-#ifdef EM8300_DICOM_CONTROL_0x9efe
-	   write_ucregister(DICOM_Control,0x9efe);
-#else
-	   write_ucregister(DICOM_Control,0x9afe);
-#endif
-#ifdef EM8300_DICOM_USE_OTHER_FOR_PAL
-	 } else {
-#ifdef EM8300_DICOM_0x1f5e_0x1efe
-	   write_register(0x1f5e,0x1afe);
-#else
-	   write_register(0x1f5e,0x1efe);
-#endif
-#ifdef EM8300_DICOM_CONTROL_0x9efe
-	   write_ucregister(DICOM_Control,0x9afe);
-#else
-	   write_ucregister(DICOM_Control,0x9efe);
-#endif
+	 if(dicom_other_pal)
+		 vmode_ntsc = (em->video_mode == EM8300_VIDEOMODE_NTSC);
+
+	 if(vmode_ntsc) {
+		 
+		 if(dicom_fix)
+			 write_register(0x1f5e,0x1efe);
+		 else
+			 write_register(0x1f5e,0x1afe);
+
+		 if(dicom_control)
+			 write_ucregister(DICOM_Control,0x9efe);
+		 else
+			 write_ucregister(DICOM_Control,0x9afe);			 
 	 }
-#endif
+	 else {
+
+		 if(dicom_fix)
+			 write_register(0x1f5e,0x1afe);
+		 else
+			 write_register(0x1f5e,0x1efe);
+
+		 if(dicom_control)
+			 write_ucregister(DICOM_Control,0x9afe);
+		 else
+			 write_ucregister(DICOM_Control,0x9efe);
+	 }			 
       }
     }
+
+    printk("em8300_dicom.o: vmode_ntsc: %d\n", vmode_ntsc);
+    printk("em8300_dicom.o: dicom_other_pal: %d\n", dicom_other_pal);
+    printk("em8300_dicom.o: dicom_control: %d\n", dicom_control);
+    printk("em8300_dicom.o: dicom_fix: %d\n", dicom_fix);
 
     write_ucregister(DICOM_UpdateFlag,1);
     

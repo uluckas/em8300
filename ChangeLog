@@ -1,3 +1,21 @@
+2001-02-18  Rick Haines  <rick@kuroyi.net>
+
+	* modules/adv717x.c: remove #define DEBUG since
+	it's in em8300.h
+
+	* modules/adv717x.c,
+	  modules/em8300_dicom.c,
+	  modules/em8300_main.c,
+	  modules/em8300.h:
+	merged in module parameter code from Jonas Birme and
+	added a few for the adv717x module.
+	
+	* modules/README-greenscreen: modified to describe
+	the new module parameters
+
+	* omsplugin/dxr3/em8300.h:
+	updated.
+	
 2001-02-12  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_video.c, modules/em8300_spu.c: change

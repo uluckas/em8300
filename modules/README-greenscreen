@@ -1,31 +1,32 @@
-I've added some options to em8300.h that can be modified if
-you get a green/purple screen.  A few combinations that work
-for some people are:
+If you have a bt865 you will need:
 
+ em8300:
+   use_bt865  -- set to 1 if you have a bt865.  Modifies some
+                 initialization values.
 
-#define EM8300_ADV717X_16BITPIXELPORTCONTROL
-#define EM8300_ADV717X_USE_OTHER_FOR_PAL
-#define EM8300_DICOM_0x1f5e_0x1efe
-#define EM8300_DICOM_CONTROL_0x9efe
-#define EM8300_DICOM_USE_OTHER_FOR_PAL
+Greenscreen fixes:
 
+ adv717x:
+   pixelport_16bit     -- use 16bit pixelport control
+   pixelport_other_pal -- use the opposite pixelport control for pal mode
+                          if you only use/care about NTSC or PAL ignore this
 
-#undef EM8300_ADV717X_16BITPIXELPORTCONTROL
-#undef EM8300_ADV717X_USE_OTHER_FOR_PAL
-#define EM8300_DICOM_0x1f5e_0x1efe
-#define EM8300_DICOM_CONTROL_0x9efe
-#undef EM8300_DICOM_USE_OTHER_FOR_PAL
+ em8300:
+   dicom_fix       -- set register 0x1f5e to 0x1efe instead of 0x1afe
+   dicom_control   -- set dicom control register to 0x9efe instead of 0x9afe
+   dicom_other_pal -- use the opposite fix values for pal mode
+                      if you only use/care about NTSC or PAL ignore this.
 
+Common settings:
 
-#undef EM8300_ADV717X_16BITPIXELPORTCONTROL
-#define EM8300_ADV717X_USE_OTHER_FOR_PAL
-#define EM8300_DICOM_0x1f5e_0x1efe
-#define EM8300_DICOM_CONTROL_0x9efe
-#define EM8300_DICOM_USE_OTHER_FOR_PAL
+adv717x pixelport_16bit=1 pixelport_other_pal=1
+em8300  dicom_fix=1 dicom_control=1 dicom_other_pal=1
 
+adv717x pixelport_16bit=0 pixelport_other_pal=0
+em8300  dicom_fix=1 dicom_control=1 dicom_other_pal=0
 
-#define EM8300_ADV717X_16BITPIXELPORTCONTROL
-#undef EM8300_ADV717X_USE_OTHER_FOR_PAL
-#undef EM8300_DICOM_0x1f5e_0x1efe
-#undef EM8300_DICOM_CONTROL_0x9efe
-#undef EM8300_DICOM_USE_OTHER_FOR_PAL
+adv717x pixelport_16bit=0 pixelport_other_pal=1
+em8300  dicom_fix=1 dicom_control=1 dicom_other_pal=1
+
+adv717x pixelport_16bit=1 pixelport_other_pal=0
+em8300  dicom_fix=0 dicom_control=0 dicom_other_pal=0

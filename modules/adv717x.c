@@ -49,7 +49,13 @@
 
 #include "encoder.h"
 
-#define DEBUG(x) x
+#ifdef MODULE
+int pixelport_16bit = 1;
+MODULE_PARM(pixelport_16bit, "i");
+
+int pixelport_other_pal = 1;
+MODULE_PARM(pixelport_other_pal, "i");
+#endif
 
 #define i2c_is_isa_client(clientptr) \
         ((clientptr)->adapter->algo->id == I2C_ALGO_ISA)
@@ -95,22 +101,6 @@ static struct i2c_driver adv717x_driver = {
 
 int adv717x_id = 0;
 
-#ifdef EM8300_ADV717X_16BITPIXELPORTCONTROL
-#define TR0_NTSC 0x4d
-#ifdef EM8300_ADV717X_USE_OTHER_FOR_PAL
-#define TR0_PAL 0x0d
-#else
-#define TR0_PAL 0x4d
-#endif
-#else
-#define TR0_NTSC 0x0d
-#ifdef EM8300_ADV717X_USE_OTHER_FOR_PAL
-#define TR0_PAL 0x4d
-#else
-#define TR0_PAL 0x0d
-#endif
-#endif
-
 static unsigned char PAL_config_7170[27] = {
     0x05,       // Mode Register 0
     0x07,       // Mode Register 1
@@ -119,7 +109,7 @@ static unsigned char PAL_config_7170[27] = {
     0x00,       // Mode Register 4
     0x00,       // Reserved
     0x00,       // Reserved
-    TR0_PAL,    // Timing Register 0
+    0x0d,       // Timing Register 0
     0x77,       // Timing Register 1
     0xcb,       // Subcarrier Frequency Register 0
     0x8a,       // Subcarrier Frequency Register 1
@@ -148,7 +138,7 @@ static unsigned char NTSC_config_7170[27] = {
     0x10,       // Mode Register 4
     0x00,       // Reserved
     0x00,       // Reserved
-    TR0_NTSC,   // Timing Register 0
+    0x0d,       // Timing Register 0
     0x77,       // Timing Register 1
     0x16,       // Subcarrier Frequency Register 0
     0x7c,       // Subcarrier Frequency Register 1
@@ -177,7 +167,7 @@ static unsigned char PAL_M_config_7175[16] = {   //These need to be tested
     0xe6,     	// Subcarrier Frequency Register 2
     0x21,      	// Subcarrier Frequency Register 3
     0x00,       // Subcarrier Phase Register
-    TR0_PAL,    // Timing Register 0
+    0x0d,       // Timing Register 0
     0x00,       // Closed Captioning Ext Register 0
     0x00,       // Closed Captioning Ext Register 1
     0x00,       // Closed Captioning Register 0
@@ -196,7 +186,7 @@ static unsigned char PAL_config_7175[17] = {
     0x09,       // Subcarrier Frequency Register 2
     0x2a,       // Subcarrier Frequency Register 3
     0x00,       // Subcarrier Phase Register 
-    TR0_PAL,    // Timing Register 0
+    0x0d,       // Timing Register 0
     0x00,       // Closed Captioning Ext Register 0
     0x00,       // Closed Captioning Ext Register 1
     0x00,       // Closed Captioning Register 0 
@@ -216,7 +206,7 @@ static unsigned char PAL60_config_7175[16] = {
     0x09,       // Subcarrier Frequency Register 2
     0x2a,       // Subcarrier Frequency Register 3
     0x00,       // Subcarrier Phase Register 
-    TR0_PAL,    // Timing Register 0
+    0x0d,       // Timing Register 0
     0x00,       // Closed Captioning Ext Register 0
     0x00,       // Closed Captioning Ext Register 1
     0x00,       // Closed Captioning Register 0 
@@ -235,7 +225,7 @@ static unsigned char NTSC_config_7175[16] = {
     0xf0,     	// Subcarrier Frequency Register 2
     0x21,      	// Subcarrier Frequency Register 3
     0x00,       // Subcarrier Phase Register
-    TR0_NTSC,   // Timing Register 0
+    0x0d,       // Timing Register 0
     0x00,       // Closed Captioning Ext Register 0
     0x00,       // Closed Captioning Ext Register 1
     0x00,       // Closed Captioning Register 0
@@ -497,6 +487,31 @@ int init_module(void)
 int adv717x_init(void)
 #endif
 {
+    int pp_ntsc;
+    int pp_pal;
+
+    if (pixelport_16bit) {
+      pp_ntsc = pp_pal = 0x40;
+      if (pixelport_other_pal) {
+	pp_pal = 0x00;
+      }
+    } else {
+      pp_ntsc = pp_pal = 0x00;
+      if (pixelport_other_pal) {
+	pp_pal = 0x40;
+      }
+    }
+
+    printk("adv717x.o: pixelport_16bit: %d\n", pixelport_16bit);
+    printk("adv717x.o: pixelport_other_pal: %d\n", pixelport_other_pal);
+
+    PAL_config_7170[7] = (PAL_config_7170[7] & ~0x40) | pp_pal;
+    NTSC_config_7170[7] = (NTSC_config_7170[7] & ~0x40) | pp_ntsc;
+    PAL_M_config_7175[7] = (PAL_M_config_7175[7] & ~0x40) | pp_pal;
+    PAL_config_7175[7] = (PAL_config_7175[7] & ~0x40) | pp_pal;
+    PAL60_config_7175[7] = (PAL60_config_7175[7] & ~0x40) | pp_pal;
+    NTSC_config_7175[7] = (NTSC_config_7175[7] & ~0x40) | pp_ntsc;
+
     return i2c_add_driver(&adv717x_driver);
 }
 

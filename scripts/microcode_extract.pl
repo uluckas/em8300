@@ -30,7 +30,7 @@ close(VXD);
 
 $path=$ARGV[1];
 $namebase=$ARGV[2];
-if(length($prefix) == 0) { $namebase="microcode" };
+if(length($namebase) == 0) { $namebase="microcode" };
 
 $ucnt = 0;
 

@@ -61,7 +61,17 @@ Device Creation
 ---------------
 
 For software to access the h+/dxr3 card it needs device nodes to
-be created in the /dev/ directory. The following set of commands
+be created in the /dev/ directory. The device nodes can be created
+by issuing the command
+
+make devices
+
+If you have devfs mounted the command will issue an error and not
+touch your /dev folder.
+
+OPTIONAL:
+
+If you wish to do this by hand the following set of commands
 will create the basic set of device nodes.
 
 mknod /dev/em8300    c 121 0

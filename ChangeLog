@@ -1,3 +1,8 @@
+2002-01-16  Jonas Birme  <jonas@birme.se>
+   * scripts/microcode_extract.pl:
+   Added a destdir to the script, so the microcode can be stored in
+   another dir than the current.
+
 2002-01-15  David Holm  <dholm@iname.com>
 	* scripts/microcode_upload.pl:
 	Made the perl script more devfs friendly (it's overambigous since I don't know much perl, but it does the job on both devfs and non-devfs systems ;)

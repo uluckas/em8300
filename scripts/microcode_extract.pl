@@ -15,10 +15,11 @@ sub sanehead {
 if($#ARGV < 0) {
   print "EM8300 microcode extractor\n";
   print "Written by Henrik Johansson 2000-04-10\n\n";
-  print "Usage:\n\tmicrocode_extract.pl FILE [NAMEBASE]\n\n";
+  print "Usage:\n\tmicrocode_extract.pl FILE [DESTDIR] [NAMEBASE]\n\n";
   print "FILE refers to the VXD file which comes with the Windows drivers
 and is found in the Windows\\System folder. The file is usually called 
 rmquasar.vxd (H+) or enc2dev.vxd (Creative Labs). \n\n";
+  print "DESTDIR is the dir where the microcode should be stored.\n\n";
   print "NAMEBASE is the prefix of the saved microcode files.\n\n";
 }
 
@@ -27,7 +28,8 @@ undef $/;
 $vxd = <VXD>;
 close(VXD);
 
-$namebase=$ARGV[1];
+$path=$ARGV[1];
+$namebase=$ARGV[2];
 if(length($prefix) == 0) { $namebase="microcode" };
 
 $ucnt = 0;
@@ -58,7 +60,7 @@ for($i=0; $i < length($vxd); $i++)
     $lastblocktype = -1;      
     if($ok && $count > 20) {
       $ucodelen =  $i - $savei;
-      $filename = "$namebase$ucnt.bin";
+      $filename = "$path/$namebase$ucnt.bin";
       open UCODE,">$filename" or die("Can't open microcode file");
       print UCODE substr($vxd,$savei,$ucodelen);
       print pack('SII',(0,0,0));

@@ -1,6 +1,7 @@
 #define OVERLAY_MAX_WIDTH       998
 #define OVERLAY_MAX_HEIGHT      767
-#define DEFAULT_RATIO           1.75
+//#define DEFAULT_RATIO           1.75
+#define DEFAULT_RATIO           1.3333333333333333
 #define DEFAULT_WIDTH           720
 #define OVERLAY_X_OFFSET        251
 #define OVERLAY_Y_OFFSET        27
@@ -24,18 +25,33 @@
 
 #include "overlay.h"
 
+typedef struct adjust_s {
+    GtkWidget *window,*area;
+    GtkWidget *aspect_frame;
+    GtkSpinButton *width;
+    GtkSpinButton *xoff;
+    GtkSpinButton *yoff;
+    GtkSpinButton *xcorr;
+    GtkSpinButton *jitter;
+    GtkSpinButton *stability;
+    GtkSpinButton *ratio;
+} adjust_t;
+
 static gboolean key_cb(GtkWidget *window,
 			GdkEventKey *kevent,
 			gpointer kdata);
 
-static gboolean event_cb(GtkWidget* window,
-			 GdkEventConfigure *event,
-			 gpointer user_data);
+static gboolean expose_cb(GtkWidget *drawing_area,
+			  GdkEventExpose *event,
+			  adjust_t *aj);
 
 static void resizeoverlay(int width,
 			int height,
 			int xpos,
 			int ypos);
+
+static gpointer
+adjust_window(void);
 
 gint oldx,oldy,oldw,oldh;
 
@@ -44,15 +60,15 @@ FILE *size ;
 float ratio;
 int ratiotemp;
 overlay_t *ov;
+adjust_t *aj;
+GdkColor overlay_color;
 
 
 int main( int argc,
           char *argv[] )
 {
 	GtkWidget *window;
-	GtkWidget *aspect_frame;
 	GtkWidget *drawing_area;
-	GdkColor gdk_color;
 	GdkColormap *colormap;
 	FILE *dev;
 	
@@ -62,6 +78,7 @@ int main( int argc,
 
 	dev = fopen("/dev/em8300","r");
 	ov = overlay_init(dev);
+	aj = malloc(sizeof(adjust_t));
 
 	/* ****************************************************************
 	   This should be set to the actual video resolution of the X-server
@@ -103,8 +120,8 @@ int main( int argc,
 	gtk_window_set_policy(GTK_WINDOW(window),TRUE,TRUE,FALSE);
 
 	gtk_window_set_default_size (GTK_WINDOW (window),
-					 initwidth,
-					 (initwidth /(gfloat)ratio));	
+				     initwidth,
+				     (initwidth /(gfloat)ratio));	
           
 
 
@@ -115,23 +132,29 @@ int main( int argc,
 
         gtk_container_set_border_width (GTK_CONTAINER (window), 0);
          
-        aspect_frame = gtk_aspect_frame_new (NULL, /* label */
-                                               0.0, /* center x */
-                                               0.0, /* center y */
-                                               (gfloat)ratio, /* xsize/ysize */
-                                               FALSE /* ignore child's aspect */);
-         
-        gtk_container_add (GTK_CONTAINER(window), aspect_frame);
+        aj->aspect_frame = 
+	    gtk_aspect_frame_new (NULL, /* label */
+				  0.5, /* center x */
+				  0.5, /* center y */
+				  (gfloat)ratio, /* xsize/ysize */
+				  FALSE /* ignore child's aspect */);
+	
+	
+	gtk_container_add (GTK_CONTAINER(window), aj->aspect_frame);
 
-        gtk_widget_show (aspect_frame);
-         
+        gtk_widget_show (aj->aspect_frame);
+	
+	aj->window = window;
+	adjust_window();
+
         drawing_area = gtk_drawing_area_new ();
+	aj->area = drawing_area;
         
         gtk_widget_set_usize (drawing_area,
-				 initwidth,
-				 initwidth / (gfloat)ratio);
+			      initwidth,
+			      initwidth / (gfloat)ratio);
 
-        gtk_container_add (GTK_CONTAINER(aspect_frame), drawing_area);
+        gtk_container_add (GTK_CONTAINER(aj->aspect_frame), drawing_area);
 
 
 	/* ****************************************************
@@ -143,30 +166,24 @@ int main( int argc,
 	   Henrik
 	*/
 	
-	gdk_color.red = ((KEY_COLOR >> 16)&0xff) * 256;
-	gdk_color.green = ((KEY_COLOR >> 8)&0xff) * 256;
-	gdk_color.blue = ((KEY_COLOR >> 0)&0xff) * 256;
+	overlay_color.red = ((KEY_COLOR >> 16)&0xff) * 256;
+	overlay_color.green = ((KEY_COLOR >> 8)&0xff) * 256;
+	overlay_color.blue = ((KEY_COLOR >> 0)&0xff) * 256;
 
 	/* Allocate color */
-
-        gdk_color_alloc (gtk_widget_get_colormap (drawing_area), &gdk_color);
+        gdk_color_alloc (gtk_widget_get_colormap (drawing_area), 
+			 &overlay_color);
 
 	/* Set window background color */
-
-        gdk_window_set_background (drawing_area->window, &gdk_color);
-
-
-	
-
-	gtk_signal_connect(GTK_OBJECT(window),
-				"configure_event",
-				GTK_SIGNAL_FUNC(event_cb),
-				GINT_TO_POINTER(ratiotemp));
+	gtk_signal_connect(GTK_OBJECT(drawing_area),
+			   "expose_event",
+			   GTK_SIGNAL_FUNC(expose_cb),
+			   aj);
 
 	gtk_signal_connect(GTK_OBJECT(window),
-				"key_press_event",
-				GTK_SIGNAL_FUNC(key_cb),
-				GINT_TO_POINTER(ratiotemp));
+			   "key_press_event",
+			   GTK_SIGNAL_FUNC(key_cb),
+			   GINT_TO_POINTER(ratiotemp));
 
 	
 	
@@ -181,7 +198,65 @@ int main( int argc,
 	overlay_release(ov);
 
 	return 0;
-      }
+}
+
+static gboolean
+update_window(GtkObject *adjust,gpointer user_data) 
+{
+    gfloat ratio = gtk_spin_button_get_value_as_float(aj->ratio);
+    gtk_aspect_frame_set(GTK_ASPECT_FRAME(aj->aspect_frame),
+			 0.5,0.5,ratio,FALSE);
+
+    ov->xoffset = gtk_spin_button_get_value_as_int(aj->xoff);
+    ov->yoffset = gtk_spin_button_get_value_as_int(aj->yoff);
+    ov->xcorr = gtk_spin_button_get_value_as_int(aj->xcorr);
+    ov->jitter = gtk_spin_button_get_value_as_int(aj->jitter);
+    ov->stability = gtk_spin_button_get_value_as_int(aj->stability);
+    overlay_update_params(ov);
+
+    gtk_widget_queue_draw(aj->area);
+
+    return TRUE;
+}
+
+
+
+static GtkSpinButton *
+spin_box(char *text,GtkWidget *dialog, gpointer aj,gfloat start,
+		int low, int high,int places)
+{
+    GtkWidget *label,*spin;
+    GtkObject *adjust;
+
+    label = gtk_label_new(text);
+    gtk_box_pack_start_defaults(GTK_BOX(GTK_DIALOG(dialog)->vbox),label);
+    adjust = gtk_adjustment_new(start,low,high,places ? .1 : 1,5,5);
+    spin = gtk_spin_button_new(GTK_ADJUSTMENT(adjust),1,places);
+    gtk_box_pack_start_defaults(GTK_BOX(GTK_DIALOG(dialog)->vbox),spin);    
+    gtk_signal_connect(GTK_OBJECT(adjust),"value-changed",
+		       GTK_SIGNAL_FUNC(update_window),NULL);
+    return GTK_SPIN_BUTTON(spin);
+}
+
+static gpointer
+adjust_window(void) 
+{
+    GtkWidget *dialog,*label,*spin;
+    GtkObject *adjust;
+
+    dialog = gtk_dialog_new();
+    
+//    aj->width     = spin_box("width",     dialog,aj,DEFAULT_WIDTH, 0, 4000,0);
+    aj->ratio     = spin_box("ratio",     dialog,aj,DEFAULT_RATIO,.1, 5,   3);
+    aj->xoff      = spin_box("x-offset",  dialog,aj,ov->xoffset,   0, 4000,0);
+    aj->yoff      = spin_box("y-offset",  dialog,aj,ov->yoffset,   0, 4000,0);
+    aj->xcorr     = spin_box("correction",dialog,aj,ov->xcorr,     0, 4000,0);
+    aj->jitter    = spin_box("jitter",    dialog,aj,ov->jitter,    0, 4000,0);
+    aj->stability = spin_box("stability", dialog,aj,ov->stability, 0, 4000,0);
+
+    gtk_widget_show_all(dialog);
+    return aj;
+}
 
 
 static void
@@ -190,36 +265,23 @@ resizeoverlay(int width, int height, int xpos, int ypos)
     overlay_set_window(ov,xpos,ypos,width,height);
 }
 
-
 static gboolean
-event_cb(GtkWidget *window, GdkEventConfigure *event, gpointer user_data)
+expose_cb(GtkWidget *drawing_area,
+	  GdkEventExpose *event,
+	  adjust_t *aj) 
 {
-	gint oxpos,oypos,owidth,oheight;
-	gint scr_wid,scr_hei;
-	scr_wid = gdk_screen_width();
-	scr_hei = gdk_screen_height();
-
-	ratio = GPOINTER_TO_INT(user_data) / 100.0;
-	oxpos = OVERLAY_X_OFFSET + ((event->x) * OVERLAY_MAX_WIDTH / scr_wid);
-	oypos = OVERLAY_Y_OFFSET + (event->y) * OVERLAY_MAX_HEIGHT / scr_hei;
-	owidth = (event->width) * OVERLAY_MAX_WIDTH / scr_wid;
-	oheight = ((int)(owidth / ratio)) * OVERLAY_MAX_HEIGHT / scr_hei;
-
-	//	resizeoverlay((int)owidth,(int)oheight,(int)oxpos,(int)oypos);
-	resizeoverlay(event->width, event->height, event->x, event->y);
-
-	gtk_widget_set_usize(GTK_WIDGET(window),
-				(gint)owidth,
-				(gint)oheight);
-
-	oldx=oxpos;
-	oldy=oypos;
-	oldw=owidth;
-	oldh=oheight;
-
-	return TRUE;
-}
-
+    int w,h,x,y,d;
+    gdk_window_set_background(drawing_area->window,&overlay_color);
+    gdk_window_clear(drawing_area->window);
+    gdk_window_get_geometry(event->window,&x,&y,&w,&h,&d);
+    gdk_window_get_origin(event->window,&x,&y);
+    resizeoverlay(w,h,x,y);
+    oldx=x;
+    oldy=y;
+    oldw=w;
+    oldh=h;
+}    
+    
 static gboolean
 key_cb(GtkWidget *window, GdkEventKey *kevent, gpointer kdata)
 {

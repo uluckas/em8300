@@ -202,6 +202,7 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
      i2c_smbus_write_byte_data(new_client,0xa6, 0xb1);
 
      if(i2c_smbus_read_byte_data(new_client,0) == 0xb1) {
+         strcpy(new_client->name, "BT865 chip");
 	 printk("bt865.o: BT865 chip detected\n");
 
 	 new_client->id = bt865_id++;

@@ -182,6 +182,7 @@ typedef struct {
 
 #define ENCODER_ADV7175 1 
 #define ENCODER_ADV7170 2
+#define ENCODER_BT865   3
 
 #ifdef __KERNEL__
 
@@ -261,6 +262,9 @@ struct em8300_s
     int i2c_pin_reg;
     int i2c_oe_reg;
 
+    /* different between revision 1 and revision 2 boards */
+    int mystery_divisor;
+
     /* I2C bus 1*/
     struct i2c_algo_bit_data i2c_data_1;
     struct i2c_adapter i2c_ops_1;
@@ -276,6 +280,9 @@ struct em8300_s
 
     /* Microcode registers */
     unsigned ucode_regs[MAX_UCODE_REGISTER];
+    int var_ucode_reg1; /* These are registers that differ */
+    int var_ucode_reg2; /* between versions 1 and 2 of the board */
+    int var_ucode_reg3; /* " */
 
     /* Interrupt */
     unsigned irqmask;
@@ -319,6 +326,7 @@ struct em8300_s
 #endif
     int video_ptsfifo_waiting;
     int video_first;
+    int var_video_value;
 
     /* Sub Picture */
     int sp_pts,sp_ptsvalid,sp_count;

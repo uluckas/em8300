@@ -171,6 +171,9 @@ int overlay_read_state(overlay_t *o, char *p)
     return 0;
 }
 
+void overlay_update_params(overlay_t *o) {
+    update_parameters(o);
+}
 
 int overlay_write_state(overlay_t *o, char *p)	
 {
@@ -305,7 +308,6 @@ int overlay_set_keycolor(overlay_t *o, int color) {
 	    (col_interp(bl, o->colcal_lower[2]));
 
     printf("0x%06x 0x%06x\n",upper,lower);
-    
     overlay_set_attribute(o,EM9010_ATTRIBUTE_KEYCOLOR_UPPER,upper);
     overlay_set_attribute(o,EM9010_ATTRIBUTE_KEYCOLOR_LOWER,lower);
 }

@@ -86,17 +86,9 @@ int upload_prepare(struct em8300_s *em)
 	 em->mem[0x1c00] = 0x80;
 	 em->mem[0x1c04] = 0xc7;
      }
-     if(read_register(0x1c08) & 0x40) {
-	 em->mem[0x1c04] = 0x8272;
-	 if(read_register(0x1c08) & 0x20)
-	     em->mem[0x1c00] = 0x818;
-	 em->mem[0x1c00] = 0x800;
-	 em->mem[0x1c04] = 0x272;
-     } else {
-	 em->mem[0x1c04] = 0x825a;
-	 em->mem[0x1c00] = 0x800;
-	 em->mem[0x1c04] = 0x25a;
-     }
+     em->mem[0x1c04] = em->var_ucode_reg3;
+     em->mem[0x1c00] = em->var_ucode_reg1;
+     em->mem[0x1c04] = em->var_ucode_reg2;
      
      em->mem[0x1c08];
      em->mem[0x1c10] = 0x8;

@@ -377,10 +377,30 @@ int em8300_init(struct em8300_s *em) {
 
     write_register(0x1f50, 0x123);
 
-    if(read_register(0x1f50) == 0x123)
-	em->chip_revision = 2;
-    else
-	em->chip_revision = 1;
+    if(read_register(0x1f50) == 0x123) {
+       em->chip_revision = 2;
+       if (0x40 & read_register(0x1c08)) {
+          em->var_video_value = 0xd34;
+	  em->mystery_divisor = 0x107ac;
+	  em->var_ucode_reg2 = 0x272;
+	  em->var_ucode_reg3 = 0x8272;
+	  if (0x20 & read_register(0x1c08)) {
+	     em->var_ucode_reg1 = 0x818;
+	  }
+       } else {
+	  em->var_video_value = 0xce4;
+	  em->mystery_divisor = 0x101d0;
+	  em->var_ucode_reg2 = 0x25a;
+          em->var_ucode_reg3 = 0x825a;
+       }
+    } else {
+       em->chip_revision = 1;            
+       em->var_ucode_reg1 = 0x80;
+       em->var_video_value = 0xce4;
+       em->mystery_divisor = 0x101d0;
+       em->var_ucode_reg2 = 0xC7;
+       em->var_ucode_reg3 = 0x8c7;
+    }
 
     printk("em8300_main.o: Chip revision: %d\n",em->chip_revision);
     

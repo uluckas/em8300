@@ -21,6 +21,7 @@
 #include "em8300.h"
 
 #include "adv717x.h"
+#include "bt865.h"
 //#include <linux/sensors.h>
 
 #define I2C_HW_B_EM8300 0xa
@@ -92,6 +93,10 @@ static int em8300_i2c_reg(struct i2c_client *client)
     case I2C_DRIVERID_AT24Cxx:
 	em->eeprom = client;
 	break;
+    case  I2C_DRIVERID_BT865:
+        em->encoder_type = ENCODER_BT865;
+        em->encoder = client;
+        break;
     }
     return 0;
 }
@@ -104,6 +109,9 @@ static int em8300_i2c_unreg(struct i2c_client *client)
     case I2C_DRIVERID_ADV717X:
 	em->encoder = NULL;
 	break;
+    case  I2C_DRIVERID_BT865:
+        em->encoder = NULL;
+        break;
 /*
     case I2C_DRIVERID_EEPROM:
 	em->eeprom = NULL;
@@ -237,6 +245,7 @@ void em8300_clockgen_write(struct em8300_s *em, int abyte) {
     }
 
     em->mem[em->i2c_pin_reg] = 0x200;
+    udelay(10);
     em->mem[em->i2c_pin_reg] = 0x202;
 }	
 

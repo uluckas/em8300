@@ -175,10 +175,7 @@ int em8300_video_setup(struct em8300_s *em) {
     write_ucregister(Q_IrqStatus,0x0);
     write_ucregister(Q_IntCnt,0x64);
 
-    if(!(read_register(0x1c08) & 0x40) || (em->chip_revision == 1))
-	write_register(0x1ffb,0xce4);
-    else
-	write_register(0x1ffb,0xd34);
+    write_register(0x1ffb,em->var_video_value);
 
     write_ucregister(MA_Threshold,0x8);
 
@@ -198,7 +195,8 @@ int em8300_video_setup(struct em8300_s *em) {
 	return -ETIME;
     }
 
-    em8300_video_setspeed(em,0x900);
+    em8300_video_setspeed(em,0x900); //was 0x900 too high
+                                     //880 too low
 
     write_ucregister(MV_FrameEventLo,0xffff);
     write_ucregister(MV_FrameEventHi,0x7fff);

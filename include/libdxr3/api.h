@@ -61,7 +61,7 @@ typedef struct
 } dxr3_state_t;
 
 // Driver Init and close functions
-int dxr3_open(char *devname, char *ucodefile);
+int dxr3_open(char *devname);
 int dxr3_close();
 int dxr3_install_microcode(em8300_microcode_t *uCode);
 
@@ -86,6 +86,7 @@ int dxr3_audio_set_rate(int);
 int dxr3_audio_set_samplesize(int);
 int dxr3_audio_get_buffersize(void);
 int dxr3_audio_get_bytesinbuffer(void);
+inline const int dxr3_audio_get_filedescriptor(void);
 
 // Video related functions
 int dxr3_video_set_overlaymode(int);
@@ -98,11 +99,13 @@ int dxr3_video_set_overlay_screen(int, int);
 int dxr3_video_set_overlay_window(int, int, int, int);
 int dxr3_video_set_overlay_keycolor(int, int);
 int dxr3_video_set_overlay_signalmode(int);
+inline const int dxr3_video_get_filedescriptor(void);
 
 // Subpic related functions
 int dxr3_subpic_set_palette(char *palette);
 int dxr3_subpic_set_mode(int);
 int dxr3_subpic_get_mode(void);
+inline const int dxr3_subpic_get_filedescriptor(void);
 
 // Play control functions
 int dxr3_set_playmode(int);

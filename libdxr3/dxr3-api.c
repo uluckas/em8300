@@ -21,7 +21,7 @@ dxr3_state_t state = { -1,-1,-1,-1,0,0 };
 
 extern int output_spdif (uint8_t *data_start, uint8_t *data_end, int fd);
 
-int dxr3_open(char *devname, char *ucodefile)
+int dxr3_open(char *devname)
 { 
 	char tmpstr[100];
 
@@ -98,9 +98,19 @@ inline int dxr3_video_write(const char *buf, int n)
 	return write(state.fd_video, buf, n);
 }
 
+inline const int dxr3_video_get_filedescriptor( )
+{
+	return state.fd_video;
+}
+
 inline int dxr3_subpic_write(const char *buf, int n)
 {
 	return write(state.fd_spu, buf, n);
+}
+
+inline const int dxr3_subpic_get_filedescriptor( )
+{
+	return state.fd_spu;
 }
 
 inline int dxr3_audio_write(const char *buf, int n)
@@ -110,6 +120,11 @@ inline int dxr3_audio_write(const char *buf, int n)
 	} else {
 		return write(state.fd_audio, buf, n);
 	}
+}
+
+inline const int dxr3_audio_get_filedescriptor( )
+{
+	return state.fd_audio;
 }
 
 int dxr3_video_set_pts(long pts)
@@ -165,49 +180,33 @@ int dxr3_audio_set_samplesize(int val)
 
 int dxr3_audio_get_buffersize()
 {
-    em8300_register_t ucregister;
+	em8300_register_t ucregister;
     
-    int buffsize = 0;
-    int error;
-    
-    if( !state.open ) return -1;
-    
-    ucregister.reg = MA_BuffSize;
-    ucregister.microcode_register = 1;
-    ioctl(state.fd_control, EM8300_IOCTL_READREG, &ucregister);
-    buffsize = ucregister.val;
-    ucregister.reg = MA_BuffSize_Hi;
-    ioctl(state.fd_control, EM8300_IOCTL_READREG, &ucregister);
-    buffsize = buffsize|(ucregister.val<<16);
-
-    return buffsize;
+	int buffsize = 0;
+	int error;
+	
+	if( !state.open ) return -1;
+	
+	ucregister.reg = MA_BuffSize;
+	ucregister.microcode_register = 1;
+	ioctl(state.fd_control, EM8300_IOCTL_READREG, &ucregister);
+	buffsize = ucregister.val;
+	ucregister.reg = MA_BuffSize_Hi;
+	ioctl(state.fd_control, EM8300_IOCTL_READREG, &ucregister);
+	buffsize = buffsize|(ucregister.val<<16);
+	
+	return buffsize;
 }
 
 int dxr3_audio_get_bytesinbuffer()
 {
-    int readptr, writeptr, bufsize;
-    em8300_register_t ucregister;
+	int bufsize;
         
-    if( !state.open ) return -1;
-    
-    bufsize = dxr3_audio_get_buffersize();
-    ucregister.microcode_register = 1;
-    ucregister.reg = MA_Rdptr;
-    ioctl(state.fd_control, EM8300_IOCTL_READREG, &ucregister);
-    readptr = ucregister.val;
-    ucregister.reg = MA_Rdptr_Hi;
-    ioctl(state.fd_control, EM8300_IOCTL_READREG, &ucregister);
-    readptr = readptr|(ucregister.val<<16);
-    
-    ucregister.reg = MA_Wrptr;
-    ioctl(state.fd_control, EM8300_IOCTL_READREG, &ucregister);
-    writeptr = ucregister.val;
-    ucregister.reg = MA_Wrptr_Hi;
-    ioctl(state.fd_control, EM8300_IOCTL_READREG, &ucregister);
-    writeptr = writeptr|(ucregister.val<<16);
-
-    if( readptr > writeptr ) return (readptr-writeptr);
-    return (writeptr-readptr);
+	if( !state.open ) return -1;
+	
+	ioctl(state.fd_audio, SNDCTL_DSP_GETODELAY, &bufsize);
+	
+	return bufsize;
 }
 
 /* probably move this to the driver eventually */

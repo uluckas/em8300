@@ -11,6 +11,7 @@
 #include <linux/version.h>
 #include <linux/string.h>
 #include <linux/pci.h>
+#include <linux/soundcard.h>
 #include <asm/io.h>
 #include <asm/uaccess.h>
 
@@ -19,8 +20,6 @@
 #include "em8300_reg.h"
 #include <linux/em8300.h>
 #include "em8300_fifo.h"
-
-#include <linux/soundcard.h>
 
 #ifndef AFMT_AC3
 #define AFMT_AC3 0x00000400
@@ -390,21 +389,19 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		break;
 
 	case SNDCTL_DSP_GETOSPACE:
+	{
+		audio_buf_info buf_info;
+		buf_info.fragments = ((*em->mafifo->readptr - *em->mafifo->writeptr)/em->mafifo->slotptrsize+em->mafifo->nslots-1)%em->mafifo->nslots;
+		buf_info.fragstotal = em->mafifo->nslots;
+		buf_info.fragsize = em->mafifo->slotsize;
+		buf_info.bytes = em->mafifo->nslots*em->mafifo->slotsize;
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETOSPACE\n");
-		pr_info("em8300_audio.o: SNDCTL_DSP_GETOSPACE not implemented yet\n");
-		return -EINVAL;
-		break;
-
+		return copy_to_user((void *)arg, &buf_info, sizeof(audio_buf_info));
+	}
+	
 	case SNDCTL_DSP_GETISPACE:
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETISPACE\n");
-		pr_info("em8300_audio.o: SNDCTL_DSP_GETOSPACE not implemented yet\n");
 		return -EINVAL;
-#if 0
-		fragments =;
-		fragstotal =;
-		fragsize = 0x1000;
-		bytes = fragments * fragsize;
-#endif
 		break;
 
 	case SNDCTL_DSP_GETCAPS:
@@ -430,7 +427,6 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 
 	case SNDCTL_DSP_GETIPTR:
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETIPTR\n");
-		pr_info("em8300_audio.o: SNDCTL_DSP_GETIPTR not implemented yet\n");
 		return -EINVAL;
 		break;
 

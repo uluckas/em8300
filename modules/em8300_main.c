@@ -167,9 +167,6 @@ static void release_em8300(int max)
 		if (em->mem) {
 			iounmap((unsigned *)em->mem);
 		}
-		if (em->mtrr_reg) {
-			mtrr_del(em->mtrr_reg,em->adr, em->memsize);
-		}
 	}
 }
 

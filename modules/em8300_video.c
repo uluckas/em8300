@@ -104,6 +104,17 @@ int em8300_video_sync(struct em8300_s *em)
 	return 0;
 }
 
+int em8300_video_flush(struct em8300_s *em)
+{
+	int rdptrlo, rdptrhi;
+	rdptrlo = read_ucregister(MV_RdPtr_Lo);
+	rdptrhi = read_ucregister(MV_RdPtr_Hi);
+	write_ucregister(MV_Wrptr_Lo, rdptrlo);
+	write_ucregister(MV_Wrptr_Hi, rdptrhi);
+	write_ucregister(MV_Command, MVCOMMAND_FLUSHBUF);
+	return 0;
+}
+
 void set_dicom_kmin(struct em8300_s *em)
 {
 	int kmin;

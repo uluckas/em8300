@@ -78,7 +78,7 @@ typedef struct {
 #define EM8300_IOCTL_SCR_SET _IOW('C',16,unsigned)
 #define EM8300_IOCTL_SCR_GETSPEED _IOR('C',17,unsigned)
 #define EM8300_IOCTL_SCR_SETSPEED _IOW('C',17,unsigned)
-#define EM8300_IOCTL_FIFO_FLUSH _IOW('C',18,int)
+#define EM8300_IOCTL_FLUSH _IOW('C',18,int)
 
 #define EM8300_OVERLAY_SIGNAL_ONLY 1
 #define EM8300_OVERLAY_SIGNAL_WITH_VGA 2
@@ -381,6 +381,7 @@ void em9010_write16(struct em8300_s *em, int reg, int value);
 
 /* em8300_audio.c */
 int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg);
+int em8300_audio_flush(struct em8300_s *em);
 int em8300_audio_open(struct em8300_s *em);
 int em8300_audio_release(struct em8300_s *em);
 int em8300_audio_setup(struct em8300_s *em);
@@ -408,9 +409,10 @@ void em8300_dicom_fill_dispbuffers(struct em8300_s *em, int xpos, int ypos, int 
 				  int ysize, unsigned int pat1, unsigned int pat2);
 
 /* em8300_video.c */
-
 void em8300_video_open(struct em8300_s *em);
 int em8300_video_setplaymode(struct em8300_s *em, int mode);
+int em8300_video_sync(struct em8300_s *em);
+int em8300_video_flush(struct em8300_s *em);
 int em8300_video_setup(struct em8300_s *em);
 int em8300_video_release(struct em8300_s *em);
 void em8300_video_setspeed(struct em8300_s *em, int speed);

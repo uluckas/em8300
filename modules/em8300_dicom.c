@@ -144,7 +144,7 @@ int em8300_dicom_update(struct em8300_s *em)
     write_ucregister(DICOM_VisibleRight, tvmodematrix[em->video_mode][em->aspect_ratio].horizoffset +
 		                       tvmodematrix[em->video_mode][em->aspect_ratio].horizsize-1);
 
-    write_ucregister(DICOM_TvOut, 0x4001);
+    write_ucregister(DICOM_TvOut, em->dicom_tvout);
 
     if((em->encoder_type == ENCODER_ADV7170) ||
        ((em->encoder_type == ENCODER_ADV7175) &&
@@ -156,3 +156,15 @@ int em8300_dicom_update(struct em8300_s *em)
     return em8300_waitfor(em, ucregister(DICOM_UpdateFlag), 0, 1);
 }
 
+
+void em8300_dicom_disable(struct em8300_s *em)
+{
+    em->dicom_tvout=0x8000;
+    write_ucregister(DICOM_TvOut, em->dicom_tvout);
+}
+
+void em8300_dicom_enable(struct em8300_s *em)
+{
+    em->dicom_tvout=0x4001;
+    write_ucregister(DICOM_TvOut, em->dicom_tvout);
+}

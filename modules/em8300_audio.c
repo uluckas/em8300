@@ -68,7 +68,7 @@ void sub_prepare_SPDIF(struct em8300_s *em, unsigned char *outblock, unsigned ch
 			} else {
 				ebx = (em->byte_D90[em->dword_DB4 >> 3] & 0xff) << (em->dword_DB4 & 7);
 			}
-			local4 = (unsigned char)((ebx & 0x80) >> 1);
+			local4 = (unsigned char) ((ebx & 0x80) >> 1);
 		}
 
 		local2 = in[0] << 8 | in[1];
@@ -293,10 +293,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	switch (cmd) { 
 	case SNDCTL_DSP_RESET: /* reset device */
 		pr_debug("em8300_audio.o: SNDCTL_DSP_RESET\n");
-		em8300_fifo_free(em->mafifo);
-		em->mafifo = em8300_fifo_alloc();
-		em8300_fifo_free(em->mvfifo);
-		em->mvfifo = em8300_fifo_alloc();
+		em8300_fifo_sync(em->mafifo);
 		val = 0;
 		break;
 

@@ -17,7 +17,7 @@
 
 #include "dxr3-api.h"
 
-static dxr3_state_t state = { -1,-1,-1,-1,0,0 };
+dxr3_state_t state = { -1,-1,-1,-1,0,0 };
 
 static int _dxr3_install_microcode (char *ucode);
 
@@ -65,7 +65,15 @@ int dxr3_open(char *devname, char *ucodefile)
     
     state.open=1;
 
+    // current solution for audio output selection - until we move to the new oms architecture - Ze'ev Maor 05-09-2000
+#ifdef ANALOG
     state.audiomode = DXR3_AUDIOMODE_ANALOG;
+#elif defined DIGITAL
+    state.audiomode = DXR3_AUDIOMODE_DIGITALAC3;
+#else
+#error "*** Set the DXR3_AUDIO_OUTPUT variable in Makefile.am to either ANALOG or DIGITAL ***"
+#endif
+
 	     
     return 0;
 }

@@ -361,7 +361,7 @@ int adv717x_setup(struct i2c_client *client) {
     
     memset(data->config, 0, sizeof(data->config));
 
-    data->bars=1;
+    data->bars=0;
     data->rgbmode=0;
     data->enableoutput=0;
 

@@ -3,6 +3,9 @@
  *
  * Copyright (C) 1999, 2000  Thomas Mirlacher
  *
+ * 24-08-00: Ze'ev Maor - SPDIF framing of AC3 sync frames integration
+ * 	     zeevm@siglab.technion.ac.il			
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -44,6 +47,7 @@
 #include "dxr3-api.h"
 
 extern ao_functions_t audio_out_dxr3;
+extern dxr3_state_t state;
 
 static struct dxr3_priv_struct {
     char *path;
@@ -95,6 +99,12 @@ static int _dxr3_read (plugin_codec_t *plugin, buf_t *buf, buf_entry_t *buf_entr
     case BUF_AUDIO:
 	if(buf_entry->flags & BUF_FLAG_PTS_VALID) 
 	    dxr3_audio_set_pts(buf_entry->pts);
+
+	if (state.audiomode==DXR3_AUDIOMODE_DIGITALAC3)
+		output_spdif(buf_entry->data,
+			     buf_entry->data+buf_entry->data_len,
+			     state.fd_audio);
+	else
 	ac3_decode_data (buf_entry->data,
 			 buf_entry->data+buf_entry->data_len);  
 	break;

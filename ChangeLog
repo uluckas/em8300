@@ -13,6 +13,10 @@
 	Rewrite modules/Makefile mostly from scratch to support both 2.4
 	and 2.6 kernels in a much simpler way.
 
+	* modules/em8300_main.c:
+	Call em8300_spu_release when em8300_io_release is called for an
+	em8300_sp device. Thanks to Håkon Skjelten for this change.
+
 2004-03-23  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Since before kernel 2.4.0, the file_operations structure has an

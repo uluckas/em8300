@@ -554,6 +554,7 @@ int em8300_io_release(struct inode* inode, struct file *filp)
 		em8300_ioctl_enable_videoout(em, 0);
 		break;
 	case EM8300_SUBDEVICE_SUBPICTURE:
+		em8300_spu_release(em);    /* Do we need this one ? */
 		break;
 	}
 

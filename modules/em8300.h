@@ -19,6 +19,7 @@ typedef struct {
 #define EM8300_IOCTL_SPU_SETPTS 1
 #define EM8300_IOCTL_SPU_SETPALETTE 2
 #define EM8300_IOCTL_AUDIO_SETPTS _SIOWR('P', 31, int)
+#define EM8300_IOCTL_AUDIO_SYNC _SIO('P', 30)
 
 #define EM8300_VIDEOMODE_PAL 1
 #define EM8300_VIDEOMODE_PAL60 2
@@ -48,6 +49,7 @@ typedef struct {
 
 
 #define PTSLAG_LIMIT 45000
+#define AUDIO_LAG_LIMIT 0
 
 
 #define CLOCKGEN_SAMPFREQ_MASK 0xc0
@@ -60,14 +62,20 @@ typedef struct {
 #define MVCOMMAND_STOP 0x0
 #define MVCOMMAND_11 0x11
 #define MVCOMMAND_10 0x10
+#define MVCOMMAND_PAUSE 1
 #define MVCOMMAND_START 3
 
 #define MACOMMAND_STOP 0x0
-#define MACOMMAND_START 0x2
+#define MACOMMAND_PAUSE 0x1
+#define MACOMMAND_PLAY 0x2
 
 #define IRQSTATUS_VIDEO_VBL 0x10
 #define IRQSTATUS_VIDEO_FIFO 0x2
 #define IRQSTATUS_AUDIO_FIFO 0x8
+
+#define AUDIO_SYNC_INACTIVE 0
+#define AUDIO_SYNC_REQUESTED 1
+#define AUDIO_SYNC_INPROGRESS 2 
 
 #define ENCODER_ADV7175 1 
 #define ENCODER_ADV7170 2
@@ -156,6 +164,7 @@ struct em8300_s
     int audio_pts;
     int audio_rate;
     int audio_lag;
+    int audio_sync,audio_syncpts;
 
     /* Video */
     int video_mode;
@@ -198,6 +207,7 @@ int em8300_audio_release(struct em8300_s *em);
 int em8300_audio_setup(struct em8300_s *em);
 int em8300_audio_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos);
+int mpegaudio_command(struct em8300_s *em, int cmd);
 
 /* em8300_ucode.c */
 int em8300_ucode_upload(struct em8300_s *em, void *ucode_user, int ucode_size);

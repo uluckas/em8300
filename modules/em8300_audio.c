@@ -24,8 +24,6 @@
 #include <linux/soundcard.h>
 
 
-
-static
 int mpegaudio_command(struct em8300_s *em, int cmd) {
     if(read_ucregister(MV_Command) != 0xffff)
         return -1;
@@ -39,7 +37,7 @@ static
 int audio_start(struct em8300_s *em) {
     em->irqmask |= IRQSTATUS_AUDIO_FIFO;
     write_ucregister(Q_IrqMask,em->irqmask);
-    return mpegaudio_command(em,MACOMMAND_START);
+    return mpegaudio_command(em,MACOMMAND_PLAY);
 }
 
 static
@@ -105,7 +103,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
     case SNDCTL_DSP_GETBLKSIZE:
 	val = 0x1000;
 	break;
-     case SNDCTL_DSP_STEREO:
+    case SNDCTL_DSP_STEREO:
 	if (get_user(val, (int *)arg))
 	    return -EFAULT;
 	if (val > 1 || val < 0)
@@ -126,16 +124,36 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	}
 	break;
     case EM8300_IOCTL_AUDIO_SETPTS:
-	if (get_user(em->audio_pts, (int *)arg))
-	    return -EFAULT;
-	em->audio_pts >>= 1;
-	em->audio_ptsvalid=1;
+	if(!em->audio_ptsvalid) {
+	    if (get_user(em->audio_pts, (int *)arg))
+		return -EFAULT;
+	    em->audio_pts >>= 1;
+	    em->audio_ptsvalid=1;
+	}
+	val=0;
+	break;
+    case EM8300_IOCTL_AUDIO_SYNC:
+	em->audio_sync=AUDIO_SYNC_REQUESTED;
 	val=0;
 	break;
     default:
 	return -EINVAL;
     }
     return put_user(val, (int *)arg);
+}
+
+int em8300_audio_flush(struct em8300_s *em) {
+    int audiobuf,audiobufsize;
+
+    mpegaudio_command(em,MACOMMAND_STOP);
+
+    /* Zero audio buffer */
+    audiobuf = read_ucregister(MA_BuffStart_Lo) |
+		       (read_ucregister(MA_BuffStart_Hi) << 16);
+    audiobufsize = read_ucregister(MA_BuffSize) |
+		       (read_ucregister(MA_BuffSize_Hi) << 16);
+
+    return em8300_setregblock(em, audiobuf, 0, audiobufsize);
 }
 
 int em8300_audio_open(struct em8300_s *em)
@@ -153,16 +171,9 @@ int em8300_audio_release(struct em8300_s *em)
 
 int em8300_audio_setup(struct em8300_s *em) {
     int ret;
-    int audiobuf,audiobufsize;
+
+    ret = em8300_audio_flush(em);
     
-    /* Zero audio buffer */
-    audiobuf = read_ucregister(MA_BuffStart_Lo) |
-		       (read_ucregister(MA_BuffStart_Hi) << 16);
-    audiobufsize = read_ucregister(MA_BuffSize) |
-		       (read_ucregister(MA_BuffSize_Hi) << 16);
-
-    ret = em8300_setregblock(em, audiobuf, 0, audiobufsize);
-
     if(ret) {
 	printk("em8300_audio.o: Couldn't zero audio buffer\n");
 	return ret;
@@ -170,9 +181,9 @@ int em8300_audio_setup(struct em8300_s *em) {
     
     write_ucregister(MA_Threshold,6);
     
-    mpegaudio_command(em,2);
+    mpegaudio_command(em,MACOMMAND_PLAY);
     write_register(0x1f47, 0x18);
-    mpegaudio_command(em,1);
+    mpegaudio_command(em,MACOMMAND_PAUSE);
     write_register(0x1fb0,0x62);
 
     return 0;
@@ -181,18 +192,31 @@ int em8300_audio_setup(struct em8300_s *em) {
 int em8300_audio_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos)
 {
-    int scr;
     if(em->audio_ptsvalid) {
+	long picpts;
+	picpts =
+	    read_ucregister(PicPTSLo) +
+	    (read_ucregister(PicPTSHi) << 16);
+
 	if(em->audio_rate) {
-	    scr =
-		read_ucregister(MV_SCRlo) +
-		(read_ucregister(MV_SCRhi) << 16);
-	    em->audio_lag = em->audio_pts - (scr + 45000 * count *
-		((em->mafifo->nslots - em8300_fifo_freeslots(em->mafifo))-1)
-		/4
-		/ em->audio_rate);
+	    em->audio_lag = picpts - em->audio_pts;
+	    if(em->audio_sync == AUDIO_SYNC_INACTIVE &&
+	       (em->audio_lag > AUDIO_LAG_LIMIT))	{
+		em->audio_sync = AUDIO_SYNC_REQUESTED;
+		printk("em8300_audio.o: Audio out of sync (%d). Resyncing.\n",				em->audio_lag	);
+	    }	
+	}
+
+	if(em->audio_sync == AUDIO_SYNC_REQUESTED) {
+	    if(em->audio_pts > picpts) {
+		em8300_audio_flush(em);
+		mpegaudio_command(em,MACOMMAND_PAUSE);
+		em->audio_syncpts=em->audio_pts;
+		em->audio_sync=AUDIO_SYNC_INPROGRESS;
+	    }
 	}
 	em->audio_ptsvalid=0;
     }
+    
     return em8300_fifo_writeblocking(em->mafifo, count, buf,1,0);
 }

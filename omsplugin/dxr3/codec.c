@@ -135,10 +135,10 @@ static int _dxr3_open (plugin_codec_t *plugin)
     }
 
 
-    dxr3_init (priv->fd_control);
+     dxr3_init (priv->fd_control); 
 
-    if (_dxr3_install_firmware (priv, "/etc/dxr3.ux") == -1)
-	return -1;
+     if (_dxr3_install_firmware (priv, "/etc/dxr3.ux") == -1) 
+ 	return -1; 
 
     // We don't need the control device anymore
     close(priv->fd_control);
@@ -281,7 +281,6 @@ static int insert_audio_block(uint_8 *data, int data_len, long long clock)
 /**
  *
  **/
-
 static int _dxr3_read (plugin_codec_t *plugin, buf_t *buf, buf_entry_t *buf_entry)
 {
     long tmp;
@@ -290,6 +289,7 @@ static int _dxr3_read (plugin_codec_t *plugin, buf_t *buf, buf_entry_t *buf_entr
     switch (buf_entry->buf_id) {
     case BUF_AUDIO: {
 	if(buf_entry->flags & BUF_FLAG_PTS_VALID) {
+	    //	    printf("audio: %d\n",buf_entry->pts);
 	    tmp = buf_entry->pts;
 	    ioctl(priv->fd_audio, EM8300_IOCTL_AUDIO_SETPTS, &tmp);
 	}
@@ -310,7 +310,7 @@ static int _dxr3_read (plugin_codec_t *plugin, buf_t *buf, buf_entry_t *buf_entr
 	break;
     case BUF_SUBPIC: {
 	if(buf_entry->flags & BUF_FLAG_PTS_VALID) {
-	    printf("Spu: %d\n",buf_entry->pts);
+	    // printf("Spu: %d\n",buf_entry->pts);
 	    ioctl(priv->fd_spu, EM8300_IOCTL_SPU_SETPTS,buf_entry->pts);
 	}
 	
@@ -321,7 +321,7 @@ static int _dxr3_read (plugin_codec_t *plugin, buf_t *buf, buf_entry_t *buf_entr
     }
     case BUF_VIDEO: {
 	if(buf_entry->flags & BUF_FLAG_PTS_VALID) {
-	    printf("video: %d\n",buf_entry->pts);
+	    //	    printf("video: %d\n",buf_entry->pts);
 	    ioctl(priv->fd_video, EM8300_IOCTL_VIDEO_SETPTS,buf_entry->pts);
 	}
 	if (priv->fd_video >= 0) 
@@ -363,11 +363,16 @@ uint_32 output_open(uint_32 bits, uint_32 rate, uint_32 channels)
 /*
  * play the sample to the already opened file descriptor
  */
+static int sync_cnt=800;
 void output_play(sint_16* output_samples, uint_32 num_bytes)
 {
 //	if(fd < 0)
 //		return;
-
+    //    printf("Sound output: %d\n",num_bytes);
+    if(sync_cnt++ == 1000) {
+	ioctl(fd_audio, EM8300_IOCTL_AUDIO_SYNC, 0);	
+	sync_cnt=0;
+    }
   if (write(fd_audio,output_samples,num_bytes * 2) == EAGAIN)
     {
       fprintf(stderr, "woops, audio full!\n");

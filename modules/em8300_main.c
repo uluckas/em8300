@@ -88,11 +88,16 @@ void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 	    picpts = (read_ucregister(PicPTSHi) << 16) |
 		read_ucregister(PicPTSLo);
 	    scr = (read_ucregister(MV_SCRhi) << 16) | read_ucregister(MV_SCRlo);
-
 	    lag = scr-picpts;
 
+	    if((em->audio_sync == AUDIO_SYNC_INPROGRESS) &&
+	       scr >= em->audio_syncpts) {
+		mpegaudio_command(em,MACOMMAND_PLAY);
+		em->audio_sync=0;
+	    }
+
 	    if(lag > PTSLAG_LIMIT || lag < -PTSLAG_LIMIT) {
-		DEBUG(printk("em8300_main.o: Lagging (%ld) to much. Catching up\n",lag));
+		DEBUG(printk("em8300_main.o: Video out of sync (%ld). Resyncing.\n",lag));
 		scr = picpts;
 		write_ucregister(MV_SCRhi, scr >> 16);		
 		write_ucregister(MV_SCRlo, scr & 0xffff);		
@@ -253,6 +258,10 @@ int em8300_io_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, un
 
 	if((ret=em8300_video_setup(em)))
 	    return ret;
+
+	if(em->mvfifo) em8300_fifo_free(em->mvfifo);
+	if(em->mafifo) em8300_fifo_free(em->mafifo);
+	if(em->spfifo) em8300_fifo_free(em->spfifo);
 
 	if(!(em->mvfifo = em8300_fifo_alloc()))
 	    return -ENOMEM;

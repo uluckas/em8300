@@ -15,6 +15,10 @@
 	  em8300setup/em8300setup.1:
 	Add a manpage for em8300setup.
 
+	* Makefile.am,
+	  bootstrap:
+	Update the autotools.
+
 2005-03-08  Nicolas Boullis  <nboullis@debian.org>
 	* em8300setup/em8300setup.c:
 	Improve em8300setup's usage message. Thanks to Ville Skyttä for

@@ -1,6 +1,8 @@
 2002-02-02  David Holm  <dholm@iname.com>
 	* modules/em8300_main.c:
 	Added poll/select
+	Added dsp_poll, this will increase performance and usability in applications
+	where low latency is very important. XMMS also makes good use of this feature
 
 2002-01-26  David Holm  <dholm@iname.com>
 	* modules/em8300_audio.c:

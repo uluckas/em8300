@@ -93,22 +93,17 @@ int dxr3_get_status()
 		return DXR3_STATUS_OPENED;
 }
 
-int dxr3_video_write(const char *buf, int n)
+inline int dxr3_video_write(const char *buf, int n)
 {
 	return write(state.fd_video, buf, n);
 }
 
-int dxr3_subpic_write(const char *buf, int n)
+inline int dxr3_subpic_write(const char *buf, int n)
 {
 	return write(state.fd_spu, buf, n);
 }
 
-int dxr3_audio_write(const char *buf, int n)
-{
-	return write(state.fd_audio, buf, n);
-}
-
-int dxr3_audio_write_ac3(const char *buf, int n)
+inline int dxr3_audio_write(const char *buf, int n)
 {
         if (state.audiomode == DXR3_AUDIOMODE_DIGITALAC3) {
 		return output_spdif(buf, buf+n, state.fd_audio);
@@ -188,7 +183,7 @@ int dxr3_audio_get_buffersize()
     return buffsize;
 }
 
-int dxr3_audio_get_bytesleft()
+int dxr3_audio_get_bytesinbuffer()
 {
     int readptr, writeptr, bufsize;
     em8300_register_t ucregister;

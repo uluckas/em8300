@@ -36,6 +36,9 @@
 #define DXR3_PLAYMODE_REVERSEPLAY     6
 #define DXR3_PLAYMODE_SCAN            7
 
+//For backwards compatibility
+#define dxr3_audio_write_ac3 dxr3_audio_write
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -66,12 +69,9 @@ int dxr3_install_microcode(em8300_microcode_t *uCode);
 int dxr3_get_status();
 
 // Data IO functions
-int dxr3_video_write(const char *buf, int n);
-// write raw audio data
-int dxr3_audio_write(const char *buf, int n);
-// if we're in digitalac3 mode, process the data accordingly
-int dxr3_audio_write_ac3(const char *buf, int n);
-int dxr3_subpic_write(const char *buf, int n);
+inline int dxr3_video_write(const char *buf, int n);
+inline int dxr3_audio_write(const char *buf, int n);
+inline int dxr3_subpic_write(const char *buf, int n);
 
 // Timestamp related functions
 int dxr3_video_set_pts(long);
@@ -85,7 +85,7 @@ int dxr3_audio_set_stereo(int);
 int dxr3_audio_set_rate(int);
 int dxr3_audio_set_samplesize(int);
 int dxr3_audio_get_buffersize(void);
-int dxr3_audio_get_bytesleft(void); //Bytes left to play in buffer
+int dxr3_audio_get_bytesinbuffer(void);
 
 // Video related functions
 int dxr3_video_set_overlaymode(int);

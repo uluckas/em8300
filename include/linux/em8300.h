@@ -252,6 +252,7 @@ struct em8300_s
 	struct fifo_s *mvfifo;
 	struct fifo_s *mafifo;
 	struct fifo_s *spfifo;
+	int mtrr_reg;
 	
 	/* DICOM */
 	int dicom_vertoffset;

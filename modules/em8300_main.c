@@ -37,6 +37,7 @@
 #include <asm/page.h>
 #include <linux/sched.h>
 #include <asm/segment.h>
+#include <asm/mtrr.h>
 
 #include <linux/version.h>
 #include <asm/uaccess.h>
@@ -145,6 +146,10 @@ static void release_em8300(int max)
 			em->encoder->driver->command(em->encoder, ENCODER_CMD_ENABLEOUTPUT, (void *)0);
 		}
 	
+		if (em->mtrr_reg) {
+			mtrr_del(em->mtrr_reg,em->adr, em->memsize);
+		}
+		
 		em8300_i2c_exit(em);
 
 		write_ucregister(Q_IrqMask, 0);
@@ -161,6 +166,9 @@ static void release_em8300(int max)
 		/* unmap and free memory */
 		if (em->mem) {
 			iounmap((unsigned *)em->mem);
+		}
+		if (em->mtrr_reg) {
+			mtrr_del(em->mtrr_reg,em->adr, em->memsize);
 		}
 	}
 }
@@ -212,6 +220,8 @@ static int find_em8300(void)
 	
 		em->mem = ioremap(em->adr, em->memsize);
 		pr_info("em8300: mapped-memory at 0x%p\n",em->mem);
+		em->mtrr_reg = mtrr_add( em->adr, em->memsize, MTRR_TYPE_UNCACHABLE, 1 );
+		if( em->mtrr_reg ) pr_info("em8300: using MTRR\n");
 
 		result = request_irq(dev->irq, em8300_irq, SA_SHIRQ|SA_INTERRUPT,"em8300",(void *)em);
 	

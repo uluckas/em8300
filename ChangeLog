@@ -1,3 +1,16 @@
+2001-11-04  Rick Haines  <rick@kuroyi.net>
+
+	* include/libdxr3/api.h,
+	  libdxr3/dxr3-api.c:
+	patch from David to rename
+	dxr3_audio_get_bytesleft() to
+	dxr3_audio_get_bytesinbuffer()
+
+	* include/linux/mtrr.h,
+	  modules/em8300_main.c:
+	patch from David to add mtrr support
+	(maybe speedup the fifo operations)
+
 2001-11-03  Rick Haines  <rick@kuroyi.net>
 
 	* include/libdxr3/api.h,

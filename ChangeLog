@@ -1,3 +1,17 @@
+2001-02-25  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_main.c
+	merge patch from Frédéric Crozat,
+	"A cast is needed in switch, otherwise em8300.o
+	needs a function which is only present in 
+	libgcc.a (compiler library) :  __cmpdi2"
+
+	* modules/adv717x.c
+	added swap_redblue_pal for people with
+	swapped red and blue components;
+	changes Timing Register 1 for PAL and PAL60.
+	register values from Frédéric Crozat.
+	
 2001-02-19  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_video.c (em8300_video_setup):

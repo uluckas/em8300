@@ -320,7 +320,7 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 	return -EPERM;
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
-    switch(vma->vm_offset) {
+    switch((unsigned long) vma->vm_offset) {
 #else	
     switch(vma->vm_pgoff) {
 #endif	

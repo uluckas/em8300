@@ -49,7 +49,7 @@ cat <<KERNEL_MAKEFILE_PATCH | patch --ignore-whitespace -p0 -o ${EM_LOCATION}/te
  		 drivers/media/media.o
  LIBS		=\$(TOPDIR)/lib/lib.a
 -SUBDIRS		=kernel drivers mm fs net ipc lib
-+SUBDIRS		=${EM_LOCATION}
++SUBDIRS		=kernel drivers mm fs net ipc lib ${EM_LOCATION}
  
  DRIVERS-n :=
  DRIVERS-y :=
@@ -58,7 +58,7 @@ cat <<KERNEL_MAKEFILE_PATCH | patch --ignore-whitespace -p0 -o ${EM_LOCATION}/te
  	\$(CC) \$(CFLAGS) \$(CFLAGS_KERNEL) \$(PROFILING) -c -o \$*.o $<
  
 -fs lib mm ipc kernel drivers net: dummy
-+${EM_LOCATION}: dummy
++fs lib mm ipc kernel drivers net ${EM_LOCATION}: dummy
  	\$(MAKE) CFLAGS="\$(CFLAGS) \$(CFLAGS_KERNEL)" \$(subst \$@, _dir_\$@, \$@)
  
  TAGS: dummy

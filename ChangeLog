@@ -1,3 +1,10 @@
+2001-02-28  Rick Haines  <rick@kuroyi.net>
+
+	* modules/make-install-2.4
+	merge patch from Stefan Lucke so we install
+	the other kernel modules too.  This has
+	been bugging me for a while as well.
+	
 2001-02-25  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300.h,

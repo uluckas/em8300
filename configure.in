@@ -62,7 +62,7 @@ AM_PATH_GTK(1.2.0, has_gtk=yes, [has_gtk=no
 	AC_MSG_RESULT(*** GTK not found ***)])
 
 if test x$has_gtk = xyes; then
-    AC_DEFINE(HAVE_GTK)
+    AC_DEFINE(HAVE_GTK, 1, [Defined if you have GTK])
 fi
 AM_CONDITIONAL(HAVE_GTK, test x$has_gtk = "xyes")
 

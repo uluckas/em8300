@@ -4,6 +4,11 @@
 	Kill the warnings about ISA bus adapters as some people seem to
 	consider them offensive or confusing.
 
+	* acconfig.h,
+	  configure.in:
+	Improve use of AC_DEFINE in configure.in and remove acconfig.h to
+	kill a warning when running autoconf. Thanks to Ville Skyttä.
+
 2004-11-14  Nicolas Boullis  <nboullis@debian.org>
 	* dhc/Makefile.am,
 	  em8300setup/Makefile.am,

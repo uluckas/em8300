@@ -43,8 +43,8 @@
 
 #include <linux/i2c-algo-bit.h>
 
-#include "em8300.h"
 #include "em8300_reg.h"
+#include <linux/em8300.h>
 #include "em8300_fifo.h"
 
 

@@ -43,7 +43,9 @@
 #include <linux/i2c-algo-bit.h>
 
 #include "encoder.h"
-#include "em8300.h"
+
+#include "em8300_reg.h"
+#include <linux/em8300.h>
 #include "em8300_fifo.h"
 
 MODULE_AUTHOR("Henrik Johansson <henrikjo@post.utfors.se>");

@@ -18,8 +18,7 @@
 #include <linux/time.h>
 
 #include "em8300_reg.h"
-
-#include "em8300.h"
+#include <linux/em8300.h>
 
 /* sub_2ac2d */
 static int testcable(struct em8300_s *em)

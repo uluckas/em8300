@@ -4,7 +4,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 
-#include "dxr3-api.h"
+#include <libdxr3/api.h>
 #if defined(__OpenBSD__)
 #include <soundcard.h>
 #elif defined(__FreeBSD__)

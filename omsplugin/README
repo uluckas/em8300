@@ -3,6 +3,7 @@ cp -a dxr3/ oms/src/plugin/decode
 cp Makefile.am.plugin oms/src/plugin/Makefile.am
 cp Makefile.am oms/src/plugin/decode
 cd oms
+edit bootstrap to remove 'grep -v src/plugin/decode | \'
 ./bootstrap
 ./configure && make
 make install

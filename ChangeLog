@@ -1,3 +1,10 @@
+2001-03-11  Rick Haines  <rick@kuroyi.net>
+
+	* include/*
+	move the includes that should get installed here.
+
+	move the configure stuff to the root dir.
+	
 2001-03-08  Rick Haines  <rick@kuroyi.net>
 
 	* libdxr3/*:

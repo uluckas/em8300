@@ -2,3 +2,5 @@ Hollywood plus / DXR3 device driver for Linux
 
 For further information, visit the webpage at http://dxr3.sourceforge.net/
 
+Things are currently being autoconfed.  The kernel modules still need to
+be built separately.

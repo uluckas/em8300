@@ -1,41 +1,43 @@
+#ifndef LINUX_EM8300_H
+#define LINUX_EM8300_H
 
 typedef struct {
-    void *ucode;
-    int ucode_size;
+	void *ucode;
+	int ucode_size;
 } em8300_microcode_t;
 
 typedef struct {
-    int reg;
-    int val;
-    int microcode_register;
+	int reg;
+	int val;
+	int microcode_register;
 } em8300_register_t;
 
 typedef struct {
-    int brightness;
-    int contrast;
-    int saturation;
+	int brightness;
+	int contrast;
+	int saturation;
 } em8300_bcs_t;
 
 typedef struct {
-    int cal_mode;
-    int arg;
-    int arg2;
-    int result;
-    int result2;
+	int cal_mode;
+	int arg;
+	int arg2;
+	int result;
+	int result2;
 } em8300_overlay_calibrate_t;
 
 typedef struct {
-    int xpos, ypos;
-    int width, height;
+	int xpos, ypos;
+	int width, height;
 } em8300_overlay_window_t;
 
 typedef struct {
-    int xsize, ysize;
+	int xsize, ysize;
 } em8300_overlay_screen_t;
 
 typedef struct {
-    int attribute;
-    int value;
+	int attribute;
+	int value;
 } em8300_attribute_t;
 
 #define EM8300_IOCTL_INIT       _IOW('C',0,em8300_microcode_t)
@@ -127,11 +129,6 @@ typedef struct {
 #define PCI_DEVICE_ID_SIGMADESIGNS_EM8300 0x8300
 #endif
 
-
-#define PTSLAG_LIMIT 45000
-#define AUDIO_LAG_LIMIT 10000
-
-
 #define CLOCKGEN_SAMPFREQ_MASK 0xc0
 #define CLOCKGEN_SAMPFREQ_66 0xc0
 #define CLOCKGEN_SAMPFREQ_48 0x40
@@ -162,9 +159,6 @@ typedef struct {
 
 #ifdef __KERNEL__
 
-#include "em8300_reg.h"
-
-
 #define EM8300_MAX 4
 
 #define EM8300_MAJOR 121
@@ -177,160 +171,160 @@ typedef struct {
 #define DICOM_MODE_PAL60 3
 
 struct dicom_s {
-    int luma;
-    int chroma;
-    int frametop;
-    int framebottom;
-    int frameleft;
-    int frameright;
-    int visibletop;
-    int visiblebottom;
-    int visibleleft;
-    int visibleright;
-    int tvout;
+	int luma;
+	int chroma;
+	int frametop;
+	int framebottom;
+	int frameleft;
+	int frameright;
+	int visibletop;
+	int visiblebottom;
+	int visibleleft;
+	int visibleright;
+	int tvout;
 };
 
 struct displaybuffer_info_s {
-    int xsize;
-    int ysize;
-    int xsize2;
-    int flag1,flag2;
-    int buffer1;
-    int buffer2;
-    int unk_present;
-    int unknown1;
-    int unknown2;
-    int unknown3;
+	int xsize;
+	int ysize;
+	int xsize2;
+	int flag1,flag2;
+	int buffer1;
+	int buffer2;
+	int unk_present;
+	int unknown1;
+	int unknown2;
+	int unknown3;
 };
 
 struct em8300_s
 {
-    char name[40];
-
-    int chip_revision;
-    int pci_revision;
-    
-    int inuse[4];
-    int ucodeloaded;
-    
-    struct pci_dev *dev;
-    ulong adr;
-    volatile unsigned *mem;
-    ulong memsize;
-
-    int playmode;
-
-    /* Fifos */
-    struct fifo_s *mvfifo;
-    struct fifo_s *mafifo;
-    struct fifo_s *spfifo;
-
-    /* DICOM */
-    int dicom_vertoffset;
-    int dicom_horizoffset;
-    int dicom_brightness;
-    int dicom_contrast;
-    int dicom_saturation;
-    int dicom_tvout;
-    struct displaybuffer_info_s dbuf_info;
-
-    /* I2C */
-    int i2c_pin_reg;
-    int i2c_oe_reg;
-
-    /* different between revision 1 and revision 2 boards */
-    int mystery_divisor;
-
-    /* I2C bus 1*/
-    struct i2c_algo_bit_data i2c_data_1;
-    struct i2c_adapter i2c_ops_1;
-
-    /* I2C bus 2*/
-    struct i2c_algo_bit_data i2c_data_2;
-    struct i2c_adapter i2c_ops_2;
-
-    /* I2C clients */
-    int encoder_type;
-    struct i2c_client *encoder;
-    struct i2c_client *eeprom;
-
-    /* Microcode registers */
-    unsigned ucode_regs[MAX_UCODE_REGISTER];
-    int var_ucode_reg1; /* These are registers that differ */
-    int var_ucode_reg2; /* between versions 1 and 2 of the board */
-    int var_ucode_reg3; /* " */
-
-    /* Interrupt */
-    unsigned irqmask;
-
-    /* Clockgenerator */
-    int clockgen;
-    
-    /* Timing measurement */
-    struct timeval tv,last_status_time;
-    long irqtimediff;
-    int irqcount;
-    int frames;
-    int scr;
-
-    /* Audio */
-    int audio_mode;
-    int swapbytes;
-    int stereo;
-    int audio_rate;
-    int audio_ptsvalid;
-    uint32_t audio_pts;
-    uint32_t audio_lastpts;
-    uint32_t audio_lag;
-    uint32_t last_calcbuf;
-    int dword_DB4;
-    unsigned char byte_D90[24];
-
-    /* Video */
-    int video_mode;
-    int video_playmode;
-    int aspect_ratio;
-    uint32_t video_pts;
-    uint32_t video_lastpts;
-    int video_ptsvalid,video_offset,video_count;
-    int video_ptsfifo_ptr;
+	char name[40];
+	
+	int chip_revision;
+	int pci_revision;
+	
+	int inuse[4];
+	int ucodeloaded;
+	
+	struct pci_dev *dev;
+	ulong adr;
+	volatile unsigned *mem;
+	ulong memsize;
+	
+	int playmode;
+	
+	/* Fifos */
+	struct fifo_s *mvfifo;
+	struct fifo_s *mafifo;
+	struct fifo_s *spfifo;
+	
+	/* DICOM */
+	int dicom_vertoffset;
+	int dicom_horizoffset;
+	int dicom_brightness;
+	int dicom_contrast;
+	int dicom_saturation;
+	int dicom_tvout;
+	struct displaybuffer_info_s dbuf_info;
+	
+	/* I2C */
+	int i2c_pin_reg;
+	int i2c_oe_reg;
+	
+	/* different between revision 1 and revision 2 boards */
+	int mystery_divisor;
+	
+	/* I2C bus 1*/
+	struct i2c_algo_bit_data i2c_data_1;
+	struct i2c_adapter i2c_ops_1;
+	
+	/* I2C bus 2*/
+	struct i2c_algo_bit_data i2c_data_2;
+	struct i2c_adapter i2c_ops_2;
+	
+	/* I2C clients */
+	int encoder_type;
+	struct i2c_client *encoder;
+	struct i2c_client *eeprom;
+	
+	/* Microcode registers */
+	unsigned ucode_regs[MAX_UCODE_REGISTER];
+	int var_ucode_reg1; /* These are registers that differ */
+	int var_ucode_reg2; /* between versions 1 and 2 of the board */
+	int var_ucode_reg3; /* " */
+	
+	/* Interrupt */
+	unsigned irqmask;
+	
+	/* Clockgenerator */
+	int clockgen;
+	
+	/* Timing measurement */
+	struct timeval tv,last_status_time;
+	long irqtimediff;
+	int irqcount;
+	int frames;
+	int scr;
+	
+	/* Audio */
+	int audio_mode;
+	int swapbytes;
+	int stereo;
+	int audio_rate;
+	int audio_ptsvalid;
+	uint32_t audio_pts;
+	uint32_t audio_lastpts;
+	uint32_t audio_lag;
+	uint32_t last_calcbuf;
+	int dword_DB4;
+	unsigned char byte_D90[24];
+	
+	/* Video */
+	int video_mode;
+	int video_playmode;
+	int aspect_ratio;
+	uint32_t video_pts;
+	uint32_t video_lastpts;
+	int video_ptsvalid,video_offset,video_count;
+	int video_ptsfifo_ptr;
 #if LINUX_VERSION_CODE < 0x020314    
-    struct wait_queue *video_ptsfifo_wait;
+	struct wait_queue *video_ptsfifo_wait;
 #else
-    wait_queue_head_t video_ptsfifo_wait;
+	wait_queue_head_t video_ptsfifo_wait;
 #endif
-    int video_ptsfifo_waiting;
-    int video_first;
-    int var_video_value;
-
-    /* Sub Picture */
-    int sp_pts,sp_ptsvalid,sp_count;
-    int sp_ptsfifo_ptr;
+	int video_ptsfifo_waiting;
+	int video_first;
+	int var_video_value;
+	
+	/* Sub Picture */
+	int sp_pts,sp_ptsvalid,sp_count;
+	int sp_ptsfifo_ptr;
 #if LINUX_VERSION_CODE < 0x020314    
-    struct wait_queue *sp_ptsfifo_wait;
+	struct wait_queue *sp_ptsfifo_wait;
 #else
-    wait_queue_head_t sp_ptsfifo_wait;
+	wait_queue_head_t sp_ptsfifo_wait;
 #endif
-    int sp_ptsfifo_waiting;
-    int sp_mode;
-    
-    int linecounter;
-
-    /* EM9010 overlay processor */
-    int overlay_enabled;
-    int overlay_mode;
-    int overlay_gamma_enable;
-    int overlay_xres;
-    int overlay_yres;
-    int overlay_frame_xpos;
-    int overlay_frame_ypos;
-    int overlay_frame_width;
-    int overlay_frame_height;
-    int overlay_a[EM9010_ATTRIBUTE_MAX+1];
-    int overlay_double_y;
-    int overlay_xcorr_default;
-    int overlay_70;
-    int overlay_dword_24bb8;
+	int sp_ptsfifo_waiting;
+	int sp_mode;
+	
+	int linecounter;
+	
+	/* EM9010 overlay processor */
+	int overlay_enabled;
+	int overlay_mode;
+	int overlay_gamma_enable;
+	int overlay_xres;
+	int overlay_yres;
+	int overlay_frame_xpos;
+	int overlay_frame_ypos;
+	int overlay_frame_width;
+	int overlay_frame_height;
+	int overlay_a[EM9010_ATTRIBUTE_MAX+1];
+	int overlay_double_y;
+	int overlay_xcorr_default;
+	int overlay_70;
+	int overlay_dword_24bb8;
 };
 
 #define TIMEDIFF(a,b) a.tv_usec - b.tv_usec + \
@@ -427,4 +421,7 @@ void sub_4288c(struct em8300_s *em, int pa, int pb, int pc, int pd, int pe, int 
 	       int pg, int ph);
 int em9010_get_attribute(struct em8300_s *em, int attribute);
 int em9010_set_attribute(struct em8300_s *em, int attribute, int value);
-#endif
+
+#endif /* __KERNEL__ */
+
+#endif /* LINUX_EM8300_H */

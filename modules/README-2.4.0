@@ -5,6 +5,9 @@ checking out the driver source from CVS.)
 If your kernel sources are not in /usr/src/linux then edit the switch-to-2.4
 script at the top to change where the correct location is.
 
+NB: You need to have write access to the main directory of your kernel sources
+    otherwise the patch will fail!
+
 Also, if you are not executing the script from within your em8300/modules
 directory, you will need to edit the switch-to-2.4 script at the top and
 change the EM_LOCATION=`pwd` to EM_LOCATION=/your/path/em8300/modules.

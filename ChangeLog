@@ -1,3 +1,12 @@
+2002-01-07  David Holm  <dholm@iname.com>
+
+	* modules/Makefile:
+	added uninstall feature
+	
+	* modules/devfs_symlinks,
+	  modules/em8300_main.c:
+	quick fix to devfs to make it work on mandrake
+
 2002-01-02  Rick Haines  <rick@kuroyi.net>
 
 	* configure.in,

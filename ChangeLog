@@ -1,3 +1,15 @@
+2001-06-23  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_ioctl.c:
+	Merge patch from Daniel Chassot:
+
+	"This one corrects a problem with the value of
+	em->clockgen that was correct only for the TV mode and
+	note for the overlay mode."
+
+	"This patch removes all the small color squares that
+	are displayed over the overlay screen during playback."
+	
 2001-06-20  Rick Haines  <rick@kuroyi.net>
 
 	* include/libdxr3/api.h

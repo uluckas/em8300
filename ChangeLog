@@ -1,3 +1,10 @@
+2002-04-12  David Holm	<dholm@iname.com>
+	* modules/em8300_spu.c,
+	  modules/em8300_main.c:
+	Multiple card support fixed by Carl George
+	Added spu_release
+	Some cosmetic changes (K&R)
+
 2002-02-25  David Holm  <dholm@iname.com>
 	* modules/em8300_main.c:
 	2.2 kernel fix (argh, ppl stop using this kernel ;)

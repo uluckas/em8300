@@ -152,7 +152,7 @@ int em8300_dicom_update(struct em8300_s *em)
 		vmode_ntsc = (em->video_mode == EM8300_VIDEOMODE_NTSC);
 	}
 
-	if ((ret=em8300_waitfor(em, ucregister(DICOM_UpdateFlag), 0, 1))) {
+	if ((ret = em8300_waitfor(em, ucregister(DICOM_UpdateFlag), 0, 1))) {
 		return ret;
 	}
 
@@ -293,7 +293,7 @@ void em8300_dicom_enable(struct em8300_s *em)
 int em8300_dicom_get_dbufinfo(struct em8300_s *em)
 {
 	int displaybuffer;
-	struct displaybuffer_info_s *di=&em->dbuf_info;
+	struct displaybuffer_info_s *di = &em->dbuf_info;
 	
 	displaybuffer = read_ucregister(DICOM_DisplayBuffer) + 0x1000;
 
@@ -332,7 +332,7 @@ int em8300_dicom_get_dbufinfo(struct em8300_s *em)
 	pr_debug("			  buffer1=0x%x(%d)\n", di->buffer1, di->buffer1);
 	pr_debug("			  buffer2=0x%x(%d)\n", di->buffer2, di->buffer2);
 	
-	if(di->unk_present) {
+	if (di->unk_present) {
 		pr_debug("			  unknown1=0x%x(%d)\n", di->unknown1, di->unknown1);
 		pr_debug("			  unknown2=0x%x(%d)\n", di->unknown2, di->unknown2);
 		pr_debug("			  unknown3=0x%x(%d)\n", di->unknown3, di->unknown3);

@@ -67,8 +67,8 @@
  * Currently it seems broken. But that is why we added these macros.
  */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
-#define EM8300_MINOR(inode) ((inode)->i_rdev % 4)
-#define EM8300_CARD(inode) ((inode)->i_rdev / 4)
+#define EM8300_MINOR(inode) (MINOR((inode)->i_rdev) % 4)
+#define EM8300_CARD(inode) (MINOR((inode)->i_rdev) / 4)
 #else
 #define EM8300_MINOR(inode) (minor(inode->i_rdev) % 4)
 #define EM8300_CARD(inode) (minor(inode->i_rdev) / 4)
@@ -287,7 +287,7 @@ static int find_em8300(void)
 static int em8300_io_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, unsigned long arg)
 {
 	struct em8300_s *em = filp->private_data;
-	int subdevice = EM8300_MINOR(inode) % 4;
+	int subdevice = EM8300_MINOR(inode);
 
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_AUDIO:
@@ -305,8 +305,8 @@ static int em8300_io_ioctl(struct inode* inode, struct file* filp, unsigned int 
 
 static int em8300_io_open(struct inode* inode, struct file* filp) 
 {
-	int card = EM8300_MINOR(inode) / 4;
-	int subdevice = EM8300_MINOR(inode) % 4;
+	int card = EM8300_CARD(inode);
+	int subdevice = EM8300_MINOR(inode);
 	struct em8300_s *em = &em8300[card];
 	int err = 0;
   
@@ -369,7 +369,7 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 static int em8300_io_write(struct file *file, const char * buf,	size_t count, loff_t *ppos)
 {
 	struct em8300_s *em = file->private_data;
-	int subdevice = EM8300_MINOR(file->f_dentry->d_inode) % 4;
+	int subdevice = EM8300_MINOR(file->f_dentry->d_inode);
 
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_VIDEO:
@@ -390,7 +390,7 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 {
 	struct em8300_s *em = file->private_data;
 	unsigned long size = vma->vm_end - vma->vm_start;
-	int subdevice = EM8300_MINOR(file->f_dentry->d_inode) % 4;
+	int subdevice = EM8300_MINOR(file->f_dentry->d_inode);
 
 	if (subdevice != EM8300_SUBDEVICE_CONTROL) {
 		return -EPERM;
@@ -429,7 +429,7 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 static unsigned int em8300_poll(struct file *file, struct poll_table_struct *wait)
 {
 	struct em8300_s *em = file->private_data;
-	int subdevice = EM8300_MINOR(file->f_dentry->d_inode) % 4;
+	int subdevice = EM8300_MINOR(file->f_dentry->d_inode);
 	unsigned int mask = 0;
 
 	switch (subdevice) {
@@ -467,7 +467,7 @@ static unsigned int em8300_poll(struct file *file, struct poll_table_struct *wai
 int em8300_io_release(struct inode* inode, struct file *filp)
 {
 	struct em8300_s *em = filp->private_data;
-	int subdevice = EM8300_MINOR(inode) % 4;
+	int subdevice = EM8300_MINOR(inode);
 	
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_AUDIO:
@@ -478,6 +478,7 @@ int em8300_io_release(struct inode* inode, struct file *filp)
 		em8300_ioctl_enable_videoout(em, 0);	
 		break;
 	case EM8300_SUBDEVICE_SUBPICTURE:
+		em8300_spu_release(em);
 		break;
 	}
 	

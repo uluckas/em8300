@@ -169,3 +169,14 @@ int em8300_spu_open(struct em8300_s *em)
 
 	return 0;
 }
+
+void em8300_spu_release(struct em8300_s *em)
+{
+	em->sp_pts = 0;
+	em->sp_ptsvalid = 0;
+	em->sp_count = 0;
+	em->sp_ptsfifo_ptr = 0;
+	em8300_fifo_sync(em->spfifo);
+
+	return em8300_spu_check_ptsfifo(em);
+}

@@ -101,7 +101,7 @@ typedef struct {
 #define EM8300_VIDEOMODE_NTSC	2
 #define EM8300_VIDEOMODE_LAST	2
 #ifndef EM8300_VIDEOMODE_DEFAULT
-#define EM8300_VIDEOMODE_DEFAULT EM8300_VIDEOMODE_NTSC
+#define EM8300_VIDEOMODE_DEFAULT EM8300_VIDEOMODE_PAL
 #endif
 
 #define EM8300_AUDIOMODE_ANALOG 0
@@ -428,6 +428,7 @@ int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg);
 int em8300_spu_init(struct em8300_s *em);
 void em8300_spu_check_ptsfifo(struct em8300_s *em);
 int em8300_ioctl_setspumode(struct em8300_s *em, int mode);
+void em8300_spu_release(struct em8300_s *em);
 
 /* em8300_ioctl.c */
 int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg);

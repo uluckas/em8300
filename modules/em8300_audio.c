@@ -309,7 +309,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		}
 		pr_debug("em8300_audio.o: SNDCTL_DSP_SPEED %i ", val);
 		val = set_speed(em, val);
-		printk("%i\n", val);
+		pr_debug("%i\n", val);
 		break;
 
 	case SOUND_PCM_READ_RATE: /* read sample rate */

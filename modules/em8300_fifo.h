@@ -58,11 +58,8 @@ struct fifo_s {
 	int preprocess_ratio;
 	char *preprocess_buffer;
 
-#if LINUX_VERSION_CODE < 0x020314
-	struct wait_queue *wait;
-#else
 	wait_queue_head_t wait;
-#endif
+
 	struct semaphore lock;
 
 	dma_addr_t phys_base;

@@ -59,36 +59,15 @@ RKERNVER:=$(shell uname -r)
 
 CFLAGS=-D__KERNEL__ -DMODULE $(EM8300_DEBUG) -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer $(ARCH_CFLAGS) $(EXTRA_CFLAGS)
 
-# Check the kernel version compiled and running
-IS22:=$(patsubst 2.2.%,YES,$(KERNVER))
-IS22RUN:=$(patsubst 2.2.%,YES,$(RKERNVER))
-
 ifeq "$(MODVERS)" "1"
 	CFLAGS+=-DMODVERSIONS -include $(KERNEL_LOCATION)/include/linux/modversions.h
 endif
 
-# Change the modules path depending on kernel version, also force I2C for
-# 2.2 due to lack of sensible way to detect its presence
-ifeq "$(IS22)" "YES"
-	SMODINST:=misc
-	ifeq "$(I2C_LOCATION)" ""
-		CFLAGS+=-DCONFIG_I2C_ALGOBIT
-	else
-		CFLAGS:=-I$(I2C_LOCATION) $(CFLAGS) -DCONFIG_I2C_ALGOBIT
-	endif
-else
-	SMODINST:=kernel/drivers/video
-	ifneq "$(I2C_LOCATION)" ""
-		CFLAGS:=-I$(I2C_LOCATION) $(CFLAGS) -DCONFIG_I2C_ALGOBIT
-	endif
+SMODINST:=kernel/drivers/video
+ifneq "$(I2C_LOCATION)" ""
+	CFLAGS:=-I$(I2C_LOCATION) $(CFLAGS) -DCONFIG_I2C_ALGOBIT
 endif
-
-# Change the modules path depending on kernel version
-ifeq "$(IS22RUN)" "YES"
-	RMODINST:=misc
-else
-	RMODINST:=kernel/drivers/video
-endif
+RMODINST:=kernel/drivers/video
 
 all : $(MODULES)
 

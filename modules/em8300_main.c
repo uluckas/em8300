@@ -35,12 +35,7 @@
 #include <linux/string.h>
 #include <linux/time.h>
 #include <linux/poll.h>
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
 #include <linux/wrapper.h>	/* for mem_map_reserve */
-#endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
-#include <linux/kcomp.h>
-#endif
 #ifdef CONFIG_PROC_FS
 #include <linux/proc_fs.h>
 #endif
@@ -88,10 +83,6 @@
 MODULE_AUTHOR("Henrik Johansson <henrikjo@post.utfors.se>");
 MODULE_DESCRIPTION("EM8300 MPEG-2 decoder");
 MODULE_SUPPORTED_DEVICE("em8300");
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
-MODULE_PARM(remap, "1-" __MODULE_STRING(EM8300_MAX) "i");
-#endif
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
 MODULE_LICENSE("GPL");
@@ -148,9 +139,6 @@ MODULE_PARM_DESC(activate_loopback, "If you lose video after loading the modules
 
 static int em8300_cards,clients;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
-static unsigned int remap[EM8300_MAX]={};
-#endif
 static struct em8300_s em8300[EM8300_MAX];
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
 static int dsp_num_table[16];
@@ -162,7 +150,6 @@ devfs_handle_t em8300_handle[EM8300_MAX*4];
 struct proc_dir_entry *em8300_proc;
 #endif
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
 /* structure to keep track of the memory that has been allocated by
    the user via mmap() */
 struct memory_info
@@ -171,7 +158,6 @@ struct memory_info
 	long length;
 	char *ptr;
 };
-#endif
 
 static void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 {
@@ -262,32 +248,9 @@ static int find_em8300(void)
 		em = &em8300[em8300_n];
 		em->dev = dev;
 		em->card_nr = em8300_n;
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
-		em->adr = dev->base_address[0];
-		if (remap[em8300_n]) {
-			uint dw;
-
-			if (remap[em8300_n] < 0x1000) {
-				remap[em8300_n] <<= 20;
-			}
-			remap[em8300_n] &= PCI_BASE_ADDRESS_MEM_MASK;
-			pr_info("Remapping to : 0x%08x.\n", remap[em8300_n]);
-			remap[em8300_n] |= em->adr&(~PCI_BASE_ADDRESS_MEM_MASK);
-			pci_write_config_dword(dev, PCI_BASE_ADDRESS_0, remap[em8300_n]);
-			/* commit to PCI bus */
-			pci_read_config_dword(dev, PCI_BASE_ADDRESS_0, &dw);
-			dev->base_address[0] = em->adr;
-		}
-		em->adr &= PCI_BASE_ADDRESS_MEM_MASK;
-#else
 		em->adr = dev->resource[0].start;
-#endif
 		em->memsize = 1024 * 1024;
-
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,3,0)
 		pci_enable_device(dev);
-#endif
 		pci_read_config_byte(dev, PCI_CLASS_REVISION, &revision);
 		em->pci_revision = revision;
 		pr_info("em8300: EM8300 %x (rev %d) ", dev->device, revision);
@@ -358,10 +321,9 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 
 	filp->private_data = &em8300[card];
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
 	/* initalize the memory list */
 	INIT_LIST_HEAD(&em->memory);
-#endif
+
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_CONTROL:
 		em8300[card].nonblock[0] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
@@ -439,12 +401,7 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 		return -EPERM;
 	}
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
-	switch ((unsigned long) vma->vm_offset) {
-#else
 	switch (vma->vm_pgoff) {
-#endif
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
 	case 1: {
 		/* fixme: we should count the total size of allocated memories
 		   so we don't risk a out-of-memory or denial-of-service attack... */
@@ -495,7 +452,6 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 
 		break;
 	}
-#endif
 	case 0:
 		if (size > em->memsize) {
 			return -EINVAL;
@@ -507,12 +463,7 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 		remap_page_range(vma, vma->vm_start, em->adr, vma->vm_end - vma->vm_start, vma->vm_page_prot);
 #endif
 		vma->vm_file = file;
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,4,0)
-		file->f_dentry->d_inode->i_count++;
-#else
 		atomic_inc(&file->f_dentry->d_inode->i_count);
-#endif
 		break;
 	default:
 		return -EINVAL;
@@ -576,7 +527,6 @@ int em8300_io_release(struct inode* inode, struct file *filp)
 		break;
 	}
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
 	while( 0 == list_empty(&em->memory)) {
 		unsigned long adr = 0;
 
@@ -590,7 +540,6 @@ int em8300_io_release(struct inode* inode, struct file *filp)
 		kfree(info->ptr);
 		vfree(info);
 	}
-#endif
 
 	em->inuse[subdevice]--;
 
@@ -848,9 +797,7 @@ int __init em8300_init(void)
 		printk(KERN_ERR "em8300: unable to register proc entry!\n");
 		goto err_chrdev;
 	}
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
 	em8300_proc->owner = THIS_MODULE;
-#endif
 #endif
 #ifdef CONFIG_SOUND_MODULE
 	//request_module("soundcore");
@@ -876,9 +823,7 @@ int __init em8300_init(void)
 		proc = create_proc_entry(devname, S_IFREG | S_IRUGO, em8300_proc);
 		proc->data = (void *) em;
 		proc->read_proc = em8300_proc_read;
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
 		proc->owner = THIS_MODULE;
-#endif
 #endif
 #ifdef CONFIG_DEVFS_FS
 		sprintf(devname, "%s-%d", EM8300_LOGNAME, card );

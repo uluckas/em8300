@@ -5,6 +5,14 @@
 	from the kernel source, thanks to Janne Kujanp‰‰ for pointing 
 	the problem.
 
+	* modules/Makefile,
+	  modules/em8300_fifo.c,
+	  modules/em8300_fifo.h,
+	  modules/em8300_main.c,
+	  modules/em8300_spu.c,
+	  modules/em8300_video.c:
+	Drop support for older than 2.4.0 kernels.
+
 2004-02-26  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_fifo.c,
 	  modules/em8300_fifo.h:

@@ -96,11 +96,7 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 		return -ENOMEM;
 	}
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
-	init_waitqueue(&f->wait);
-#else
 	init_waitqueue_head(&f->wait);
-#endif
 
 	for (i = 0; i < f->nslots; i++) {
 		phys = f->phys_base + i * f->slotsize;

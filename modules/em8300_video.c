@@ -161,13 +161,8 @@ void set_dicom_kmin(struct em8300_s *em)
 
 int em8300_video_setup(struct em8300_s *em)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
-	init_waitqueue(&em->video_ptsfifo_wait);
-	init_waitqueue(&em->vbi_wait);
-#else
 	init_waitqueue_head(&em->video_ptsfifo_wait);
 	init_waitqueue_head(&em->vbi_wait);
-#endif
 
 	write_register(0x1f47, 0x0);
 

@@ -153,11 +153,7 @@ int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 
 int em8300_spu_init(struct em8300_s *em)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
-	init_waitqueue(&em->sp_ptsfifo_wait);
-#else
 	init_waitqueue_head(&em->sp_ptsfifo_wait);
-#endif
 	return 0;
 }
 

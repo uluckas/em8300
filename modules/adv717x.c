@@ -17,7 +17,7 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-
+#include <linux/autoconf.h>
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/delay.h>
@@ -50,29 +50,40 @@
 #include "adv717x.h"
 #include "encoder.h"
 
-#ifdef MODULE
 MODULE_SUPPORTED_DEVICE("adv717x");
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
 MODULE_LICENSE("GPL");
 #endif
 
+
+#ifdef CONFIG_ADV717X_PIXELPORT16BIT
 int pixelport_16bit = 1;
+#else
+int pixelport_16bit = 0;
+#endif
 MODULE_PARM(pixelport_16bit, "i");
 MODULE_PARM_DESC(pixelport_16bit, "Changes how the ADV717x expects its input data to be formatted. If the colours on the TV appear green, try changing this. Defaults to 1.");
 
+#ifdef CONFIG_ADV717X_PIXELPORTPAL
 int pixelport_other_pal = 1;
+#else
+int pixelport_other_pal = 0;
+#endif
 MODULE_PARM(pixelport_other_pal, "i");
 MODULE_PARM_DESC(pixelport_other_pal, "If this is set to 1, then the pixelport setting is swapped for PAL from the setting given with pixelport_16bit. Defaults to 1.");
 
+#ifdef CONFIG_ADV717X_SWAP
+int swap_redblue_pal = 1;
+#else
 int swap_redblue_pal = 0;
+#endif
 MODULE_PARM(swap_redblue_pal, "i");
 MODULE_PARM_DESC(swap_redblue_pal, "If your red and blue colours are swapped, set this to 1. Defaults to 0.");
 
 static int color_bars = 0;
 MODULE_PARM(color_bars, "i");
 MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be displayed on your screen (used for testing if the chip is working). Defaults to 0.");
-#endif
 
 #define i2c_is_isa_client(clientptr) \
 		((clientptr)->adapter->algo->id == I2C_ALGO_ISA)
@@ -504,7 +515,7 @@ void adv717x_dec_use (struct i2c_client *client)
 /* ----------------------------------------------------------------------- */
 
 
-int adv717x_init(void)
+int __init adv717x_init(void)
 {
 	int pp_ntsc;
 	int pp_pal;
@@ -560,7 +571,7 @@ int adv717x_init(void)
 	return i2c_add_driver(&adv717x_driver);
 }
 
-void adv717x_cleanup(void)
+void __exit adv717x_cleanup(void)
 {
 	i2c_del_driver(&adv717x_driver);
 }

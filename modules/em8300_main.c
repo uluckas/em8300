@@ -17,7 +17,8 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-#include <linux/config.h>
+#include <linux/autoconf.h>
+#include <linux/version.h>
 #include <linux/module.h>
 #include <linux/delay.h>
 #include <linux/init.h>
@@ -52,7 +53,6 @@
 #include <asm/mtrr.h>
 #endif
 
-#include <linux/version.h>
 #include <asm/uaccess.h>
 #include <linux/i2c-algo-bit.h>
 
@@ -61,7 +61,6 @@
 #include "em8300_reg.h"
 #include <linux/em8300.h>
 #include "em8300_fifo.h"
-#include "em8300_version.h"
 
 /* It seems devfs will implement a new scheme of enumerating minor numbers.
  * Currently it seems broken. But that is why we added these macros.
@@ -78,7 +77,6 @@
 #error "This needs the I2C Bit Banging Interface in your Kernel"
 #endif
 
-#ifdef MODULE
 MODULE_AUTHOR("Henrik Johansson <henrikjo@post.utfors.se>");
 MODULE_DESCRIPTION("EM8300 MPEG-2 decoder");
 MODULE_SUPPORTED_DEVICE("em8300");
@@ -90,7 +88,6 @@ MODULE_PARM(remap, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
 MODULE_LICENSE("GPL");
 #endif
-#endif
 
 static unsigned int use_bt865[EM8300_MAX]={};
 MODULE_PARM(use_bt865, "1-" __MODULE_STRING(EM8300_MAX) "i");
@@ -99,23 +96,43 @@ MODULE_PARM_DESC(use_bt865, "Set this to 1 if you have a bt865. It changes some 
 /*
  * Module params by Jonas Birmé (birme@jpl.nu)
  */
+#ifdef CONFIG_EM8300_DICOMPAL
 int dicom_other_pal = 1;
+#else
+int dicom_other_pal = 0;
+#endif
 MODULE_PARM(dicom_other_pal, "i");
 MODULE_PARM_DESC(dicom_other_pal, "If this is set, then some internal register values are swapped for PAL and NTSC. Defaults to 1.");
 
+#ifdef CONFIG_EM8300_DICOMFIX
 int dicom_fix = 1;
+#else
+int dicom_fix = 0;
+#endif
 MODULE_PARM(dicom_fix, "i");
 MODULE_PARM_DESC(dicom_fix, "If this is set then some internal register values are changed. Fixes green screen problems for some. Defaults to 1.");
 
+#ifdef CONFIG_EM8300_DICOMCTRL
 int dicom_control = 1;
+#else
+int dicom_control = 0;
+#endif
 MODULE_PARM(dicom_control, "i");
 MODULE_PARM_DESC(dicom_control, "If this is set then some internal register values are changed. Fixes green screen problems for some. Defaults to 1.");
 
+#ifdef CONFIG_EM8300_UCODETIMEOUT
+int bt865_ucode_timeout = 1;
+#else
 int bt865_ucode_timeout = 0;
+#endif
 MODULE_PARM(bt865_ucode_timeout, "i");
 MODULE_PARM_DESC(bt865_ucode_timeout, "Set this to 1 if you have a bt865 and get timeouts when uploading the microcode. Defaults to 0.");
 
+#ifdef CONFIG_EM8300_LOOPBACK
+int activate_loopback = 1;
+#else
 int activate_loopback = 0;
+#endif
 MODULE_PARM(activate_loopback, "i");
 MODULE_PARM_DESC(activate_loopback, "If you lose video after loading the modules or uploading the microcode set this to 1. Defaults to 0.");
 
@@ -217,11 +234,6 @@ static int find_em8300(void)
 	struct em8300_s *em;
 	int em8300_n = 0;
 	int result;
-	 
-	if (!pcibios_present()) {
-		printk(KERN_ERR "em8300: PCI-BIOS not present or not accessible!\n");
-		return -1;
-	}
 	
 	while ((dev = pci_find_device(PCI_VENDOR_ID_SIGMADESIGNS, PCI_DEVICE_ID_SIGMADESIGNS_EM8300, dev))) {
 		em = &em8300[em8300_n];
@@ -598,8 +610,7 @@ int em8300_proc_read(char *page, char **start, off_t off, int count, int *eof, v
         *eof = 1;
     
         len += sprintf(page + len, "----- Driver Info -----\n");
-	len += sprintf(page + len, "em8300 module version %s\n", MODULE_VERSION);
-	len += sprintf(page + len, "Compiled with %s\n", COMPILER_VERSION);
+	len += sprintf(page + len, "em8300 module version %s\n", EM8300_VERSION);
         if (em->ucodeloaded) {
 		/* Device information */
 		len += sprintf(page + len, "Card revision %d\n", em->pci_revision);
@@ -706,7 +717,7 @@ void em8300_exit(void)
 	sprintf(devname, "%s", EM8300_LOGNAME );
 	if (em8300_proc != NULL) remove_proc_entry(devname, &proc_root);
 #endif
-#ifdef CONFIG_DEVFS_FS
+#if defined(CONFIG_DEVFS_FS) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
 	sprintf(devname, "%s", EM8300_LOGNAME);
 	devfs_unregister_chrdev(EM8300_MAJOR, devname);
 #endif
@@ -729,7 +740,7 @@ int em8300_init(void)
 	memset(&dsp_num_table, 0, sizeof(dsp_num_table));
 #endif
 
-#ifdef CONFIG_DEVFS_FS
+#if defined(CONFIG_DEVFS_FS) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
 	sprintf(devname, "%s", EM8300_LOGNAME);
 	devfs_register_chrdev(EM8300_MAJOR, devname, &em8300_fops);
 #endif
@@ -813,7 +824,7 @@ int em8300_init(void)
 		unregister_sound_dsp(em[card].dsp_num);
 #endif
 	}
-#ifdef CONFIG_DEVFS_FS
+#if defined(CONFIG_DEVFS_FS) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
 	sprintf(devname, "%s", EM8300_LOGNAME);
 	devfs_unregister_chrdev(EM8300_MAJOR, devname);
 #endif

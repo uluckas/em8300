@@ -1,3 +1,14 @@
+2002-10-26  David Holm  <david@realityrift.com>
+        * modules/Makefile,
+	  modules/em8300_audio.c,
+	  modules/em8300_main.c,
+	  modules/adv717x.c:
+	Fixed kernel 2.5 support.
+	You can now set the default module configs in the Makefile. (The
+	real reason for this is to add config support to the kernel patch).
+	Lots of fixes to make it more kernel friendly.
+	
+
 2002-10-20  David Holm  <david@realityrift.com>
 	* modules/em8300_ioctl.c:
 	Fixed a bug that would cause a kernel oops if you tried
@@ -21,10 +32,10 @@
 	2.2 kernel fix (argh, ppl stop using this kernel ;)
 
 2002-02-23  Jonas Birme  <jonas@birme.se>
-	* modules/Makefile
+	* modules/Makefile:
 	Removed the installation of em8300.h in install-newkern.
 	It's included when installing em8300 (not the modules).
-	
+
 2002-02-19  David Holm  <dholm@iname.com>
 	* dhc/dhc_main.c,
 	  overlay/autocal.c,
@@ -166,7 +177,7 @@
 	Removed audio pts code
 	Fixed devfs bug
 	K&R fixes in em8300_audio.c
-	
+
 2002-01-11  Jonas Birme <jonas@birme.se>
 	* modules/Makefile:
 	Fixed a bug in install-newkern, and added $(prefix) to 
@@ -204,13 +215,13 @@
 	(exit -> _exit, some missing returns, 
 	include string.h in a few files,
 	don't remove i2c* in rmm).
-	
+
 2002-01-08  Rick Haines  <rick@kuroyi.net>
 
 	* AUTHORS,
 	  modules/em8300_main.c:
 	minor devfs/procfs #ifdef cleanups from Graeme.
-	
+
 2002-01-07  David Holm  <dholm@iname.com>
 
 	* modules/Makefile:
@@ -274,7 +285,7 @@
 	Added proc fs support
 	Fixed multiple card support
 	(I hope, I'm unable to test it)
-	
+
 2001-12-18  Rick Haines  <rick@kuroyi.net>
 
 	Apply the following from Larice Robert.
@@ -289,7 +300,7 @@
 
 	* modules/em8300_video.c:
 	correctly update em->video_offset
-	
+
 2001-12-18  Rick Haines  <rick@kuroyi.net>
 
 	* modules/adv717x.c:
@@ -306,7 +317,7 @@
  	* modules/em8300_audio.c	
 	a bugfix submitted by David Holm. DSP_RESET fixed 
 	in em8300_audio
-	
+
 2001-11-25  Rick Haines  <rick@kuroyi.net>
 
 	* modules/eeprom.c,
@@ -359,14 +370,14 @@
 	patch from David Holm to add
 	dxr3_audio_get_buffersize() and
 	dxr3_audio_get_bytesleft()
-	
+
 2001-10-27  Rick Haines  <rick@kuroyi.net>
 
 	* modules/Makefile,
 	  modules/*.c:
 	module license and malloc.h/slab.h changes
 	from Szabo Akos
-	
+
 2001-09-30  Rick Haines  <rick@kuroyi.net>
 
 	* em8300.spec.in,
@@ -393,7 +404,7 @@
 	* modules/em8300_audio.c,
 	  include/linux/em8300.h:
 	maybe fix digital output modes
-	
+
 2001-09-10  Rick Haines  <rick@kuroyi.net>
 
 	* debian/changelog,
@@ -409,7 +420,7 @@
 	is no more set to 0x44 but its content is set
 	by the cable detection routine (that was already
 	existing). The resulting can be 0x44 OR 0x4C."
-	
+
 2001-09-03  Jonas Birme  <jonas@birme.se>
 	
 	* debian/chagelog,
@@ -417,7 +428,7 @@
 	  debian/rules,
 	  debian/setvers.sh:
         converted to use debhelper as much as possible
-	
+
 2001-09-02  Rick Haines  <rick@kuroyi.net>
 
 	* debian/*
@@ -426,7 +437,7 @@
 	* modules/Makefile:
 	new Makefile from Jonas/Graeme to
 	work with both 2.2 and 2.4 kernels
-	
+
 2001-09-02  Rick Haines  <rick@kuroyi.net>
 
 	* include/linux/em8300.h,
@@ -448,17 +459,17 @@
 	  overlay/.cvsignore,
 	  scripts/.cvsignore:
 	Patch to add .cvsingore files from Michael Moerz
-	
+
 2001-08-19  Rick Haines  <rick@kuroyi.net>
 
 	* configure.in:
 	update version
-	
+
 2001-08-18  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_ioctl.c (em8300_ioctl_setvideomode):
 	reenable tv mode code no longer necessary here
-	
+
 2001-08-17  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_ioctl.c,
@@ -472,7 +483,7 @@
 	  modules/em8300_main.c,
 	  modules/ldm:
 	remove overlay_tv_switching option
-	
+
 2001-08-13  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_spu.c,
@@ -502,7 +513,7 @@
 
 	* configure.in:
 	update version
-	
+
 2001-08-08  Rick Haines  <rick@kuroyi.net>
 
 	* debian/changelog,
@@ -513,7 +524,7 @@
 
 	* modules/Makefile.2.4:
 	update
-	
+
 2001-08-08  Rick Haines  <rick@kuroyi.net>
 
 	* debian/*:
@@ -532,13 +543,13 @@
 	Patch from Jeffrey Ingber to use
 	include/linux/autoconf.h instead of
 	include/config/modversions.h.
-	
+
 2001-08-05  Rick Haines  <rick@kuroyi.net>
 
 	* modules/README-2.4,
 	  modules/README-2.2:
 	update
-	
+
 2001-08-05  Rick Haines  <rick@kuroyi.net>
 
 	* modules/Makefile,
@@ -546,7 +557,7 @@
 	  modules/em8300_main.c:
 	Makefile magic from Graeme to detect whether
 	sound and i2c bitbanging are configured
-	
+
 2001-08-04  Rick Haines  <rick@kuroyi.net>
 
 	* include/linux/em8300.h,
@@ -566,7 +577,7 @@
 	  xine/video_out_dxr3.c,
 	  xine/Makefile:
 	plugin removed until necessary
-	
+
 2001-08-03  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_main.c,
@@ -578,13 +589,13 @@
 	  modules/em8300_ioctl.c:
 	Eduard added EM8300_IOCTL_SCR_GET/SET and
 	EM8300_IOCTL_SCR_GETSPEED/SETSPEED
-	
+
 2001-08-02  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_audio.c:
 	Fix SNDCTL_DSP_GETOPTR and SNDCTL_DSP_GETODELAY
 	ioctl's so they work with mono audio
-	
+
 2001-08-01  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_ioctl.c:
@@ -594,30 +605,30 @@
 	* overlay/configs/*,
 	  overlay/Makefile.am:
 	add sample autocal config files
-	
+
 2001-08-01  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_audio.c:
 	only use AFMT_AC3 if it's defined
-	
+
 2001-07-29  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_audio.c:
 	reset mafifo->bytes when the device is opened
-	
+
 2001-07-29  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_ioctl.c:
 	Patch from Mike Lampard to fix overlay to
 	tv mode switching
-	
+
 2001-07-28  Rick Haines  <rick@kuroyi.net>
 
 	* include/linux/em8300.h,
 	  modules/em8300_ioctl.c,
 	  modules/em8300_audio.c:
 	add more CLOCKGEN defines
-	
+
 2001-07-27  Rick Haines  <rick@kuroyi.net>
 
 	* modules/bt865.c,
@@ -641,14 +652,14 @@
 
 	* modules/em8300_video.c:
 	From Daniel Chassot "Adds the dicom kmin computation"
-	
+
 2001-07-20  Rick Haines  <rick@kuroyi.net>
 
 	* xine/video_out_dxr3.c,
 	  xine/README:
 	Eduard fixed the priority, added tvmode option, and
 	updated the README
-	
+
 2001-07-19  Rick Haines  <rick@kuroyi.net>
 
 	* xine/*:
@@ -657,7 +668,7 @@
 	are also working now. If the plugin detects the dxr3
 	devices, it activates itself and is taken from XINE due
 	to a higher priority."
-	
+
 2001-07-19  Rick Haines  <rick@kuroyi.net>
 
 	* modules/Makefile:
@@ -699,7 +710,7 @@
 	
 	* AUTHORS:
 	Graeme wants email about bugs in his Makefile
-	
+
 2001-07-17  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_dicom.c:

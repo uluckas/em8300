@@ -48,7 +48,6 @@
 #include "bt865.h"
 #include "encoder.h"
 
-#ifdef MODULE
 MODULE_SUPPORTED_DEVICE("bt865");
 
 static int color_bars = 0;
@@ -57,8 +56,6 @@ MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be d
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
 MODULE_LICENSE("GPL");
-#endif
-
 #endif
 
 #define i2c_is_isa_client(clientptr) \
@@ -981,7 +978,7 @@ void bt865_dec_use (struct i2c_client *client)
 /* ----------------------------------------------------------------------- */
 
 
-int bt865_init(void)
+int __init bt865_init(void)
 {
 	int bars;
 	
@@ -1003,7 +1000,7 @@ int bt865_init(void)
 	return i2c_add_driver(&bt865_driver);
 }
 
-void bt865_cleanup(void)
+void __exit bt865_cleanup(void)
 {
 	i2c_del_driver(&bt865_driver);
 }

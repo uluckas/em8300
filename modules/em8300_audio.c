@@ -25,7 +25,7 @@
 #define AFMT_AC3 0x00000400
 #endif
 
-#include <endian.h>
+#include <asm/byteorder.h>
 
 int em8300_audio_calcbuffered(struct em8300_s *em);
 static int set_audiomode(struct em8300_s *em, int mode);
@@ -104,9 +104,9 @@ static void preprocess_analog(struct em8300_s *em, unsigned char *outbuf, const 
 {
 	int i;
 	
-#if BYTE_ORDER == BIG_ENDIAN
+#ifdef __BIG_ENDIAN
 	if (em->audio.format == AFMT_S16_BE) {
-#else /* BYTE_ORDER == LITTLE_ENDIAN */
+#else /* __LITTLE_ENDIAN */
 	if (em->audio.format == AFMT_S16_LE ||
 	    em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3) {
 #endif
@@ -141,9 +141,9 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
 	if (!em->mafifo->preprocess_buffer)
 		return;
 
-#if BYTE_ORDER == BIG_ENDIAN
+#ifdef __BIG_ENDIAN
 	if (em->audio.format == AFMT_S16_BE) {
-#else /* BYTE_ORDER == LITTLE_ENDIAN */
+#else /* __LITTLE_ENDIAN */
         if (em->audio.format == AFMT_S16_LE ||
 	    em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3) {
 #endif

@@ -14,7 +14,11 @@ I2C_LOCATION?=
 EXTRA_CFLAGS = -g -I ../include -I $(KERNEL_LOCATION)/include/ \
 		-O2 -fomit-frame-pointer -Wall \
 		-DEM8300_VIDEOMODE_DEFAULT=EM8300_VIDEOMODE_PAL \
-		-DEM8300_AUDIOMODE_DEFAULT=EM8300_AUDIOMODE_ANALOG
+		-DEM8300_AUDIOMODE_DEFAULT=EM8300_AUDIOMODE_ANALOG \
+		-DEM8300_VERSION=\"$(MODULE_VERSION)\" \
+		-DCONFIG_ADV717X_PIXELPORT16BIT -DCONFIG_ADV717X_PIXELPORTPAL \
+		-DCONFIG_EM8300_DICOMPAL -DCONFIG_EM8300_DICOMFIX \
+		-DCONFIG_EM8300_DICOMCTRL
 
 MODULES = em8300.o adv717x.o bt865.o
 
@@ -25,8 +29,6 @@ EM8300_OBJS = em8300_main.o em8300_i2c.o em8300_audio.o em8300_fifo.o \
 MODVERS:=$(shell cat $(KERNEL_LOCATION)/include/linux/autoconf.h | grep "CONFIG_MODVERSIONS" | cut -d " " -f 3)
 KERNVER?=$(shell cat $(KERNEL_LOCATION)/include/linux/version.h | grep "UTS" | sed -e 's/.*"\(.*\)"/\1/')
 RKERNVER:=$(shell uname -r)
-
-VERSION_HEADER=em8300_version.h
 
 CFLAGS=-D__KERNEL__ -DMODULE $(EM8300_DEBUG) -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer $(EXTRA_CFLAGS)
 
@@ -63,11 +65,7 @@ all : $(MODULES)
 debug :
 	EM8300_DEBUG="-DDEBUG" make
 
-$(VERSION_HEADER):
-	@echo \#define COMPILER_VERSION \"`$(CC) -v 2>&1 | tail -1`\" >  $@
-	@echo \#define MODULE_VERSION \"$(MODULE_VERSION)\" >>  $@
-
-em8300.o : $(VERSION_HEADER) $(EM8300_OBJS)
+em8300.o : $(EM8300_OBJS)
 	$(LD) $(EXTRA_LDFLAGS) -r -o $@ $(EM8300_OBJS)
 
 install : $(MODULES)
@@ -103,5 +101,4 @@ devices :
 
 clean :
 	rm -f *.o
-	rm -f $(VERSION_HEADER)
 

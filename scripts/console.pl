@@ -356,11 +356,15 @@ while(<>) {
     $tmp = $status;
     $tmp =~ s/Time elapsed: ([0-9]+) us/$time=$1/e;
     $tmp =~ s/Frames: ([0-9]+)/$frames=$1/e;
+    $tmp =~ s/SCR diff: ([0-9]+)/$scrdiff=$1/e;
     $tmp =~ s/SCR: ([0-9]+)/$scr=$1/e;
+    $tmp =~ s/Picture PTS: ([0-9]+)/$picpts=$1/e;
+    $lag = $scr-$picpts;
     print $status;
     if($time) {
+      print "Picture-Clock Reference lag: ",$lag,"(",1/45000*$lag,")", "\n";
       print "FPS: ", $frames / ($time * 1e-6), "\n";
-      print "SCRPS: ", $scr / ($time * 1e-6), "\n";
+      print "SCRPS: ", $scrdiff / ($time * 1e-6), "\n";
     }
     print "\n";
   } 

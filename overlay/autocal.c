@@ -60,7 +60,7 @@ int main( int   argc,
 
     AllBlackButInit();
 
-    if(!(dev=fopen("/dev/em8300", "r")))
+    if(!(dev=fopen("/dev/em8300-0", "r")))
         {
 	    perror("Error opening em8300");
 	    _exit(-1);

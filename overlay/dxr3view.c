@@ -143,7 +143,7 @@ int main( int argc, char *argv[] )
 	Display *dpy;
 	
 	
-	dev = fopen("/dev/em8300","r");
+	dev = fopen("/dev/em8300-0","r");
 	g.ov = overlay_init(dev);
 	g.aj = malloc(sizeof(adjust_t));
 	g.menu = malloc(sizeof(menu_t));

@@ -37,7 +37,7 @@
 #include "dhc_callback.h"
 #include "dhc_gui.h"
 
-#define EM_DEV "/dev/em8300"
+#define EM_DEV "/dev/em8300-0"
 #define VER "0.2 Beta"
 
 int dev;

@@ -1,6 +1,10 @@
 2002-02-19  David Holm  <dholm@iname.com>
-	* modules/em8300_main.c:
+	* dhc/dhc_main.c,
+	  overlay/autocal.c,
+	  overlay/dxr3view.c,
+	  modules/em8300_main.c:
 	Fixed compilation on 2.5 kernels
+	Fixed bugs with old naming scheme
 
 2002-02-15  David Holm  <dholm@iname.com>
 	* modules/em8300_main.c:

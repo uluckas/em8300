@@ -1,6 +1,8 @@
 #ifndef EM8300_FIFO_H
 #define EM8300_FIFO_H
 
+#include <linux/spinlock.h>
+
 #define FIFOTYPE_AUDIO 1
 #define FIFOTYPE_VIDEO 2
 
@@ -62,6 +64,7 @@ struct fifo_s {
 	wait_queue_head_t wait;
 #endif	
 	int waiting;
+	spinlock_t lock;
 };
 
 struct em8300_s;

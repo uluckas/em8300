@@ -353,7 +353,6 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	case SNDCTL_DSP_SETFRAGMENT: /* set fragment size */
 		pr_debug("em8300_audio.o: SNDCTL_DSP_SETFRAGMENT %i\n", val);
 		pr_info("em8300_audio.o: SNDCTL_DSP_SETFRAGMENT not implemented yet\n");
-		return -EINVAL;
 		break;
 
 	case SNDCTL_DSP_GETFMTS: /* get possible formats */

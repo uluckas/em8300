@@ -1,5 +1,10 @@
 2001-05-10  Rick Haines  <rick@kuroyi.net>
 
+	* modules/em8300_audio.c:
+	merge new digitalac3/pcm patch from Mattias Svensson
+	
+2001-05-10  Rick Haines  <rick@kuroyi.net>
+
 	* libdxr3/ac3spdif.c (output_spdif),
 	  modules/em8300_audio.c:
 	revert my change and merge Mattias Svensson's patch

@@ -1,6 +1,11 @@
 To compile the modules under 2.4.x kernels you will need to run the script:
 	./make-modules-2.4
 
+NOTE: You need at least kernel 2.4.0. The 2.4.0-testXYZ series kernels are 
+reported to fail (nothing is compiled at all). So if you are running a -test
+kernel and have problems compiling the modules please upgrade to 2.4.0 proper
+and see if they go away. If not let me know (email at bottom of this file).
+
 If your kernel sources are not in /usr/src/linux then edit the make-modules-2.4
 script at the top to change where the correct location is.
 

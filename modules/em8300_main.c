@@ -315,8 +315,6 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 #else    
 	atomic_inc(&file->f_dentry->d_inode->i_count);
 #endif   
-	file->f_dentry->d_inode->i_count++;
-
 	break;
     default:
 	return -EINVAL;

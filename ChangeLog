@@ -1,3 +1,8 @@
+2003-12-06  Nicolas Boullis  <nboullis@debian.org>
+	* scripts/microcode_extract.pl:
+	Fix a tiny bug in scripts/microcode_extract.pl that caused the
+	third option (NAMEBASE) not to work.
+
 2003-12-05  David Holm  <dholm@gentoo.org>
 	* include/linux/em8300.h,
 	  modules/Makefile,

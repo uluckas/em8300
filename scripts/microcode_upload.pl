@@ -32,7 +32,12 @@ sub EMCTL_IOCTL_GETSTATUS { _IOC(2,'C',3,shift)}
 
 # Read microcode file
 #open (UCODE,"<$ARGV[0]") or die("Can't open microcode file: $ARGV[0]");
-open (UCODE,"/usr/share/misc/em8300.uc") or die("ERROR: /usr/share/misc/em8300.uc not found");
+if (@ARGV < 1) {
+    open (UCODE,"/usr/share/misc/em8300.uc") or die("ERROR: /usr/share/misc/em8300.uc not found");
+} else {
+    open (UCODE, "$ARGV[0]") or die ("Can't open microcode file: $ARGV[0]");
+}
+
 undef $/;
 $ucode=<UCODE>;
 close UCODE;

@@ -1,4 +1,10 @@
-2002-02-11  Jonas Birme´ <jonas@birme.se>
+2002-02-13  Jonas Birme  <jonas@birme.se>
+   * scripts/microcode_upload.pl
+	Fixed the ugly hardcoded path in the script.
+	It's now optional to specify microcode, defaults to
+	/usr/share/misc/em8300.uc
+
+2002-02-11  Jonas Birme  <jonas@birme.se>
    * modules/Makefile
    Fixed the install-newkern so it uses $(prefix) for all files.
 

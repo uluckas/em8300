@@ -609,7 +609,7 @@ int init_em8300(struct em8300_s *em)
 	return 0;
 }
 
-void __exit em8300_exit(void)
+void em8300_exit(void)
 {
 	int card;
 #ifdef CONFIG_DEVFS_FS
@@ -642,7 +642,7 @@ void __exit em8300_exit(void)
 	release_em8300(em8300_cards);
 }
 
-int __init em8300_init(void)
+int em8300_init(void)
 {
 	int card = 0;
 	int frame = 3;
@@ -735,12 +735,12 @@ int __init em8300_init(void)
 #endif
  err_chrdev:
 	while (card-- > 0) {
-#ifdef CONFIG_DEVFS_FS
 		while (frame-- > 0) {
+#ifdef CONFIG_DEVFS_FS
 			devfs_unregister(em8300_handle[(card * 4) + frame]);
+#endif
 		}
 		frame = 3;
-#endif
 #ifdef CONFIG_SOUND_OSS
 		unregister_sound_dsp(em[card].dsp_num);
 #endif

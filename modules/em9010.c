@@ -130,8 +130,8 @@ int sub_2AC2D(struct em8300_s *em)
    ph = [ebp+0x24]
  */
 void sub_4288c(struct em8300_s *em, int pa, int pb, int pc, int pd, int pe, int pf, int pg, int ph) {
-    /*    DEBUG(printk("sub_4288c:  xpos=%d, ypos=%d, xwin=%d, ywin=%d, xoff=%d, yoff=%d, xcorr=%d, xd=%d\n", 
-	  pa,pb,pc,pd,pe,pf,pg,ph)); */
+    /*    pr_debug("sub_4288c:  xpos=%d, ypos=%d, xwin=%d, ywin=%d, xoff=%d, yoff=%d, xcorr=%d, xd=%d\n", 
+	  pa,pb,pc,pd,pe,pf,pg,ph); */
     if(pg >= 800) { 
 	pa = (pa * 1000) / pg;
 	pc = (pc * 1000) / pg;
@@ -172,7 +172,7 @@ int em9010_calibrate_yoffset(struct em8300_s *em)
 {
     int i;
 
-    DEBUG(printk("em9010: Starting yoffset calibration\n"));
+    pr_debug("em9010: Starting yoffset calibration\n");
     
     em->overlay_a[EM9010_ATTRIBUTE_XCORR] = em->overlay_xcorr_default;
     em->overlay_a[EM9010_ATTRIBUTE_XOFFSET] = 100000 / em->overlay_a[EM9010_ATTRIBUTE_XCORR];
@@ -231,7 +231,7 @@ int em9010_calibrate_yoffset(struct em8300_s *em)
 	em->overlay_a[EM9010_ATTRIBUTE_YOFFSET] >>= 1;
     }
 
-    DEBUG(printk("em9010: Sucessfully calibrated yoffset (%d)\n", em->overlay_a[EM9010_ATTRIBUTE_YOFFSET]));
+    pr_debug("em9010: Sucessfully calibrated yoffset (%d)\n", em->overlay_a[EM9010_ATTRIBUTE_YOFFSET]);
     
     return 1;
 }
@@ -260,7 +260,7 @@ int em9010_calibrate_xoffset(struct em8300_s *em)
 	      em->overlay_a[EM9010_ATTRIBUTE_XOFFSET],
 	      em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
     
-    DEBUG(printk("em9010: Done drawing testpattern\n"));
+    pr_debug("em9010: Done drawing testpattern\n");
 
     if(!sub_2AC2D(em))
 	return 0;
@@ -287,7 +287,7 @@ int em9010_calibrate_xoffset(struct em8300_s *em)
     
     em->overlay_a[EM9010_ATTRIBUTE_XOFFSET] = em->overlay_a[EM9010_ATTRIBUTE_XOFFSET]+i+2;
 
-    DEBUG(printk("em9010: Sucessfully calibrated xoffset (%d)\n", em->overlay_a[EM9010_ATTRIBUTE_XOFFSET]));
+    pr_debug("em9010: Sucessfully calibrated xoffset (%d)\n", em->overlay_a[EM9010_ATTRIBUTE_XOFFSET]);
     
     return 1;
 }
@@ -397,7 +397,7 @@ int em9010_calibrate_xcorrection(struct em8300_s *em)
 		      em->overlay_a[EM9010_ATTRIBUTE_YOFFSET],
 		      em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
 
-    DEBUG(printk("em9010: Sucessfully calibrated x correction (%d)\n", em->overlay_a[EM9010_ATTRIBUTE_XCORR]));
+    pr_debug("em9010: Sucessfully calibrated x correction (%d)\n", em->overlay_a[EM9010_ATTRIBUTE_XCORR]);
     
     return 1;
 }
@@ -445,7 +445,7 @@ int loc_2bcfe(struct em8300_s *em)
 	    l7 = em->overlay_yres * 62 / 100;
 	}
     }
-    DEBUG(printk("em9010: loc_2bcfe -> %d\n",l7));
+    pr_debug("em9010: loc_2bcfe -> %d\n",l7);
     return l7;
 }
 /*
@@ -498,7 +498,7 @@ int loc_2A66E(struct em8300_s *em) {
     else
 	l6 = 0x500;
 
-    DEBUG(printk("l6 * l7 * (1 << l2)=%d, l1=%d\n",l6 * l7 * (1 << l2), l1));
+    pr_debug("l6 * l7 * (1 << l2)=%d, l1=%d\n",l6 * l7 * (1 << l2), l1);
     if(l6 * l7 * (1 << l2) >= l1) {
 	l4 = l6*l7 * (1 << l2) * 1000 / l1;
 	l8 = l1 / (l7*(1 << l2)) ;
@@ -533,21 +533,21 @@ int loc_2A66E(struct em8300_s *em) {
 	l11 = ((l3 >> 8) & 0xf) | (l2 << 4);
 	l12 = l3;
     }
-    DEBUG(printk("em9010: Writing %x to 16-bit register 1.\n",l12|(l11<<8)));
+    pr_debug("em9010: Writing %x to 16-bit register 1.\n",l12|(l11<<8));
     em9010_write16(em,1,l12 |	(l11 << 8));
     return 1;
 }
 
 int em9010_overlay_set_res(struct em8300_s *em, int xres, int yres) {
-    DEBUG(printk("em9010: Setting resolution %d x %d\n", xres, yres));
+    pr_debug("em9010: Setting resolution %d x %d\n", xres, yres);
     em->overlay_xres = xres;
     em->overlay_yres = yres;
     em->overlay_70 = loc_2bcfe(em);
     loc_2A66E(em);
     em->overlay_a[EM9010_ATTRIBUTE_XCORR] = em->overlay_xcorr_default;
-    DEBUG(printk("em9010: Xcorrector: %d\n", em->overlay_a[EM9010_ATTRIBUTE_XCORR]));
+    pr_debug("em9010: Xcorrector: %d\n", em->overlay_a[EM9010_ATTRIBUTE_XCORR]);
     em->overlay_double_y = loc_2BE50(em);
-    DEBUG(printk("em9010: ydouble: %d\n", em->overlay_double_y));
+    pr_debug("em9010: ydouble: %d\n", em->overlay_double_y);
     em9010_overlay_update(em);
     return 1;
 }
@@ -568,8 +568,8 @@ static int set_keycolor(struct em8300_s *em, unsigned upper, unsigned lower) {
 }
 
 int em9010_overlay_update(struct em8300_s *em) {
-    DEBUG(printk("em9010: Update overlay: enabled=%d, gamma_enabled=%d\n",
-		 em->overlay_enabled,em->overlay_gamma_enable));
+    pr_debug("em9010: Update overlay: enabled=%d, gamma_enabled=%d\n",
+		 em->overlay_enabled,em->overlay_gamma_enable);
 
     
     

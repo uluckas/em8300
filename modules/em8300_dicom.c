@@ -228,10 +228,10 @@ int em8300_dicom_update(struct em8300_s *em)
       }
     }
 
-    printk("em8300_dicom.o: vmode_ntsc: %d\n", vmode_ntsc);
-    printk("em8300_dicom.o: dicom_other_pal: %d\n", dicom_other_pal);
-    printk("em8300_dicom.o: dicom_control: %d\n", dicom_control);
-    printk("em8300_dicom.o: dicom_fix: %d\n", dicom_fix);
+    pr_debug("em8300_dicom.o: vmode_ntsc: %d\n", vmode_ntsc);
+    pr_debug("em8300_dicom.o: dicom_other_pal: %d\n", dicom_other_pal);
+    pr_debug("em8300_dicom.o: dicom_control: %d\n", dicom_control);
+    pr_debug("em8300_dicom.o: dicom_fix: %d\n", dicom_fix);
 
     write_ucregister(DICOM_UpdateFlag,1);
     
@@ -261,7 +261,7 @@ void em8300_dicom_enable(struct em8300_s *em)
     if (activate_loopback) {
       em9010_write(em,0x9, 0x4);
     }
-    printk("em8300_main.o: activate_loopback: %d\n", activate_loopback);
+    pr_debug("em8300_main.o: activate_loopback: %d\n", activate_loopback);
 }
 
 int em8300_dicom_get_dbufinfo(struct em8300_s *em) {
@@ -301,16 +301,16 @@ int em8300_dicom_get_dbufinfo(struct em8300_s *em) {
     } else
 	di->unk_present = 0;
 	
-    DEBUG(printk("DICOM buffer: xsize=0x%x(%d)\n",di->xsize,di->xsize));
-    DEBUG(printk("              ysize=0x%x(%d)\n",di->ysize,di->ysize));
-    DEBUG(printk("              xsize2=0x%x(%d)\n",di->xsize2,di->xsize2));
-    DEBUG(printk("              flag1=%d, flag2=%d\n",di->flag1,di->flag2));
-    DEBUG(printk("              buffer1=0x%x(%d)\n",di->buffer1,di->buffer1));
-    DEBUG(printk("              buffer2=0x%x(%d)\n",di->buffer2,di->buffer2));
+    pr_debug("DICOM buffer: xsize=0x%x(%d)\n",di->xsize,di->xsize);
+    pr_debug("              ysize=0x%x(%d)\n",di->ysize,di->ysize);
+    pr_debug("              xsize2=0x%x(%d)\n",di->xsize2,di->xsize2);
+    pr_debug("              flag1=%d, flag2=%d\n",di->flag1,di->flag2);
+    pr_debug("              buffer1=0x%x(%d)\n",di->buffer1,di->buffer1);
+    pr_debug("              buffer2=0x%x(%d)\n",di->buffer2,di->buffer2);
     if(di->unk_present) {
-	DEBUG(printk("              unknown1=0x%x(%d)\n",di->unknown1,di->unknown1));
-	DEBUG(printk("              unknown2=0x%x(%d)\n",di->unknown2,di->unknown2));
-	DEBUG(printk("              unknown3=0x%x(%d)\n",di->unknown3,di->unknown3));
+	pr_debug("              unknown1=0x%x(%d)\n",di->unknown1,di->unknown1);
+	pr_debug("              unknown2=0x%x(%d)\n",di->unknown2,di->unknown2);
+	pr_debug("              unknown3=0x%x(%d)\n",di->unknown3,di->unknown3);
     }
     return 0;
 }
@@ -331,8 +331,8 @@ void em8300_dicom_fill_dispbuffers(struct em8300_s *em, int xpos,
 {
     int i;
 
-    printk("ysize: %d, xsize: %d\n",ysize,xsize);
-    printk("buffer1: %d, buffer2: %d\n",em->dbuf_info.buffer1, em->dbuf_info.buffer2);
+    pr_debug("ysize: %d, xsize: %d\n",ysize,xsize);
+    pr_debug("buffer1: %d, buffer2: %d\n",em->dbuf_info.buffer1, em->dbuf_info.buffer2);
     
     for(i=0; i < ysize; i++) {
 	em8300_setregblock(em,em->dbuf_info.buffer1 + xpos + (ypos+i)*em->dbuf_info.xsize,

@@ -1,3 +1,15 @@
+2001-03-29  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_audio.c (preprocess_digital):
+	reverse the em->swapbytes condition.
+	this should fix pcm, I wonder if it breaks ac3
+	
+	* modules/*:
+	fix up all the printk's
+
+	* xine/xine-0.4.01_dxr3.patch.gz:
+	remove check for libcss from configure.in
+	
 2001-03-28  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_i2c.c (em8300_i2c_reg):

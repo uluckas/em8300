@@ -47,8 +47,6 @@
 
 #include "encoder.h"
 
-#define DEBUG(x) x
-
 #define i2c_is_isa_client(clientptr) \
         ((clientptr)->adapter->algo->id == I2C_ALGO_ISA)
 #define i2c_is_isa_adapter(adapptr) \
@@ -90,26 +88,26 @@ int bt865_setmode(int mode, struct i2c_client *client) {
     struct bt865_data_s *data = client->data ;
     unsigned char *config=NULL;
 
-    DEBUG(printk("bt865_setmode(%d,%p)\n",mode,client));
+    pr_debug("bt865_setmode(%d,%p)\n",mode,client);
     
     switch(mode) {
     case ENCODER_MODE_PAL:
-	printk("<1>bt865.o: Configuring for PAL\n");
+	printk(KERN_NOTICE "bt865.o: Configuring for PAL\n");
 	i2c_smbus_write_byte_data(client,0xcc, 0xe4); //or 0x24
 	i2c_smbus_write_byte_data(client,0xd0, 0x0);
 	break;
     case ENCODER_MODE_PAL_M:
-	printk("<1>bt865.o: Configuring for PALM\n");
+	printk(KERN_NOTICE "bt865.o: Configuring for PALM\n");
 	i2c_smbus_write_byte_data(client,0xcc, 0xf0);
 	i2c_smbus_write_byte_data(client,0xd0, 0x0);
 	break;
     case ENCODER_MODE_PAL60:
-	printk("<1>bt865.o: Configuring for PAL 60\n");
+	printk(KERN_NOTICE "bt865.o: Configuring for PAL 60\n");
 	i2c_smbus_write_byte_data(client,0xcc, 0xe0);
 	i2c_smbus_write_byte_data(client,0xd0, 0x0);
 	break;
     case ENCODER_MODE_NTSC:
-	printk("<1>bt865.o: Configuring for NTSC\n");
+	printk(KERN_NOTICE "bt865.o: Configuring for NTSC\n");
 	i2c_smbus_write_byte_data(client,0xcc, 0x80);
 	i2c_smbus_write_byte_data(client,0xd0, 0x0);
 	break;
@@ -185,7 +183,7 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
     int err;
 
     if(i2c_is_isa_adapter(adapter)) {
-	printk("bt865a.o: called for an ISA bus adapter?!?\n");
+	printk(KERN_ERR "bt865a.o: called for an ISA bus adapter?!?\n");
 	return 0;
     }
 
@@ -211,7 +209,7 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
 
      if(i2c_smbus_read_byte_data(new_client,0) == 0xb1) {
          strcpy(new_client->name, "BT865 chip");
-	 printk("bt865.o: BT865 chip detected\n");
+	 printk(KERN_NOTICE "bt865.o: BT865 chip detected\n");
 
 	 new_client->id = bt865_id++;
 
@@ -241,7 +239,7 @@ int bt865_detach_client(struct i2c_client *client)
     int err;
 
     if ((err = i2c_detach_client(client))) {
-	printk("bt865.o: Client deregistration failed, client not detached.\n");
+	printk(KERN_ERR "bt865.o: Client deregistration failed, client not detached.\n");
 	return err;
     }
 

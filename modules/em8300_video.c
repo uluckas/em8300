@@ -87,7 +87,7 @@ int em8300_video_sync(struct em8300_s *em) {
 	if(rdptr != wrptr)
 	    schedule_timeout(HZ/10);
 	if(signal_pending(current)) {
-	    printk("em8300_video.o: Video sync interrupted\n");
+	    printk(KERN_ERR "em8300_video.o: Video sync interrupted\n");
 	    return -EINTR;
 	}
     } while(rdptr != wrptr);
@@ -147,14 +147,14 @@ int em8300_video_setup(struct em8300_s *em) {
     em9010_write(em,0xa,0x0);
 
     if(em9010_cabledetect(em)) {
-	DEBUG(printk("em8300: overlay loop-back cable detected\n"));
+	pr_debug("em8300: overlay loop-back cable detected\n");
     }
     
-    DEBUG(printk("em8300: overlay reg 0x80 = %x \n",em9010_read16(em,0x80)));
+    pr_debug("em8300: overlay reg 0x80 = %x \n",em9010_read16(em,0x80));
 
     em9010_write(em,0xb,0xc8);
 
-    DEBUG(printk("em8300: register 0x1f4b = %x (0x138)\n",read_register(0x1f4b)));
+    pr_debug("em8300: register 0x1f4b = %x (0x138)\n",read_register(0x1f4b));
 
     em9010_write16(em,1,0x4fe);
     em9010_write(em,1,4);
@@ -205,7 +205,7 @@ int em8300_video_setup(struct em8300_s *em) {
     write_register(0x2000,0x1);
 
     if(mpegvideo_command(em,MVCOMMAND_DISPLAYBUFINFO)) {
-	DEBUG( printk("em8300_video: mpegvideo_command(0x11) failed\n"));
+	printk(KERN_ERR "em8300_video: mpegvideo_command(0x11) failed\n");
 	return -ETIME;
     }
     em8300_dicom_get_dbufinfo(em);
@@ -213,7 +213,7 @@ int em8300_video_setup(struct em8300_s *em) {
     write_ucregister(SP_Status,0x0);
     
     if(mpegvideo_command(em,0x10)) {
-	DEBUG( printk("em8300: mpegvideo_command(0x10) failed\n"));
+        printk(KERN_ERR "em8300: mpegvideo_command(0x10) failed\n");
 	return -ETIME;
     }
 
@@ -228,7 +228,7 @@ int em8300_video_setup(struct em8300_s *em) {
     em8300_dicom_setBCS(em, 500,500,500);
 
     if(em8300_dicom_update(em)) {
-	DEBUG( printk("em8300: DICOM Update failed\n"));
+	printk(KERN_ERR "em8300: DICOM Update failed\n");
 	return -ETIME;
     }
     
@@ -275,7 +275,7 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
     /* pts has gone backwards, but not far enough to be a rollover */
     if (pts < em->video_lastpts) {
 	    if ((em->video_lastpts - pts) < 90000) {
-		    printk("em8300_video.o: dropping data, pts: %u lastpts: %u\n",
+		    pr_debug("em8300_video.o: dropping data, pts: %u lastpts: %u\n",
 			   pts, em->video_lastpts);
 		    return 0;
 	    }
@@ -299,7 +299,7 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
 	}	
 
 #ifdef DEBUG_SYNC
-	printk("em8300_video.o: pts: %u\n", pts>>1);
+	pr_debug("em8300_video.o: pts: %u\n", pts>>1);
 #endif
 
 	write_register(ptsfifoptr, em->video_offset >> 16);

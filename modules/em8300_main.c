@@ -161,7 +161,7 @@ static int find_em8300(void)
     int result;
      
     if (!pcibios_present()) {
-	printk(KERN_DEBUG "em8300: PCI-BIOS not present or not accessible!\n");
+	printk(KERN_ERR "em8300: PCI-BIOS not present or not accessible!\n");
 	return -1;
     }
     
@@ -177,7 +177,7 @@ static int find_em8300(void)
 	    if (remap[em8300_n] < 0x1000)
 		remap[em8300_n]<<=20;
 	    remap[em8300_n] &= PCI_BASE_ADDRESS_MEM_MASK;
-	    printk(KERN_INFO "Remapping to : 0x%08x.\n", remap[em8300_n]);
+	    pr_info("Remapping to : 0x%08x.\n", remap[em8300_n]);
 	    remap[em8300_n] |= em->adr&(~PCI_BASE_ADDRESS_MEM_MASK);
 	    pci_write_config_dword(dev, PCI_BASE_ADDRESS_0, remap[em8300_n]);
 	    /* commit to PCI bus */
@@ -192,14 +192,14 @@ static int find_em8300(void)
 	
 	pci_read_config_byte(dev, PCI_CLASS_REVISION, &revision);
 	em->pci_revision = revision;
-	printk(KERN_INFO "em8300: EM8300 %x (rev %d) ",
+	pr_info("em8300: EM8300 %x (rev %d) ",
 	       dev->device, revision);
 	printk("bus: %d, devfn: %d, irq: %d, ",
 	       dev->bus->number, dev->devfn, dev->irq);
 	printk("memory: 0x%08lx.\n", em->adr);
 	
 	em->mem = ioremap(em->adr, em->memsize);
-	DEBUG(printk(KERN_DEBUG "em8300: mapped-memory at 0x%p\n",em->mem));
+	pr_info("em8300: mapped-memory at 0x%p\n",em->mem);
 
 	result = request_irq(dev->irq, em8300_irq,
 			     SA_SHIRQ|SA_INTERRUPT,"em8300",(void *)em);
@@ -215,7 +215,7 @@ static int find_em8300(void)
     }
 
     if(em8300_n)
-	printk(KERN_INFO "em8300: %d EM8300 card(s) found.\n",em8300_n);
+	pr_info("em8300: %d EM8300 card(s) found.\n",em8300_n);
   
     return em8300_n;
 }
@@ -287,7 +287,7 @@ int em8300_io_open(struct inode* inode, struct file* filp)
     em8300[card].inuse[subdevice]++;
 
     clients++;
-    printk("em8300_main.o: Opening device %d, Clients:%d\n",subdevice,clients);
+    pr_info("em8300_main.o: Opening device %d, Clients:%d\n",subdevice,clients);
     MOD_INC_USE_COUNT;
   
     return(0);
@@ -373,7 +373,7 @@ int em8300_io_release(struct inode* inode, struct file* filp)
     em->inuse[subdevice]--;
 
     clients--;
-    printk("em8300_main.o: Releasing device %d, clients:%d\n",subdevice,clients);
+    pr_info("em8300_main.o: Releasing device %d, clients:%d\n",subdevice,clients);
     MOD_DEC_USE_COUNT;
 
     return(0);
@@ -431,8 +431,8 @@ int em8300_init(struct em8300_s *em) {
        em->var_ucode_reg3 = 0x8c7;
     }
 
-    printk("em8300_main.o: Chip revision: %d\n",em->chip_revision);
-    printk("em8300_main.o: use_bt865: %d\n", use_bt865);
+    pr_info("em8300_main.o: Chip revision: %d\n",em->chip_revision);
+    pr_debug("em8300_main.o: use_bt865: %d\n", use_bt865);
     em8300_i2c_init(em);
 
     return 0;

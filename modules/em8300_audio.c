@@ -120,7 +120,7 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
     int i;
     unsigned char tmpbuf[0x600];
 
-    if(em->swapbytes) {
+    if(!em->swapbytes) {
 	for(i=0; i < inlength; i+=2) {
 	    get_user(tmpbuf[i+1], inbuf_user++);
 	    get_user(tmpbuf[i], inbuf_user++);
@@ -152,7 +152,7 @@ int mpegaudio_command(struct em8300_s *em, int cmd) {
 	    em->audio_lastpts = 0;
     }
 
-    printk("MA_Command: %d\n",cmd);
+    pr_debug("MA_Command: %d\n",cmd);
     write_ucregister(MA_Command,cmd);
 
     return em8300_waitfor(em,ucregister(MA_Status), cmd, 0xffff);
@@ -341,7 +341,7 @@ static int set_audiomode(struct em8300_s *em, int mode) {
     case EM8300_AUDIOMODE_ANALOG:
 	write_register(0x1fb0,0x62);
 	em8300_setregblock(em, 2*ucregister(Mute_Pattern), 0, 0x600);
-	printk("em8300_audio.o: Analog audio enabled\n");
+	printk(KERN_NOTICE "em8300_audio.o: Analog audio enabled\n");
 	break;
     case EM8300_AUDIOMODE_DIGITALPCM:
 	write_register(0x1fb0,0x3a0);
@@ -350,7 +350,7 @@ static int set_audiomode(struct em8300_s *em, int mode) {
 	sub_prepare_SPDIF(em,mutepattern,mutepattern_src,0x300);
 	
 	em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)mutepattern, 0x600);
-	printk("em8300_audio.o: Digital PCM audio enabled\n");
+	printk(KERN_NOTICE "em8300_audio.o: Digital PCM audio enabled\n");
 	break;
     case EM8300_AUDIOMODE_DIGITALAC3:
 	write_register(0x1fb0,0x3a0);
@@ -359,7 +359,7 @@ static int set_audiomode(struct em8300_s *em, int mode) {
 	sub_prepare_SPDIF(em,mutepattern,mutepattern_src,0x300);
 
 	em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)mutepattern, 0x600);
-	printk("em8300_audio.o: Digital AC3 audio enabled\n");
+	printk(KERN_NOTICE "em8300_audio.o: Digital AC3 audio enabled\n");
 	break;
     }
     return 0;
@@ -379,7 +379,7 @@ int em8300_audio_setup(struct em8300_s *em) {
     setup_mafifo(em);
     
     if(ret) {
-	printk("em8300_audio.o: Couldn't zero audio buffer\n");
+	printk(KERN_ERR "em8300_audio.o: Couldn't zero audio buffer\n");
 	return ret;
     }
     
@@ -430,7 +430,7 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 
 		/* backwards by more than a sec probably means rollover */
 		if ((int)(em->audio_lastpts - em->audio_pts) > 90000) {
-			printk("em8300_audio.o: ROLLOVER DETECTED! lastpts: %u pts: %u\n", em->audio_lastpts, em->audio_pts);
+			pr_debug("em8300_audio.o: ROLLOVER DETECTED! lastpts: %u pts: %u\n", em->audio_lastpts, em->audio_pts);
 			rollover = 1;
 			rollover_pts = 0;
 			rollover_startpts = em->audio_pts;
@@ -452,7 +452,7 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 
 	calcbuf = em8300_audio_calcbuffered(em);
 #ifdef DEBUG_SYNC
-	printk("em8300_audio.o: calcbuf: %u since_last_pts: %i\n", calcbuf, em->audio_lag);
+	pr_debug("em8300_audio.o: calcbuf: %u since_last_pts: %i\n", calcbuf, em->audio_lag);
 #endif
 	
 	vpts = basepts + em->audio_lag - (calcbuf * 45000/4 / em->audio_rate);
@@ -469,16 +469,17 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 	}
 
 #ifdef DEBUG_SYNC
-	printk("em8300_audio.o: pts: %u vpts: %u scr: %u bpts: %u\n", em->audio_pts, vpts, master_vpts, basepts);
+	pr_debug("em8300_audio.o: pts: %u vpts: %u scr: %u bpts: %u\n", em->audio_pts, vpts, master_vpts, basepts);
 #endif
 	
 	diff = vpts - master_vpts;
 	
 	if (abs(diff)>3600) {
-		printk ("em8300_audio.o: master clock adjust time %d -> %d\n", master_vpts, vpts); 
+	        pr_info("em8300_audio.o: resyncing\n");
+		pr_debug("em8300_audio.o: master clock adjust time %d -> %d\n", master_vpts, vpts); 
 		write_ucregister(MV_SCRlo, vpts & 0xffff);
 		write_ucregister(MV_SCRhi, (vpts >> 16) & 0xffff);
-		printk("Setting SCR: %d\n", vpts);
+		pr_debug("Setting SCR: %d\n", vpts);
 	}
 
 	em->audio_lag += (count * 45000/4 / em->audio_rate);
@@ -486,7 +487,6 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 	lastpts_count += (count * 45000/4 / em->audio_rate);
 
 	return em8300_fifo_writeblocking(em->mafifo, count, buf,0);
-	return 0;
 }
 
 /* 18-09-2000 - Ze'ev Maor - added these two ioctls to set and get audio mode. */

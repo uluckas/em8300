@@ -254,7 +254,7 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc) {
     
     em->ucodeloaded = 1;
 
-    printk(KERN_INFO "em8300: Microcode version 0x%02x loaded\n",
+    printk(KERN_NOTICE "em8300: Microcode version 0x%02x loaded\n",
 	   read_ucregister(MicroCodeVersion));
     return 0;
 }
@@ -409,7 +409,7 @@ int em8300_ioctl_overlay_signalmode(struct em8300_s *em,int val) {
 	default:
 	    return 0;
 	}
-	DEBUG(printk("em8300: overlay reg 7 = %x \n",em9010_read(em,7)));
+	pr_debug("em8300: overlay reg 7 = %x \n",em9010_read(em,7));
 	return 1;
 }
 

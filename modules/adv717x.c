@@ -279,11 +279,11 @@ int adv717x_setmode(int mode, struct i2c_client *client) {
     struct adv717x_data_s *data = client->data ;
     unsigned char *config=NULL;
 
-    DEBUG(printk("adv717x_setmode(%d,%p)\n",mode,client));
+    pr_debug("adv717x_setmode(%d,%p)\n",mode,client);
     
     switch(mode) {
     case ENCODER_MODE_PAL:
-	printk("<1>adv717x.o: Configuring for PAL\n");
+	printk(KERN_NOTICE "adv717x.o: Configuring for PAL\n");
 	switch(data->chiptype) {
 	case CHIP_ADV7175A:
 	    config = PAL_config_7175;
@@ -296,7 +296,7 @@ int adv717x_setmode(int mode, struct i2c_client *client) {
 	}
 	break;
     case ENCODER_MODE_PAL_M:
-	printk("<1>adv717x.o: Configuring for PALM\n");
+	printk(KERN_NOTICE "adv717x.o: Configuring for PALM\n");
 	switch(data->chiptype) {
 	case CHIP_ADV7175A:
 	    config = PAL_config_7175;
@@ -309,7 +309,7 @@ int adv717x_setmode(int mode, struct i2c_client *client) {
 	}
 	break;
     case ENCODER_MODE_PAL60:
-	printk("<1>adv717x.o: Configuring for PAL 60\n");
+	printk(KERN_NOTICE "adv717x.o: Configuring for PAL 60\n");
 	switch(data->chiptype) {
 	case CHIP_ADV7175A:
 	    config = PAL60_config_7175;
@@ -322,7 +322,7 @@ int adv717x_setmode(int mode, struct i2c_client *client) {
 	}
 	break;
     case ENCODER_MODE_NTSC:
-	printk("<1>adv717x.o: Configuring for NTSC\n");
+	printk(KERN_NOTICE "adv717x.o: Configuring for NTSC\n");
  	switch(data->chiptype) {
 	case CHIP_ADV7175A:
 	    config = NTSC_config_7175;
@@ -370,7 +370,7 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
     int err;
 
     if(i2c_is_isa_adapter(adapter)) {
-	printk("adv717xa.o: called for an ISA bus adapter?!?\n");
+	printk(KERN_ERR "adv717xa.o: called for an ISA bus adapter?!?\n");
 	return 0;
     }
 
@@ -401,11 +401,11 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 	 if(mr0 & 0x20) {
 	     strcpy(new_client->name, "ADV7175A chip");
 	     data->chiptype = CHIP_ADV7175A;
-	     printk("adv717x.o: ADV7175A chip detected\n");
+	     printk(KERN_NOTICE "adv717x.o: ADV7175A chip detected\n");
 	 } else {
 	     strcpy(new_client->name, "ADV7170 chip");
 	     data->chiptype = CHIP_ADV7170;
-	     printk("adv717x.o: ADV7170 chip detected\n");
+	     printk(KERN_NOTICE "adv717x.o: ADV7170 chip detected\n");
 	 }
 	 
 	 new_client->id = adv717x_id++;
@@ -439,7 +439,7 @@ int adv717x_detach_client(struct i2c_client *client)
   int err;
 
   if ((err = i2c_detach_client(client))) {
-    printk("adv717x.o: Client deregistration failed, client not detached.\n");
+    printk(KERN_ERR "adv717x.o: Client deregistration failed, client not detached.\n");
     return err;
   }
 
@@ -513,8 +513,8 @@ int adv717x_init(void)
       rb_pal = 0x70;
     }
 
-    printk("adv717x.o: pixelport_16bit: %d\n", pixelport_16bit);
-    printk("adv717x.o: pixelport_other_pal: %d\n", pixelport_other_pal);
+    pr_debug("adv717x.o: pixelport_16bit: %d\n", pixelport_16bit);
+    pr_debug("adv717x.o: pixelport_other_pal: %d\n", pixelport_other_pal);
 
     PAL_config_7170[7] = (PAL_config_7170[7] & ~0x40) | pp_pal;
     NTSC_config_7170[7] = (NTSC_config_7170[7] & ~0x40) | pp_ntsc;

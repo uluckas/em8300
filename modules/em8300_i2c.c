@@ -97,7 +97,7 @@ static int em8300_i2c_reg(struct i2c_client *client)
         em->encoder = client;
         break;
     default:
-        printk("em8300_i2c: unknown client id\n");
+        printk(KERN_ERR "em8300_i2c: unknown client id\n");
 	return -ENODEV;
     }
     return 0;

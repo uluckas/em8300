@@ -43,8 +43,6 @@
 #include <linux/i2c-algo-bit.h>
 #include <linux/video_encoder.h>
 
-#define DEBUG(x...) x
-
 #define i2c_is_isa_client(clientptr) \
         ((clientptr)->adapter->algo->id == I2C_ALGO_ISA)
 #define i2c_is_isa_adapter(adapptr) \
@@ -80,7 +78,7 @@ static int eeprom_detect(struct i2c_adapter *adapter, int address)
     int i,j,err;
 
     if(i2c_is_isa_adapter(adapter)) {
-	printk("eeprom.o: called for an ISA bus adapter?!?\n");
+	printk(KERN_ERR "eeprom.o: called for an ISA bus adapter?!?\n");
 	return 0;
     }
 
@@ -108,13 +106,13 @@ static int eeprom_detect(struct i2c_adapter *adapter, int address)
 	     return err;
 	 }
 
-	 DEBUG(printk("eeprom.o: EEPROM contents:\n"));
+	 pr_debug("eeprom.o: EEPROM contents:\n");
 
 	 for(i=0;i < 16; i++) {
 	     for(j=0;j < 16; j++) {
-		 DEBUG(printk("%02x ",i2c_smbus_read_byte_data(new_client,i*16+j)));
+		 pr_debug("%02x ",i2c_smbus_read_byte_data(new_client,i*16+j));
 	     }
-	     DEBUG(printk("\n"));
+	     pr_debug("\n");
 	 }
 	 
 	 
@@ -139,7 +137,7 @@ int eeprom_detach_client(struct i2c_client *client)
   int err;
 
   if ((err = i2c_detach_client(client))) {
-    printk("eeprom.o: Client deregistration failed, client not detached.\n");
+    printk(KERN_ERR "eeprom.o: Client deregistration failed, client not detached.\n");
     return err;
   }
 

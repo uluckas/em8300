@@ -161,7 +161,7 @@ int em8300_fifo_sync(struct fifo_s *fifo)
 	fifo->waiting=0;
 
 	if(signal_pending(current)) {
-	    printk("em8300.o: FIFO sync interrupted\n");	    
+	    printk(KERN_ERR "em8300.o: FIFO sync interrupted\n");	    
 	    return -EINTR;
 	}
     }

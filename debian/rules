@@ -4,6 +4,8 @@
 
 package=em8300
 kvers=`uname -r`
+KSRC?=/usr/src/linux
+MOD_DIR?='.'
 
 build:
 	$(checkdir)
@@ -14,7 +16,7 @@ build:
 build-modules:
 	$(checkdir)
 	cd modules ;\
-	$(MAKE) ;\
+	$(MAKE) KERNEL_LOCATION=$(KSRC) ;\
 	cd ..
 	touch build-modules
 	
@@ -24,10 +26,12 @@ clean:
 	-$(MAKE) clean
 	-rm -f `find . -name "*~"`
 	-rm -rf debian/tmp debian/files* core debian/substvars
+	-rm -rf debian/em8300-source
 
 clean-modules:
 	$(checkdir)
 	-rm -f build-modules
+	-rm -rf debian/tmp-modules
 	-cd modules ;\
 	$(MAKE) clean ;\
 	cd ..
@@ -67,44 +71,47 @@ binary-modules: checkroot build-modules
 	sh -v debian/setvers.sh
 	chown -R root.root debian/tmp-modules
 	chmod -R go=rX debian/tmp-modules
-	dpkg --build debian/tmp-modules ..
+	dpkg --build debian/tmp-modules $(MOD_DIR)/..
 
 binary-source: checkroot
 	$(checkdir)
-	-rm -rf debian/tmp-src
-	install -d debian/tmp-src debian/tmp-src/DEBIAN
-	install debian/em8300-source.postinst debian/tmp-src/DEBIAN/postinst
-	install debian/em8300-source.prerm debian/tmp-src/DEBIAN/prerm
-	install -d debian/tmp-src/usr/src/modules/$(package)
-	install -d debian/tmp-src/usr/share/doc/em8300-source
+	-rm -rf debian/em8300-source
+	install -d debian/em8300-source debian/em8300-source/DEBIAN
+	install debian/em8300-source.postinst debian/em8300-source/DEBIAN/postinst
+	install debian/em8300-source.prerm debian/em8300-source/DEBIAN/prerm
+	install -d debian/em8300-source/usr/src/modules/$(package)
+	install -d debian/em8300-source/usr/share/doc/em8300-source
 	
-	find . \( -path ./debian/tmp-src -o -name 'tmp*' \) -prune -o -print | \
-	  cpio -admp debian/tmp-src/usr/src/modules/$(package)
-	cd debian/tmp-src/usr/src/modules/$(package) && \
-	  $(MAKE) -f debian/rules clean-modules clean
-	chown -R root.root debian/tmp-src
-	find debian/tmp-src -type d | xargs chmod 755
-	find debian/tmp-src -type f -perm -100 | xargs chmod 755
-	find debian/tmp-src -type f -not -perm -100 | xargs chmod 644
-	cd debian/tmp-src/usr/src && \
+	find ./modules ./debian ./include ./AUTHORS ./COPYING ./INSTALL ./NEWS ./README \( -path ./debian/em8300-source -o -name 'tmp*' \) -prune -o -print | \
+	  cpio -admp debian/em8300-source/usr/src/modules/$(package)
+	cd debian/em8300-source/usr/src/modules/$(package) && \
+	  $(MAKE) -f debian/rules clean-modules
+	chown -R root.root debian/em8300-source
+	find debian/em8300-source -type d | xargs chmod 755
+	find debian/em8300-source -type f -perm -100 | xargs chmod 755
+	find debian/em8300-source -type f -not -perm -100 | xargs chmod 644
+	cd debian/em8300-source/usr/src && \
 	  tar cf $(package).tar modules && \
 	  $(RM) -r modules/$(package)
-	gzip -9 debian/tmp-src/usr/src/$(package).tar
-	chmod 644 debian/tmp-src/usr/src/$(package).tar.gz
+	gzip -9 debian/em8300-source/usr/src/$(package).tar
+	chmod 644 debian/em8300-source/usr/src/$(package).tar.gz
 	
 	install -m 644 ChangeLog \
-	  debian/tmp-src/usr/share/doc/em8300-source/changelog
+	  debian/em8300-source/usr/share/doc/em8300-source/changelog
 	install -m 644 debian/README.debian \
-	  debian/tmp-src/usr/share/doc/em8300-source/README.debian
+	  debian/em8300-source/usr/share/doc/em8300-source/README.debian
 	install -m 644 debian/changelog \
-	  debian/tmp-src/usr/share/doc/em8300-source/changelog.Debian
-	gzip -9v debian/tmp-src/usr/share/doc/em8300-source/*
+	  debian/em8300-source/usr/share/doc/em8300-source/changelog.Debian
+	gzip -9v debian/em8300-source/usr/share/doc/em8300-source/*
 	install -m 644 debian/copyright \
-	  debian/tmp-src/usr/share/doc/em8300-source/copyright
+	  debian/em8300-source/usr/share/doc/em8300-source/copyright
 	  
-	dpkg-gencontrol -pem8300-source -Pdebian/tmp-src
-	dpkg-deb --build debian/tmp-src ..
+	dpkg-gencontrol -pem8300-source -Pdebian/em8300-source
+	dpkg-deb --build debian/em8300-source ..
 
+kdist_image: checkroot
+	$(checkdir)
+	$(MAKE) -f debian/rules MOD_DIR=$(KSRC) clean-modules binary-modules
 
 define checkdir
 	test -f debian/rules
@@ -117,4 +124,4 @@ checkroot:
 	test root = "`whoami`"
 
 .PHONY: binary binary-arch binary-indep clean checkroot \
-	binary-modules clean-modules
+	binary-modules clean-modules kdist_image

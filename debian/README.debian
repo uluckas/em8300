@@ -12,11 +12,11 @@ Untar the source
 
 # tar xvzf em8300.tar.gz
 
-# cd modules/em8300
+# cd /usr/src/linux
 
-Build a debian-package
+Build the modules
 
-# debian/rules binary-modules
+# make-kpkg modules_image
 
 Install modules
 
@@ -24,7 +24,7 @@ Install modules
 
 The next thing to do is uploading the microcode unless the player handles this automatic. Xine 0.5 doesn't
 
-# microcode_upload.pl /etc/dxr3.ux
+# /usr/share/em8300/microcode_upload.pl /etc/dxr3.ux
 
 This should be all
 
@@ -32,4 +32,4 @@ CONTACT
 
 For questions about dxr3 go to http://dxr3.sourceforge.net/ and for debian specific question you could send me a mail Jonas Birme <jonas@birme.se>
 
-Jonas Birme, 08 Aug 2001
+Jonas Birme, 29 Aug 2001

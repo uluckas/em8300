@@ -5,6 +5,7 @@ Maintainer: Jonas Birme <jonas@birme.se>
 Standards-Version: 0.8.1
 
 Package: em8300-modules-${kvers}
+Section: base
 Architecture: i386
 Provides: em8300
 Pre-Depends: debconf (>= 0.2.17)

@@ -191,6 +191,7 @@ static void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 		}
 
 		if (irqstatus & IRQSTATUS_VIDEO_VBL) {
+			em8300_fifo_check(em->spfifo);
 			em8300_video_check_ptsfifo(em);
 			em8300_spu_check_ptsfifo(em);
 

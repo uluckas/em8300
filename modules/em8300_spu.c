@@ -64,16 +64,12 @@ void em8300_spu_check_ptsfifo(struct em8300_s *em)
 {
 	int ptsfifoptr;
 	
-	if (em->sp_ptsfifo_waiting) {
-
 		ptsfifoptr = ucregister(SP_PTSFifo) + 2 * em->sp_ptsfifo_ptr;
 
 		if (!(read_register(ptsfifoptr + 1) & 1)) {
-		        em->sp_ptsfifo_waiting = 0;
 			wake_up_interruptible(&em->sp_ptsfifo_wait);
 		}
 	}
-}
 
 int em8300_spu_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
 {
@@ -88,14 +84,12 @@ int em8300_spu_write(struct em8300_s *em, const char * buf, size_t count, loff_t
 		ptsfifoptr = ucregister(SP_PTSFifo) + 2 * em->sp_ptsfifo_ptr;
 	
 		if (read_register(ptsfifoptr + 1) & 1) {
-			em->sp_ptsfifo_waiting = 1;
-			// interruptible_sleep_on(&em->sp_ptsfifo_wait);
 			interruptible_sleep_on_timeout(&em->sp_ptsfifo_wait, HZ);
-    			if (jiffies - safe_jiff >= HZ) {
+			if (time_after_eq(jiffies, safe_jiff + HZ)) {
+				printk(KERN_ERR "em8300_spu.c: SPU Fifo timeout\n");
 				return -EINTR;
 			}
 
-			em->sp_ptsfifo_waiting = 0;
 			if (signal_pending(current)) {
 				return -EINTR;
 			}

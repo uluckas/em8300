@@ -480,7 +480,6 @@ int em8300_audio_flush(struct em8300_s *em)
 	int pcirdptr = read_ucregister(MA_PCIRdPtr);
 	write_ucregister(MA_PCIWrPtr, pcirdptr);
 	*em->mafifo->writeptr = *em->mafifo->readptr;
-	em->mafifo->waiting = 0;
 	em8300_fifo_sync(em->mafifo);
 	return 0;
 }
@@ -498,6 +497,7 @@ int em8300_audio_open(struct em8300_s *em)
 
 int em8300_audio_release(struct em8300_s *em)
 {
+	em8300_fifo_sync(em->mafifo);
 	em8300_audio_flush(em);
 	return audio_stop(em);	
 }

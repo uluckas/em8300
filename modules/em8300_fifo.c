@@ -61,8 +61,8 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 	
 	f->type = fifotype;
 	
-	f->writeptr = (unsigned *) ucregister_ptr(wrptr);
-	f->readptr = (unsigned *) ucregister_ptr(rdptr);
+	f->writeptr = (unsigned * volatile) ucregister_ptr(wrptr);
+	f->readptr = (unsigned * volatile) ucregister_ptr(rdptr);
 	
 	switch (f->type) {
 	case FIFOTYPE_AUDIO:
@@ -83,7 +83,6 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 	f->slotsize = slotsize;
 	f->start = ucregister(start) - 0x1000;
 	f->threshold = f->nslots / 2;
-	f->waiting = 0;
 
 	f->bytes = 0;
 
@@ -156,8 +155,7 @@ int em8300_fifo_check(struct fifo_s *fifo)
 
 	freeslots = em8300_fifo_freeslots(fifo);
 
-	if ((freeslots > fifo->threshold) && fifo->waiting) {
-		fifo->waiting = 0;
+	if (freeslots > fifo->threshold) {
 		wake_up_interruptible(&fifo->wait);
 	}
 
@@ -169,11 +167,11 @@ int em8300_fifo_sync(struct fifo_s *fifo)
 	unsigned int safe_jiff = jiffies;
 
 	while (*fifo->writeptr != *fifo->readptr) {
-		fifo->waiting = 1;
-		// interruptible_sleep_on(&fifo->wait);
-		interruptible_sleep_on_timeout(&fifo->wait, HZ);
-		if (jiffies - safe_jiff >= HZ) return -EINTR;
-		fifo->waiting = 0;
+		interruptible_sleep_on_timeout(&fifo->wait, 3 * HZ);
+		if (time_after_eq(jiffies, safe_jiff + (3 * HZ))) {
+			printk(KERN_ERR "em8300.o: FIFO sync timeout during sync\n");
+			return -EINTR;
+		}
 
 		if (signal_pending(current)) {
 			printk(KERN_ERR "em8300.o: FIFO sync interrupted\n");		
@@ -184,7 +182,7 @@ int em8300_fifo_sync(struct fifo_s *fifo)
 	return 0;
 }
 
-int em8300_fifo_write(struct fifo_s *fifo, int n, const char *userbuffer, int flags)
+int em8300_fifo_write_nolock(struct fifo_s *fifo, int n, const char *userbuffer, int flags)
 {
 	int freeslots, writeindex, i, bytes_transferred = 0, copysize;
 
@@ -193,8 +191,6 @@ int em8300_fifo_write(struct fifo_s *fifo, int n, const char *userbuffer, int fl
 	}
 	
 	freeslots = em8300_fifo_freeslots(fifo);
-
-	spin_lock(&fifo->lock);
 	writeindex = (*fifo->writeptr - fifo->start) / fifo->slotptrsize;
 	for (i = 0; i < freeslots && n; i++) {
 		copysize = n < fifo->slotsize / fifo->preprocess_ratio ? n : fifo->slotsize / fifo->preprocess_ratio;
@@ -223,13 +219,22 @@ int em8300_fifo_write(struct fifo_s *fifo, int n, const char *userbuffer, int fl
 		fifo->bytes += copysize;
 	}
 	*fifo->writeptr = fifo->start + writeindex * fifo->slotptrsize;
-	spin_unlock(&fifo->lock);
 	
 	return bytes_transferred;
 }
 
+int em8300_fifo_write(struct fifo_s *fifo, int n, const char *userbuffer, int flags)
+{
+	int ret;
 
-int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer, int flags)
+	spin_lock(&fifo->lock);
+	ret = em8300_fifo_write_nolock(fifo, n, userbuffer, flags);
+
+	spin_unlock(&fifo->lock);
+	return ret;
+}
+
+int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *userbuffer, int flags)
 {
 	int total_bytes_written = 0, copy_size;
 	unsigned int safe_jiff = jiffies;
@@ -238,8 +243,9 @@ int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer
 		return -EPERM;
 	}
 	
+	
 	while (n) {
-		copy_size = em8300_fifo_write(fifo, n, userbuffer, flags);
+		copy_size = em8300_fifo_write_nolock(fifo, n, userbuffer, flags);
 
 		if (copy_size < 0) {
 			return -EIO;
@@ -250,13 +256,20 @@ int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer
 		total_bytes_written += copy_size;
 
 		if (!copy_size) {
-			fifo->waiting = 1;
-
+			//printk("Fifo Full %p\n", fifo);
 			interruptible_sleep_on_timeout(&fifo->wait, HZ);
-			if (jiffies - safe_jiff >= HZ) return -EINTR;
-/*
-			interruptible_sleep_on(&fifo->wait);
-*/
+			if time_after_eq(jiffies, safe_jiff + HZ) {
+				printk("Fifo still full, trying stop %p\n", fifo);
+				em8300_video_setplaymode(fifo->em, EM8300_PLAYMODE_STOPPED);
+				em8300_video_setplaymode(fifo->em, EM8300_PLAYMODE_PLAY);
+		    
+				safe_jiff = jiffies;
+				interruptible_sleep_on_timeout(&fifo->wait, 3 * HZ);
+				if time_after_eq(jiffies, safe_jiff + (3 * HZ)) {
+					printk(KERN_ERR "em8300.o: FIFO sync timeout during blocking write, n = %d, copy_size = %d, total = %d, free slots = %d\n", n, copy_size, total_bytes_written, em8300_fifo_freeslots(fifo));
+					return -EINTR;
+				}
+			}
 		}
 	
 		if (signal_pending(current)) {
@@ -272,6 +285,17 @@ int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer
 	// printk(KERN_ERR "em8300.o: count = %d\n", total_bytes_written);		
 	// printk(KERN_ERR "em8300.o: time  = %d\n", jiffies - safe_jiff);		
 	return total_bytes_written;
+}
+
+int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer, int flags)
+{
+	int ret;
+
+	spin_lock(&fifo->lock);
+	ret = em8300_fifo_writeblocking_nolock(fifo, n, userbuffer, flags);
+
+	spin_unlock(&fifo->lock);
+	return ret;
 }
 
 int em8300_fifo_freeslots(struct fifo_s *fifo)

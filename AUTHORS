@@ -67,4 +67,7 @@ Contributions (in semi-random order)
   Malcolm Lashley <?>
     em8300setup
 
+  Jon Burgess <mplayer at jburgess dot uklinux dot net>
+    Partial SPU lockup fix
+
 If you aren't here and should be, send us a diff.

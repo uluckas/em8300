@@ -104,7 +104,9 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		/* go to sleep */
 		// interruptible_sleep_on(&em->vbi_wait);
 		interruptible_sleep_on_timeout(&em->vbi_wait, HZ);
-		if (jiffies - safe_jiff >= HZ) return -EINTR;
+		if (time_after_eq(jiffies, safe_jiff + HZ)) {
+			return -EINTR;
+		}
         
 		/* check if signal arrived */
 		if (signal_pending(current)) {
@@ -413,7 +415,8 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc)
 
 	em8300_fifo_init(em,em->mvfifo, MV_PCIStart, MV_PCIWrPtr, MV_PCIRdPtr, MV_PCISize, 0x900, FIFOTYPE_VIDEO);
 	em8300_fifo_init(em,em->mafifo, MA_PCIStart, MA_PCIWrPtr, MA_PCIRdPtr, MA_PCISize, 0x1000, FIFOTYPE_AUDIO); 
-	em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x1000, FIFOTYPE_VIDEO);
+	//	em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x1000, FIFOTYPE_VIDEO);
+	em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x800, FIFOTYPE_VIDEO);
 	em8300_spu_init(em);
 
 	if ((ret = em8300_audio_setup(em))) {

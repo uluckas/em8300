@@ -1,3 +1,14 @@
+2003-08-10  David Holm  <david@realityrift.com>
+	* modules/em8300_audio.c,
+	  modules/em8300_fifo.c,
+	  modules/em8300_fifo.h,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_main.c,
+	  modules/em8300_spu.c,
+	  modules/em8300_video.c:
+	Added a patch from Jon Burgess <mplayer at jburgess dot uklinux dot
+	net> that partly fixes the SPU lockup problems.
+
 2003-07-28  David Holm  <david@realityrift.com>
 	* configure.in:
 	Fixed version. Spotted by Volker Moell.

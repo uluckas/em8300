@@ -45,8 +45,8 @@ struct fifo_s {
 	int slotsize;
 	
 	int start;
-	int *writeptr;
-	int *readptr;
+	int * volatile writeptr;
+	int * volatile readptr;
 	int localreadptr;
 	int threshold;
 
@@ -63,7 +63,6 @@ struct fifo_s {
 #else
 	wait_queue_head_t wait;
 #endif	
-	int waiting;
 	spinlock_t lock;
 };
 

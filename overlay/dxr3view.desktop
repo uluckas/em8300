@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=DXR3view
+Comment=DXR3/Hollywood Plus overlay viewer
+Exec=dxr3view
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Application;AudioVideo;GTK;

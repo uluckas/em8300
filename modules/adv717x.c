@@ -116,7 +116,7 @@ int adv717x_id = 0;
 static unsigned char PAL_config_7170[27] = {
 	0x05,   // Mode Register 0
 	0x00,   // Mode Register 1 (was: 0x07)
-	0x02,   // Mode Register 2 (was: 0x02)
+	0x02,   // Mode Register 2 (was: 0x48)
 	0x00,   // Mode Register 3
 	0x00,   // Mode Register 4
 	0x00,   // Reserved
@@ -293,7 +293,7 @@ static int adv717x_setmode(int mode, struct i2c_client *client) {
 	pr_debug("adv717x_setmode(%d,%p)\n", mode, client);
 	
 	switch(mode) {
-	case EM8300_VIDEOMODE_PAL:
+	case ENCODER_MODE_PAL:
 		printk(KERN_NOTICE "adv717x.o: Configuring for PAL\n");
 		switch (data->chiptype) {
 		case CHIP_ADV7175A:
@@ -306,7 +306,7 @@ static int adv717x_setmode(int mode, struct i2c_client *client) {
 			break;
 		}
 		break;
-	case EM8300_VIDEOMODE_PAL_M:
+	case ENCODER_MODE_PAL_M:
 		printk(KERN_NOTICE "adv717x.o: Configuring for PALM\n");
 		switch (data->chiptype) {
 		case CHIP_ADV7175A:
@@ -319,7 +319,7 @@ static int adv717x_setmode(int mode, struct i2c_client *client) {
 			break;
 		}
 		break;
-	case EM8300_VIDEOMODE_PAL60:
+	case ENCODER_MODE_PAL60:
 		printk(KERN_NOTICE "adv717x.o: Configuring for PAL 60\n");
 		switch (data->chiptype) {
 		case CHIP_ADV7175A:
@@ -332,7 +332,7 @@ static int adv717x_setmode(int mode, struct i2c_client *client) {
 			break;
 		}
 		break;
-	case EM8300_VIDEOMODE_NTSC:
+	case ENCODER_MODE_NTSC:
 		printk(KERN_NOTICE "adv717x.o: Configuring for NTSC\n");
 	 	switch (data->chiptype) {
 		case CHIP_ADV7175A:
@@ -368,7 +368,7 @@ static int adv717x_setup(struct i2c_client *client)
 	data->rgbmode=0;
 	data->enableoutput=0;
 
-	adv717x_setmode(EM8300_VIDEOMODE_PAL60, client);
+	adv717x_setmode(ENCODER_MODE_PAL60, client);
 	
 	adv717x_update(client);
 	

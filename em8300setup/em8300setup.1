@@ -1,0 +1,49 @@
+.TH EM8300SETUP 1 "Oct. 9, 2003"
+
+.SH NAME
+em8300setup \- program to configure and upload microcode images to
+em8300-based MPEG decoder cards
+
+.SH SYNOPSIS
+\fBem8300setup\fR [\fIoptions\fR]
+
+.SH DESCRIPTION
+
+\fBem8300setup\fR is a program that configures and uploads microcode
+images to em8300-based MPEG decoder cards, such as the Creative Labs
+DXR3 or the Sigma Designs Hollywood+. With no option, this program
+tries to upload a microcode image from the default location
+/usr/share/em8300/em8300.uc, which is not relevant if you extracted
+your own microcodes.
+
+.SH OPTIONS
+.TP
+\fB-p\fR, \fB-p6\fR, \fB-n\fR
+Set video output mode to respectively PAL, PAL60 or NTSC.
+.TP
+\fB-a\fR, \fB-d\fR, \fB-3\fR
+Set audio output mode to respectively analog, digital PCM or digital AC3.
+.TP
+\fB-o\fR, \fB-w\fR
+Set aspect ration to respectively normal (4:3) or wide-screen (16:9).
+.TP
+\fB-S\fR, \fB-s\fR
+Set sub-pictures respectively on or off.
+.TP
+\fB-q\fR
+Query the current settings for all the options above
+and exit with no change.
+.TP
+\fB-f\fR \fIfilename\fR
+Specify a microcode image to upload.
+
+.SH AUTHOR
+
+This manual page was written by Nicolas Boullis <nboullis@debian.org>,
+for the Debian system (but may be used by others). Permission is
+granted to copy, distribute and/or modify this document under
+the terms of the GNU General Public License, version 2 or any
+later version published by the Free Software Foundation.
+
+On Debian systems, the complete text of the GNU General Public
+License can be found in /usr/share/common-licenses/GPL.

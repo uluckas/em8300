@@ -2,6 +2,7 @@ AM_CFLAGS = @GLOBAL_CFLAGS@
 INCLUDES = -I@srcdir@/include -I/usr/local/include
 
 bin_PROGRAMS = em8300setup
+man_MANS = em8300setup.1
 noinst_HEADERS = 
 
 em8300setup_SOURCES = em8300setup.c

@@ -12,11 +12,11 @@ case "$1" in
 	modprobe i2c-algo-bit
 	modprobe adv717x_eeprom
 	echo -n "adv717x_eeprom "
-	modprobe adv717x
+	modprobe adv717x "$PARM_ADV717X"
 	echo -n "adv717x "
 	modprobe bt865
 	echo -n "bt865 "
-	modprobe em8300
+	modprobe em8300 "$PARM_EM8300"
 	echo -n "em8300"
 	echo "."
 	if [ "$BOOTUPLOAD" = "yes" ]; then

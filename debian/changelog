@@ -1,3 +1,13 @@
+em8300 (0.9.0-1) unstable; urgency=high
+
+  * Version 0.9.0 (Super Smash Bros. Melee Release) released
+  
+  * First release to work with mplayer
+
+  * Specify module options in em8300.conf
+  
+ -- Jonas Birme <jonas@birme.se>  Mon, 03 Dec 2001 17:59:35 +0100
+  
 em8300 (0.8.3cvs20011127-3) unstable; urgency=high
 
   * Added a config file and enabled the possibility to upload

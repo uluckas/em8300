@@ -39,16 +39,16 @@ struct private_data_s {
 
 static void em8300_setscl(void *data,int state)
 {
-	struct private_data_s *p = (struct private_data_s *)data;
+	struct private_data_s *p = (struct private_data_s *) data;
 	int sel = p->clk << 8;
 
 	p->em->mem[p->em->i2c_oe_reg] = sel | p->clk;
 	p->em->mem[p->em->i2c_pin_reg] = sel | (state ? p->clk : 0);
 }
 
-static void em8300_setsda(void *data,int state)
+static void em8300_setsda(void *data, int state)
 {
-	struct private_data_s *p = (struct private_data_s *)data;
+	struct private_data_s *p = (struct private_data_s *) data;
 	struct em8300_s *em = p->em;
 	int sel = p->data << 8;
 
@@ -206,7 +206,7 @@ int em8300_i2c_init(struct em8300_s *em)
 	em->i2c_data_2.udelay = 10;
 	em->i2c_data_2.timeout = 100;
 
-	pdata = kmalloc(sizeof(struct private_data_s),GFP_KERNEL);
+	pdata = kmalloc(sizeof(struct private_data_s), GFP_KERNEL);
 	pdata->clk = 0x4;
 	pdata->data = 0x8;
 	pdata->em = em;
@@ -236,13 +236,14 @@ void em8300_i2c_exit(struct em8300_s *em)
 	i2c_bit_del_bus(&em->i2c_ops_2);
 }
 
-void em8300_clockgen_write(struct em8300_s *em, int abyte) {
+void em8300_clockgen_write(struct em8300_s *em, int abyte)
+{
 	int i;
 
 	em->mem[em->i2c_pin_reg] = 0x808;
 	for (i=0; i < 8; i++) {
 		em->mem[em->i2c_pin_reg] = 0x2000;
-		em->mem[em->i2c_pin_reg] = 0x800 | ((abyte & 1) ? 8:0);
+		em->mem[em->i2c_pin_reg] = 0x800 | ((abyte & 1) ? 8 : 0);
 		em->mem[em->i2c_pin_reg] = 0x2020;
 		abyte >>= 1;
 	}
@@ -275,8 +276,8 @@ static void I2C_drivedata(struct em8300_s *em, int level)
 static void I2C_out(struct em8300_s *em, int data, int bits)
 {
 	int i;
-	for (i = bits-1; i >= 0; i--) {
-		I2C_data(em, data & (1<<i));
+	for (i = bits - 1; i >= 0; i--) {
+		I2C_data(em, data & (1 << i));
 		I2C_clk(em, 1);
 		I2C_clk(em, 0);
 	}
@@ -284,9 +285,9 @@ static void I2C_out(struct em8300_s *em, int data, int bits)
 
 static int I2C_in(struct em8300_s *em, int bits)
 {
-	int i,data=0;
+	int i, data = 0;
 	
-	for(i = bits-1; i >= 0; i--) {
+	for(i = bits - 1; i >= 0; i--) {
 		data |= I2C_read_data << i;
 		I2C_clk(em, 0);
 		I2C_clk(em, 1);
@@ -323,7 +324,8 @@ void em9010_write(struct em8300_s *em, int reg, int data)
 	sub_23660(em, data, 1);
 }
 
-int em9010_read(struct em8300_s *em, int reg) {
+int em9010_read(struct em8300_s *em, int reg)
+{
 	int val;
 
 	sub_236f0(em, reg, 0, 0);

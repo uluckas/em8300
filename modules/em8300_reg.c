@@ -112,4 +112,3 @@ char *ucodereg_names[] = {
 	"Mute_Patternrityhtm",
 	NULL
 };
-

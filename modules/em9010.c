@@ -47,9 +47,9 @@ static int testcable(struct em8300_s *em)
 /* loc_2abac */
 int em9010_cabledetect(struct em8300_s *em)
 {
-	em9010_write(em,0xb, 0xc8);
-	em9010_write(em,0x9, 0x4);
-	em9010_write(em,0xd, 0x44);
+	em9010_write(em, 0xb, 0xc8);
+	em9010_write(em, 0x9, 0x4);
+	em9010_write(em, 0xd, 0x44);
 
 	if (testcable(em)) {
 		return 1;
@@ -89,33 +89,33 @@ static
 int sub_2AC2D(struct em8300_s *em)
 {
 	int a;
-	struct timeval t,t2,tr;
+	struct timeval t, t2, tr;
 
-	do_gettimeofday(&t);	
-	a=1000;
+	do_gettimeofday(&t);
+	a = 1000;
 	while (em9010_read(em, 0x0) & 0x20) {
 		if (!a--) {
 			do_gettimeofday(&t2);
 			my_timeval_less(t2, t, &tr);
-			if (tr.tv_usec >= 50*1000)
+			if (tr.tv_usec >= 50 * 1000)
 			return(0);
-			a=1000;
+			a = 1000;
 		}
 	}
 
 	do_gettimeofday(&t);	
-	a=1000;
-	while (!(em9010_read(em,0x0) & 0x20)) {
+	a = 1000;
+	while (!(em9010_read(em, 0x0) & 0x20)) {
 		if (!a--) {
 			do_gettimeofday(&t2);
 			my_timeval_less(t2, t, &tr);
 			if(tr.tv_usec >= 50*1000)
 			return(0);
-			a=1000;
+			a = 1000;
 		}
 	}
 
-	return(1);	
+	return(1);
 }
 
 
@@ -158,11 +158,11 @@ void sub_4288c(struct em8300_s *em, int pa, int pb, int pc, int pd, int pe, int 
 			pbv = pb;
 			pdv = pd;
 		}  
-		if (pav+pcv>em->overlay_xres) {
-			pcv=em->overlay_xres-pav;
+		if (pav + pcv>em->overlay_xres) {
+			pcv=em->overlay_xres - pav;
 		}
 		if (pb+pd > em->overlay_yres) {
-		  pdv=em->overlay_yres-pb;
+		  pdv=em->overlay_yres - pb;
 		}
   
 		pa = (pa * 1000) / pg;
@@ -183,17 +183,17 @@ void sub_4288c(struct em8300_s *em, int pa, int pb, int pc, int pd, int pe, int 
 		  }  
 		}
 		    
-		write_ucregister(DICOM_VisibleLeft, pe+pav);
-		write_ucregister(DICOM_VisibleRight, pe+pav+pcv-1);
-		write_ucregister(DICOM_VisibleTop, pf+pbv);
-		write_ucregister(DICOM_VisibleBottom, pf+pbv+pdv-1);
+		write_ucregister(DICOM_VisibleLeft, pe + pav);
+		write_ucregister(DICOM_VisibleRight, pe + pav + pcv - 1);
+		write_ucregister(DICOM_VisibleTop, pf + pbv);
+		write_ucregister(DICOM_VisibleBottom, pf + pbv + pdv - 1);
 
-		write_ucregister(DICOM_FrameLeft, pe+pa);
-		write_ucregister(DICOM_FrameRight, pe+pa+pc-1);
-		write_ucregister(DICOM_FrameTop, pf+pb);
-		write_ucregister(DICOM_FrameBottom, pf+pb+pd-1);
+		write_ucregister(DICOM_FrameLeft, pe + pa);
+		write_ucregister(DICOM_FrameRight, pe + pa + pc - 1);
+		write_ucregister(DICOM_FrameTop, pf + pb);
+		write_ucregister(DICOM_FrameBottom, pf + pb + pd - 1);
 
-		write_ucregister(DICOM_UpdateFlag,1);
+		write_ucregister(DICOM_UpdateFlag, 1);
 	}
 }
 
@@ -202,7 +202,7 @@ static int loc_2BE50(struct em8300_s *em)
 	em9010_write(em, 0xb, 0xc8);
 	sub_2AC2D(em);
 	sub_2AC2D(em);
-	if (read_register(0x1f4b) < (2*em->overlay_yres / 3)) {
+	if (read_register(0x1f4b) < (2 * em->overlay_yres / 3)) {
 		return 1;
 	} else {
 		return 0;
@@ -238,7 +238,8 @@ int em9010_calibrate_yoffset(struct em8300_s *em)
 		em8300_dicom_fill_dispbuffers(em, 0, 0, em->dbuf_info.xsize, 2, 0xffffffff, 0x80808080 );
 	}
 
-	sub_4288c(em, 0, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET], em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
+	sub_4288c(em, 0, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET],
+			em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
 
 	pr_debug("em9010: Done drawing y testpattern\n");
 
@@ -251,13 +252,14 @@ int em9010_calibrate_yoffset(struct em8300_s *em)
 	em9010_write(em, 0, 0x14);
 	em9010_write(em, 0, 0x10);
 
-	for (i=0; i < 60; i++) {
+	for (i = 0; i < 60; i++) {
 		if (!sub_2AC2D(em)) {
 			pr_debug("em9010: sub_2AC2D failed\n");
 			return 0;
 		}
-		if (! (em9010_read(em,0) & 4)) {
-			sub_4288c(em, 0, i, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET], em->overlay_a[EM9010_ATTRIBUTE_YOFFSET],	em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
+		if (!(em9010_read(em,0) & 4)) {
+			sub_4288c(em, 0, i, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET],
+					em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
     			if (!sub_2AC2D(em)) {
 			    return 0;
 			}
@@ -270,7 +272,7 @@ int em9010_calibrate_yoffset(struct em8300_s *em)
 		return 0;
 	}
 	
-	em->overlay_a[EM9010_ATTRIBUTE_YOFFSET] = em->overlay_a[EM9010_ATTRIBUTE_YOFFSET]+i-2;
+	em->overlay_a[EM9010_ATTRIBUTE_YOFFSET] = em->overlay_a[EM9010_ATTRIBUTE_YOFFSET] + i - 2;
 
 	if (em->overlay_double_y) {
 		em->overlay_a[EM9010_ATTRIBUTE_YOFFSET] >>= 1;
@@ -299,7 +301,8 @@ int em9010_calibrate_xoffset(struct em8300_s *em)
 	em->overlay_a[EM9010_ATTRIBUTE_XCORR] = 1000;
 	em->overlay_a[EM9010_ATTRIBUTE_XOFFSET] = 100000 / em->overlay_a[EM9010_ATTRIBUTE_XCORR];
 
-	sub_4288c(em, 0, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET], em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
+	sub_4288c(em, 0, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET],
+			em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
 	
 	pr_debug("em9010: Done drawing x testpattern\n");
 
@@ -312,13 +315,14 @@ int em9010_calibrate_xoffset(struct em8300_s *em)
 	em9010_write(em, 0, 0x14);
 	em9010_write(em, 0, 0x10);
 
-	for (i=0; i <  220; i++) {
+	for (i = 0; i <  220; i++) {
 		if (!sub_2AC2D(em)) {
 			pr_debug("em9010: sub_2AC2D failed\n");
 			return 0;
 		}
-		if (! (em9010_read(em,0) & 4)) {
-			sub_4288c(em, i, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET], em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
+		if (!(em9010_read(em,0) & 4)) {
+			sub_4288c(em, i, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET],
+					em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
     			if (!sub_2AC2D(em)) {
 			    return 0;
 			}
@@ -331,7 +335,7 @@ int em9010_calibrate_xoffset(struct em8300_s *em)
 		return 0;
 	}
 	
-	em->overlay_a[EM9010_ATTRIBUTE_XOFFSET] = em->overlay_a[EM9010_ATTRIBUTE_XOFFSET]+i;
+	em->overlay_a[EM9010_ATTRIBUTE_XOFFSET] = em->overlay_a[EM9010_ATTRIBUTE_XOFFSET] + i;
 
 	pr_debug("em9010: Sucessfully calibrated xoffset (%d)\n", em->overlay_a[EM9010_ATTRIBUTE_XOFFSET]);
 	
@@ -355,7 +359,7 @@ static int color_cal(struct em8300_s *em,int ul, int a, int b, int c,int d, int 
 		em9010_write(em, 0, 0x17);
 		em9010_write(em, 0, 0x10);
 	
-		for (i=d; i > 0; i--) {
+		for (i = d; i > 0; i--) {
 			em9010_write16(em, a, i << 8);
 			if (em9010_read(em, 0) & (a >> 3)) {
 				break;
@@ -373,7 +377,7 @@ static int color_cal(struct em8300_s *em,int ul, int a, int b, int c,int d, int 
 		em9010_write(em, 0, 0x17);
 		em9010_write(em, 0, 0x10);
 	
-		for (i=0; i < d; i++) {
+		for (i = 0; i < d; i++) {
 			em9010_write16(em, a, i);
 			if (em9010_read(em, 0) & (a >> 3)) {
 				break;
@@ -392,7 +396,7 @@ static int color_cal(struct em8300_s *em,int ul, int a, int b, int c,int d, int 
 
 int em9010_calibrate_xcorrection(struct em8300_s *em)
 {
-	int i,j;
+	int i, j;
 
 	em9010_write(em, 0xb, 0x14);
 
@@ -407,7 +411,8 @@ int em9010_calibrate_xcorrection(struct em8300_s *em)
 
 	em->overlay_a[EM9010_ATTRIBUTE_XCORR] = em->overlay_xcorr_default;
 
-	sub_4288c(em, 0, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET], em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
+	sub_4288c(em, 0, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET],
+			em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
 	
 	pr_debug("em9010: Done drawing xcorr testpattern\n");
 
@@ -420,18 +425,19 @@ int em9010_calibrate_xcorrection(struct em8300_s *em)
 	em9010_write(em, 0, 0x14);
 	em9010_write(em, 0, 0x10);
 
-	j=1;
+	j = 1;
 	if (em->overlay_xcorr_default > 1200) {
-		j=2;
+		j = 2;
 	}
 	
-	for (i=-100; i < 150; i++) {
+	for (i = -100; i < 150; i++) {
 		if (!sub_2AC2D(em)) {
 			return 0;
 		}
-		if (! (em9010_read(em, 0) & 4)) {
-			em->overlay_a[EM9010_ATTRIBUTE_XCORR] = i*j+em->overlay_xcorr_default;
-			sub_4288c(em, 0, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET], em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
+		if (!(em9010_read(em, 0) & 4)) {
+			em->overlay_a[EM9010_ATTRIBUTE_XCORR] = i * j + em->overlay_xcorr_default;
+			sub_4288c(em, 0, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET],
+					em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
     			if (!sub_2AC2D(em)) {
 			    return 0;
 			}
@@ -442,11 +448,12 @@ int em9010_calibrate_xcorrection(struct em8300_s *em)
 	}
 
 	if (em->overlay_xcorr_default > 1500) {
-		em->overlay_a[EM9010_ATTRIBUTE_XCORR]+=2;
+		em->overlay_a[EM9010_ATTRIBUTE_XCORR] += 2;
 	} else {
-		em->overlay_a[EM9010_ATTRIBUTE_XCORR]-=2;		
+		em->overlay_a[EM9010_ATTRIBUTE_XCORR] -= 2;		
 	}
-	sub_4288c(em, 0, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET], em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
+	sub_4288c(em, 0, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET],
+			em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
 
 	pr_debug("em9010: Sucessfully calibrated x correction (%d)\n", em->overlay_a[EM9010_ATTRIBUTE_XCORR]);
 	
@@ -472,7 +479,7 @@ int loc_2bcfe(struct em8300_s *em)
 	l3 = em9010_read(em, 1);
 	
 	while (--l1 != 0) {
-		l4 = em9010_read(em,1);
+		l4 = em9010_read(em, 1);
 		if ((l4 & 0xff) == (l3 & 0xff)) {
 			continue;
 		}
@@ -487,9 +494,9 @@ int loc_2bcfe(struct em8300_s *em)
 	}
 
 	l6 = (l3 << 8) + l2;
-	l7 = 165000/(l6+2);
+	l7 = 165000 / (l6 + 2);
 	
-	if ((l7 > em->overlay_dword_24bb8+1) || (l7 < em->overlay_dword_24bb8-1)) {
+	if ((l7 > em->overlay_dword_24bb8 + 1) || (l7 < em->overlay_dword_24bb8 - 1)) {
 		em->overlay_dword_24bb8 = l7;
 	} else {
 		l7 = em->overlay_dword_24bb8;
@@ -501,7 +508,7 @@ int loc_2bcfe(struct em8300_s *em)
 		}
 	}
 	
-	pr_debug("em9010: loc_2bcfe -> %d\n",l7);
+	pr_debug("em9010: loc_2bcfe -> %d\n", l7);
 	return l7;
 }
 /*
@@ -523,7 +530,7 @@ int loc_2bcfe(struct em8300_s *em)
  */
 int loc_2A66E(struct em8300_s *em)
 {
-	int l1,l2,l3,l4,l5,l6=0,l7,l8,l9,l10,l11,l12,l13;
+	int l1, l2, l3, l4, l5, l6 = 0, l7, l8, l9, l10, l11, l12, l13;
 
 	l1 = 70000;
 	l2 = 0;
@@ -561,21 +568,21 @@ int loc_2A66E(struct em8300_s *em)
 
 	pr_debug("l6 * l7 * (1 << l2)=%d, l1=%d\n", l6 * l7 * (1 << l2), l1);
 	if (l6 * l7 * (1 << l2) >= l1) {
-		l4 = l6*l7 * (1 << l2) * 1000 / l1;
+		l4 = l6 * l7 * (1 << l2) * 1000 / l1;
 		l8 = l1 / (l7*(1 << l2)) ;
-		l9 = l1 / (1<<l2);
+		l9 = l1 / (1 << l2);
 	} else {
-		l4=1000;
-		l8=l6;
-		l9=l8*l7;
+		l4 = 1000;
+		l8 = l6;
+		l9 = l8 * l7;
 	}
 	em->overlay_xcorr_default = l4;
 	if ((em->overlay_xcorr_default < 0x352) || (em->overlay_xcorr_default > 0xdac)) {
 		em->overlay_xcorr_default = 0x5dc;
 	}
 
-	if (l9 * (1<<l2) > 0x7530) {
-		l3 = l8*(1<<l2)-2;
+	if (l9 * (1 << l2) > 0x7530) {
+		l3 = l8 * (1 << l2) - 2;
 		if (l3 > 0xfff) {
 			l10 = 0xfff;
 		} else {
@@ -586,7 +593,7 @@ int loc_2A66E(struct em8300_s *em)
 		l12 = l3;
 	} else {
 		l2++;
-		l3 = l8*(1<<l2)-2;
+		l3 = l8 * (1 << l2) - 2;
 		if (l3 > 0xfff) {
 			l13 = 0xfff;
 		} else {
@@ -702,13 +709,13 @@ int em9010_init(struct em8300_s *em)
 {
 	em->overlay_dword_24bb8 = 2000;
 	em9010_overlay_set_res(em, 1280, 1024);
-	em->overlay_frame_xpos=0;
-	em->overlay_frame_ypos=0;
-	em->overlay_frame_width=720;
-	em->overlay_frame_height=480;
-	em->overlay_a[EM9010_ATTRIBUTE_YOFFSET]=43;
-	em->overlay_a[EM9010_ATTRIBUTE_XOFFSET]=225;
-	em->overlay_gamma_enable=4;
+	em->overlay_frame_xpos = 0;
+	em->overlay_frame_ypos = 0;
+	em->overlay_frame_width = 720;
+	em->overlay_frame_height = 480;
+	em->overlay_a[EM9010_ATTRIBUTE_YOFFSET] = 43;
+	em->overlay_a[EM9010_ATTRIBUTE_XOFFSET] = 225;
+	em->overlay_gamma_enable = 4;
 
 	return 1;
 }
@@ -796,7 +803,7 @@ int em8300_ioctl_overlay_calibrate(struct em8300_s *em, em8300_overlay_calibrate
 	}
 
 	if (1) {
-		em9010_write (em, 0xc, 0xe);
+		em9010_write(em, 0xc, 0xe);
 	}
 	return 1;
 }

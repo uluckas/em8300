@@ -70,22 +70,22 @@ void sub_prepare_SPDIF(struct em8300_s *em, unsigned char *outblock, unsigned ch
 		in += 2;
 
 		if (em->dword_DB4 != 0) {
-			outblock[i*8+3] = 2;
+			outblock[i * 8 + 3] = 2;
 		} else {
-			outblock[i*8+3] = 0;
+			outblock[i * 8 + 3] = 0;
 		}
 
-		outblock[i*8+2] = local2 << 4;
-		outblock[i*8+1] = local2 >> 4;
-		outblock[i*8] = local2 >> 12 | local4;
+		outblock[i * 8 + 2] = local2 << 4;
+		outblock[i * 8 + 1] = local2 >> 4;
+		outblock[i * 8] = local2 >> 12 | local4;
 
        		local2 = in[0] << 8 | in[1];
 		in += 2;
 
-		outblock[i*8+7] = 1;
-		outblock[i*8+6] = local2 << 4;
-		outblock[i*8+5] = local2 >> 4;
-		outblock[i*8+4] = local2 >> 12 | local4;
+		outblock[i * 8 + 7] = 1;
+		outblock[i * 8 + 6] = local2 << 4;
+		outblock[i * 8 + 5] = local2 >> 4;
+		outblock[i * 8 + 4] = local2 >> 12 | local4;
 
 		++em->dword_DB4;
 	}
@@ -104,24 +104,24 @@ static void preprocess_analog(struct em8300_s *em, unsigned char *outbuf, const 
 	    em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3) {
 #endif
 		if (em->audio.channels == 2) {
-			for (i=0; i < inlength; i+=4) {
-				get_user(outbuf[i+3], inbuf_user++);
-				get_user(outbuf[i+2], inbuf_user++);
-				get_user(outbuf[i+1], inbuf_user++);
+			for (i = 0; i < inlength; i += 4) {
+				get_user(outbuf[i + 3], inbuf_user++);
+				get_user(outbuf[i + 2], inbuf_user++);
+				get_user(outbuf[i + 1], inbuf_user++);
 				get_user(outbuf[i], inbuf_user++);
 			}
 		} else {
-			for (i=0; i < inlength; i+=2) {
-				get_user(outbuf[2*i+1], inbuf_user++);
-				get_user(outbuf[2*i], inbuf_user++);
-				outbuf[2*i+3] = outbuf[2*i+1];
-				outbuf[2*i+2] = outbuf[2*i];
+			for (i = 0; i < inlength; i += 2) {
+				get_user(outbuf[2 * i + 1], inbuf_user++);
+				get_user(outbuf[2 * i], inbuf_user++);
+				outbuf[2 * i + 3] = outbuf[2 * i + 1];
+				outbuf[2 * i + 2] = outbuf[2 * i];
 			}
 		}
 	} else {
-		for (i=0; i<inlength/2; i++) {
-			outbuf[2*i] = inbuf_user[i];
-			outbuf[2*i+1] = inbuf_user[i];
+		for (i = 0; i < inlength / 2; i++) {
+			outbuf[2 * i] = inbuf_user[i];
+			outbuf[2 * i + 1] = inbuf_user[i];
 		}	
 	}
 }
@@ -140,8 +140,8 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
         if (em->audio.format == AFMT_S16_LE ||
 	    em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3) {
 #endif
-		for(i=0; i < inlength; i+=2) {
-			get_user(em->mafifo->preprocess_buffer[i+1], inbuf_user++);
+		for(i = 0; i < inlength; i += 2) {
+			get_user(em->mafifo->preprocess_buffer[i + 1], inbuf_user++);
 			get_user(em->mafifo->preprocess_buffer[i], inbuf_user++);
 		}
 	} else {
@@ -164,10 +164,10 @@ static void setup_mafifo(struct em8300_s *em)
 
 int mpegaudio_command(struct em8300_s *em, int cmd)
 {
-	em8300_waitfor(em,ucregister(MA_Command), 0xffff, 0xffff);
+	em8300_waitfor(em, ucregister(MA_Command), 0xffff, 0xffff);
 
-	pr_debug("MA_Command: %d\n",cmd);
-	write_ucregister(MA_Command,cmd);
+	pr_debug("MA_Command: %d\n", cmd);
+	write_ucregister(MA_Command, cmd);
 
 	return em8300_waitfor(em, ucregister(MA_Status), cmd, 0xffff);
 }
@@ -192,7 +192,7 @@ static int set_speed(struct em8300_s *em, int speed)
 {
 	em->clockgen &= ~CLOCKGEN_SAMPFREQ_MASK;
 
-	switch(speed) {
+	switch (speed) {
 	case 48000:
 		em->clockgen |= CLOCKGEN_SAMPFREQ_48;
 		speed = 48000;
@@ -272,18 +272,18 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 			return -EFAULT;
 		}
 		if (_SIOC_DIR(cmd) & _SIOC_WRITE) {
-			if ((err = verify_area(VERIFY_READ, (void *)arg, len)) < 0) {
+			if ((err = verify_area(VERIFY_READ, (void *) arg, len)) < 0) {
 				return err;
 			}
 		}
 		if (_SIOC_DIR(cmd) & _SIOC_READ) {
-			if ((err = verify_area(VERIFY_WRITE, (void *)arg, len)) < 0) {
+			if ((err = verify_area(VERIFY_WRITE, (void *) arg, len)) < 0) {
 				return err;
 			}
 		}
 	}
 
-	switch(cmd) { 
+	switch (cmd) { 
 	case SNDCTL_DSP_RESET: /* reset device */
 		pr_debug("em8300_audio.o: SNDCTL_DSP_RESET\n");
 		em8300_fifo_sync(em->mafifo);
@@ -298,7 +298,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		break;
 
 	case SNDCTL_DSP_SPEED: /* set sample rate */
-		if (get_user(val, (int *)arg)) {
+		if (get_user(val, (int *) arg)) {
 			return -EFAULT;
 		}
 		pr_debug("em8300_audio.o: SNDCTL_DSP_SPEED %i ", val);
@@ -313,7 +313,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		break;
 
 	case SNDCTL_DSP_STEREO: /* set stereo or mono mode */
-		if (get_user(val, (int *)arg)) {
+		if (get_user(val, (int *) arg)) {
 			return -EFAULT;
 		}
 		if (val > 1 || val < 0) {
@@ -329,7 +329,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		break;
 
 	case SNDCTL_DSP_CHANNELS: /* set number of channels */
-		if (get_user(val, (int *)arg)) {
+		if (get_user(val, (int *) arg)) {
 			return -EFAULT;
 		}
 		if (val > 2 || val < 1) {
@@ -366,7 +366,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		break;
 
 	case SNDCTL_DSP_SETFMT: /* set sample format */
-		if (get_user(val, (int *)arg)) {
+		if (get_user(val, (int *) arg)) {
 			return -EFAULT;
 		}
 		pr_debug("em8300_audio.o: SNDCTL_DSP_SETFMT %i ", val);
@@ -386,20 +386,20 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		{
 			case EM8300_AUDIOMODE_ANALOG:
 				buf_info.fragments=
-					em8300_fifo_freeslots(em->mafifo)-
-					em->mafifo->nslots/2;
+					em8300_fifo_freeslots(em->mafifo) -
+					em->mafifo->nslots / 2;
 				break;
 			default:
 				buf_info.fragments=
-					em8300_fifo_freeslots(em->mafifo)/2;
+					em8300_fifo_freeslots(em->mafifo) / 2;
 				break;
 		}
-		buf_info.fragments = (buf_info.fragments>0)?buf_info.fragments:0;
-		buf_info.fragstotal = em->mafifo->nslots/2;
+		buf_info.fragments = (buf_info.fragments > 0) ? buf_info.fragments : 0;
+		buf_info.fragstotal = em->mafifo->nslots / 2;
 		buf_info.fragsize = em->audio.slotsize;
-		buf_info.bytes = em->mafifo->nslots*em->audio.slotsize/2;
+		buf_info.bytes = em->mafifo->nslots * em->audio.slotsize / 2;
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETOSPACE\n");
-		return copy_to_user((void *)arg, &buf_info, sizeof(audio_buf_info));
+		return copy_to_user((void *) arg, &buf_info, sizeof(audio_buf_info));
 	}
 	
 	case SNDCTL_DSP_GETISPACE:
@@ -441,7 +441,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		ci.blocks = 0;
 		ci.ptr = 0;
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETOPTR %i\n", ci.bytes);
-		return copy_to_user((void *)arg, &ci, sizeof(count_info));
+		return copy_to_user((void *) arg, &ci, sizeof(count_info));
 	}
 	case SNDCTL_DSP_GETODELAY:
 		val = em8300_audio_calcbuffered(em);
@@ -453,7 +453,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		return -EINVAL;
 	}
 
-	return put_user(val, (int *)arg);
+	return put_user(val, (int *) arg);
 }
 
 int em8300_audio_flush(struct em8300_s *em)
@@ -507,7 +507,7 @@ static int set_audiomode(struct em8300_s *em, int mode)
 	memset(mutepattern_src, 0, sizeof(mutepattern_src));
 	memset(em->byte_D90, 0, sizeof(em->byte_D90));
 
-	em->byte_D90[1]=0x98;
+	em->byte_D90[1] = 0x98;
 
 	switch (em->audio.speed) {
 	case 32000:
@@ -526,7 +526,7 @@ static int set_audiomode(struct em8300_s *em, int mode)
 		em->pcm_mode = EM8300_AUDIOMODE_ANALOG;
 
 		write_register(EM8300_AUDIO_RATE, 0x62);
-		em8300_setregblock(em, 2*ucregister(Mute_Pattern), 0, 0x600);
+		em8300_setregblock(em, 2 * ucregister(Mute_Pattern), 0, 0x600);
 		printk(KERN_NOTICE "em8300_audio.o: Analog audio enabled\n");
 		break;
 	case EM8300_AUDIOMODE_DIGITALPCM:
@@ -534,19 +534,19 @@ static int set_audiomode(struct em8300_s *em, int mode)
 
 		write_register(EM8300_AUDIO_RATE, 0x3a0);
 
-		em->byte_D90[0]=0x0;
+		em->byte_D90[0] = 0x0;
 		sub_prepare_SPDIF(em, mutepattern, mutepattern_src, 0x300);
 	
-		em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)mutepattern, 0x600);
+		em8300_writeregblock(em, 2 * ucregister(Mute_Pattern), (unsigned *) mutepattern, 0x600);
 		printk(KERN_NOTICE "em8300_audio.o: Digital PCM audio enabled\n");
 		break;
 	case EM8300_AUDIOMODE_DIGITALAC3:
 		write_register(EM8300_AUDIO_RATE, 0x3a0);
 
-		em->byte_D90[0]=0x40;
+		em->byte_D90[0] = 0x40;
 		sub_prepare_SPDIF(em, mutepattern, mutepattern_src, 0x300);
 
-		em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)mutepattern, 0x600);
+		em8300_writeregblock(em, 2 * ucregister(Mute_Pattern), (unsigned *) mutepattern, 0x600);
 		printk(KERN_NOTICE "em8300_audio.o: Digital AC3 audio enabled\n");
 		break;
 	}
@@ -596,13 +596,13 @@ int em8300_audio_calcbuffered(struct em8300_s *em)
 
 	n = ((bufsize+writeptr-readptr) % bufsize);
 
-	return em8300_fifo_calcbuffered(em->mafifo)/
+	return em8300_fifo_calcbuffered(em->mafifo) /
 		em->mafifo->preprocess_ratio + n;
 }
 
 int em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
 {
-	return em8300_fifo_writeblocking(em->mafifo, count, buf,0);
+	return em8300_fifo_writeblocking(em->mafifo, count, buf, 0);
 }
 
 /* 18-09-2000 - Ze'ev Maor - added these two ioctls to set and get audio mode. */
@@ -619,7 +619,7 @@ int em8300_ioctl_setaudiomode(struct em8300_s *em, int mode)
 
 int em8300_ioctl_getaudiomode(struct em8300_s *em, int mode)
 {
-	int a=em->audio_mode;
-	copy_to_user((void *)mode, &a, sizeof(int));
+	int a = em->audio_mode;
+	copy_to_user((void *) mode, &a, sizeof(int));
 	return 0;
 }

@@ -47,26 +47,30 @@
 #include <linux/em8300.h>
 
 #include "adv717x.h"
-
 #include "encoder.h"
 
 #ifdef MODULE
-int pixelport_16bit = 1;
+MODULE_SUPPORTED_DEVICE("adv717x");
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
 MODULE_LICENSE("GPL");
 #endif
 
+int pixelport_16bit = 1;
 MODULE_PARM(pixelport_16bit, "i");
+MODULE_PARM_DESC(pixelport_16bit, "Changes how the ADV717x expects its input data to be formatted. If the colours on the TV appear green, try changing this. Defaults to 1.");
 
 int pixelport_other_pal = 1;
 MODULE_PARM(pixelport_other_pal, "i");
+MODULE_PARM_DESC(pixelport_other_pal, "If this is set to 1, then the pixelport setting is swapped for PAL from the setting given with pixelport_16bit. Defaults to 1.");
 
 int swap_redblue_pal = 0;
 MODULE_PARM(swap_redblue_pal, "i");
+MODULE_PARM_DESC(swap_redblue_pal, "If your red and blue colours are swapped, set this to 1. Defaults to 0.");
 
 static int color_bars = 0;
 MODULE_PARM(color_bars, "i");
+MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be displayed on your screen (used for testing if the chip is working). Defaults to 0.");
 #endif
 
 #define i2c_is_isa_client(clientptr) \
@@ -252,11 +256,11 @@ static int adv717x_update(struct i2c_client *client)
 {
 	struct adv717x_data_s *data = client->data ;
 	char tmpconfig[32];
-	int n,i;
+	int n, i;
 
 	memcpy(tmpconfig, data->config, data->configlen);
 
-	tmpconfig[1] |= data->bars ? 0x80:0;
+	tmpconfig[1] |= data->bars ? 0x80 : 0;
 
 	switch(data->chiptype) {
 	case CHIP_ADV7175A:
@@ -276,23 +280,23 @@ static int adv717x_update(struct i2c_client *client)
 	}
 	
 	for(i=0; i < data->configlen; i++) {
-		n=i2c_smbus_write_byte_data(client,i,tmpconfig[i]);
+		n = i2c_smbus_write_byte_data(client, i, tmpconfig[i]);
 	}
 
-	i2c_smbus_write_byte_data(client,7, tmpconfig[7] & 0x7f);
-	i2c_smbus_write_byte_data(client,7, tmpconfig[7] | 0x80);
-	i2c_smbus_write_byte_data(client,7, tmpconfig[7] & 0x7f);
+	i2c_smbus_write_byte_data(client, 7, tmpconfig[7] & 0x7f);
+	i2c_smbus_write_byte_data(client, 7, tmpconfig[7] | 0x80);
+	i2c_smbus_write_byte_data(client, 7, tmpconfig[7] & 0x7f);
 
 	return 0;
 }
 
 static int adv717x_setmode(int mode, struct i2c_client *client) {
 	struct adv717x_data_s *data = client->data ;
-	unsigned char *config=NULL;
+	unsigned char *config = NULL;
 
 	pr_debug("adv717x_setmode(%d,%p)\n", mode, client);
 	
-	switch(mode) {
+	switch (mode) {
 	case ENCODER_MODE_PAL:
 		printk(KERN_NOTICE "adv717x.o: Configuring for PAL\n");
 		switch (data->chiptype) {
@@ -364,9 +368,9 @@ static int adv717x_setup(struct i2c_client *client)
 	
 	memset(data->config, 0, sizeof(data->config));
 
-	data->bars=0;
-	data->rgbmode=0;
-	data->enableoutput=0;
+	data->bars = 0;
+	data->rgbmode = 0;
+	data->enableoutput = 0;
 
 	adv717x_setmode(ENCODER_MODE_PAL60, client);
 	
@@ -379,7 +383,7 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 {
 	struct adv717x_data_s *data;
 	struct i2c_client *new_client;
-	int mr0,mr1;
+	int mr0, mr1;
 	int err;
 
 	if (i2c_is_isa_adapter(adapter)) {
@@ -387,7 +391,7 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 		return 0;
 	}
 
-	if (!i2c_check_functionality(adapter,I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA)) {
+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA)) {
 		return 0;
 	}
 
@@ -404,11 +408,11 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 	new_client->driver = &adv717x_driver;
 	new_client->flags = 0;
 
-	i2c_smbus_write_byte_data(new_client, ADV7175_REG_MR1,0x55);
+	i2c_smbus_write_byte_data(new_client, ADV7175_REG_MR1, 0x55);
 	mr1=i2c_smbus_read_byte_data(new_client, ADV7175_REG_MR1);
 	 
 	if (mr1 == 0x55) {
-		mr0=i2c_smbus_read_byte_data(new_client, ADV7175_REG_MR0);
+		mr0 = i2c_smbus_read_byte_data(new_client, ADV7175_REG_MR0);
 
 		if (mr0 & 0x20) {
 			strcpy(new_client->name, "ADV7175A chip");
@@ -438,9 +442,9 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 
 static int adv717x_attach_adapter(struct i2c_adapter *adapter)
 {
-	adv717x_detect(adapter,0x6a);
-	adv717x_detect(adapter,0x7a);
-	adv717x_detect(adapter,0xa);
+	adv717x_detect(adapter, 0x6a);
+	adv717x_detect(adapter, 0x7a);
+	adv717x_detect(adapter, 0xa);
 	return 0;
 }
 
@@ -463,13 +467,13 @@ int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
 {
 	struct adv717x_data_s *data = client->data;
 
-	switch(cmd) {
+	switch (cmd) {
 	case ENCODER_CMD_SETMODE:
-		adv717x_setmode((int)arg, client);
+		adv717x_setmode((int) arg, client);
 		adv717x_update(client);
 		break;
 	case ENCODER_CMD_ENABLEOUTPUT:
-		data->enableoutput = (int)arg;
+		data->enableoutput = (int) arg;
 		adv717x_update(client);
 		break;
 	default:
@@ -497,11 +501,7 @@ void adv717x_dec_use (struct i2c_client *client)
 /* ----------------------------------------------------------------------- */
 
 
-#ifdef MODULE
-int init_module(void)
-#else
-int adv717x_init(void)
-#endif
+int __init adv717x_init(void)
 {
 	int pp_ntsc;
 	int pp_pal;
@@ -526,7 +526,7 @@ int adv717x_init(void)
 		rb_pal = 0x70;
 	}
 
-	if( color_bars ) {
+	if (color_bars) {
 		bars = 0x80;
 	} else {
 		bars = 0x00;
@@ -557,13 +557,11 @@ int adv717x_init(void)
 	return i2c_add_driver(&adv717x_driver);
 }
 
-
-
-#ifdef MODULE
-
-void cleanup_module(void)
+void __exit adv717x_cleanup(void)
 {
 	i2c_del_driver(&adv717x_driver);
 }
 
-#endif
+module_init(adv717x_init);
+module_exit(adv717x_cleanup);
+

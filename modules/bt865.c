@@ -45,12 +45,14 @@
 #include <linux/video_encoder.h>
 
 #include "bt865.h"
-
 #include "encoder.h"
 
 #ifdef MODULE
+MODULE_SUPPORTED_DEVICE("bt865");
+
 static int color_bars = 0;
 MODULE_PARM(color_bars, "i");
+MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be displayed on your screen (used for testing if the chip is working). Defaults to 0.");
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
 MODULE_LICENSE("GPL");
@@ -745,72 +747,73 @@ static unsigned char PALNC_CONFIG_BT865[ 48 ] = {
 	0x00,	// RSRVD[7:0]
 };
 
-static int bt865_update( struct i2c_client * client )
+static int bt865_update( struct i2c_client *client )
 {
-	struct bt865_data_s * data = client->data ;
-	char tmpconfig[ 48 ];
+	struct bt865_data_s *data = client->data ;
+	char tmpconfig[48];
 	int i;
 
-	if( memcpy( tmpconfig, data->config, data->configlen ) != tmpconfig ) {
+	if (memcpy(tmpconfig, data->config, data->configlen) != tmpconfig) {
 		printk(KERN_NOTICE "bt865_update: memcpy error\n");
 		return -1;
 	}
 
-	if( data->bars ) {
-		tmpconfig[ 23 ] |= 0x10;
+	if (data->bars) {
+		tmpconfig[23] |= 0x10;
 	}
 
-	if( data->enableoutput ) {
-		tmpconfig[ 23 ] |= 0x02;
+	if (data->enableoutput) {
+		tmpconfig[23] |= 0x02;
 	}
 
-	if( data->rgbmode ) {
-		tmpconfig[ 23 ] |= 0x40;
+	if (data->rgbmode) {
+		tmpconfig[23] |= 0x40;
 	}
 
-	for( i = 0; i < data->configlen; i++ ) {
-		i2c_smbus_write_byte_data( client, 2 * i + 0xA0, tmpconfig[ i ] );
+	for (i = 0; i < data->configlen; i++) {
+		i2c_smbus_write_byte_data(client, 2 * i + 0xA0, tmpconfig[i]);
 	}
 
 	return 0;
 }
 
-static int bt865_setmode(int mode, struct i2c_client *client) {
+static int bt865_setmode(int mode, struct i2c_client *client)
+{
 	struct bt865_data_s *data = client->data ;
-	unsigned char *config=NULL;
+	unsigned char *config = NULL;
 
-	pr_debug( "bt865_setmode( %d, %p )\n", mode, client );
+	pr_debug("bt865_setmode( %d, %p )\n", mode, client);
 
 	switch (mode) {
 	case ENCODER_MODE_NTSC:
 		printk(KERN_NOTICE "bt865.o: Configuring for NTSC\n");
 		config = NTSC_CONFIG_BT865;
-		data->configlen = sizeof( NTSC_CONFIG_BT865 );
+		data->configlen = sizeof(NTSC_CONFIG_BT865);
 		break;
 	case ENCODER_MODE_NTSC60:
 		printk(KERN_NOTICE "bt865.o: Configuring for NTSC\n");
 		config = NTSC60_CONFIG_BT865;
-		data->configlen = sizeof( NTSC60_CONFIG_BT865 );
+		data->configlen = sizeof(NTSC60_CONFIG_BT865);
 		break;
 	case ENCODER_MODE_PAL_M:
 		printk(KERN_NOTICE "bt865.o: Configuring for PAL_M\n");
 		config = PALM_CONFIG_BT865;
-		data->configlen = sizeof( PALM_CONFIG_BT865 );
+		data->configlen = sizeof(PALM_CONFIG_BT865);
 		break;
 	case ENCODER_MODE_PALM60:
 		printk(KERN_NOTICE "bt865.o: Configuring for PAL_M60\n");
 		config = PALM60_CONFIG_BT865;
-		data->configlen = sizeof( PALM60_CONFIG_BT865 );
+		data->configlen = sizeof(PALM60_CONFIG_BT865);
 		break;
 	case ENCODER_MODE_PAL:
 		printk(KERN_NOTICE "bt865.o: Configuring for PAL\n");
 		config = PAL_CONFIG_BT865;
-		data->configlen = sizeof( PAL_CONFIG_BT865 );
+		data->configlen = sizeof(PAL_CONFIG_BT865);
 		break;
 	case ENCODER_MODE_PALNC:
 		printk(KERN_NOTICE "bt865.o: Configuring for PAL\n");
 		config = PALNC_CONFIG_BT865;
-		data->configlen = sizeof( PALNC_CONFIG_BT865 );
+		data->configlen = sizeof(PALNC_CONFIG_BT865);
 		break;
 	default:
 		return -1;
@@ -818,8 +821,8 @@ static int bt865_setmode(int mode, struct i2c_client *client) {
 
 	data->mode = mode;
 
-	if( config ) {
-		if( memcpy( data->config, config, data->configlen ) != data->config ) {
+	if (config) {
+		if (memcpy(data->config, config, data->configlen) != data->config) {
 			printk(KERN_NOTICE "bt865_setmode: memcpy error\n");
 			return -1;
 		}
@@ -828,7 +831,8 @@ static int bt865_setmode(int mode, struct i2c_client *client) {
 	return 0;
 }
 
-static int bt865_setup(struct i2c_client *client) {
+static int bt865_setup(struct i2c_client *client)
+{
 	struct bt865_data_s *data = client->data ;
 	
 	if (memset(data->config, 0, sizeof(data->config)) != data->config) {
@@ -848,7 +852,7 @@ static int bt865_setup(struct i2c_client *client) {
 		bt865_setmode(ENCODER_MODE_NTSC, client);
 	}
 
-	if( bt865_update( client ) ) {
+	if (bt865_update(client)) {
 		printk(KERN_NOTICE "bt865_setup: bt865_update error\n");
 		return -1;
 	}
@@ -867,21 +871,17 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
 		return 0;
 	}
 
-	chk = i2c_check_functionality(
-				adapter,
-				I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA
-				);
+	chk = i2c_check_functionality(adapter,
+			I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA);
 
-	if( ! chk ) {
+	if (!chk) {
 		return 0;
 	}
 
-	new_client = kmalloc(
-					sizeof(struct i2c_client) + sizeof(struct bt865_data_s), 
-					GFP_KERNEL
-					);
+	new_client = kmalloc(sizeof(struct i2c_client) + sizeof(struct bt865_data_s), 
+			GFP_KERNEL);
 
-	if ( ! new_client ) {
+	if (!new_client) {
 		return -ENOMEM;
 	}
 
@@ -898,7 +898,7 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
 //	which is a 4 (100) for the bt864 and a 5 (101) for the bt865
 //  followed by 5 bits for the version number. in this case 17 (1 0001)
 //	thus 1011 0001 (0xb1) is correct for the bt865a version 17
-	if (i2c_smbus_read_byte_data(new_client,0) == 0xb1) {
+	if (i2c_smbus_read_byte_data(new_client, 0) == 0xb1) {
 		strcpy(new_client->name, "BT865 chip");
 		printk(KERN_NOTICE "bt865.o: BT865 chip detected\n");
 
@@ -909,7 +909,7 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
 			return err;
 		}
 
-		if( bt865_setup(new_client) ) {
+		if (bt865_setup(new_client)) {
 			return -1;
 		}
 
@@ -978,15 +978,11 @@ void bt865_dec_use (struct i2c_client *client)
 /* ----------------------------------------------------------------------- */
 
 
-#ifdef MODULE
-int init_module(void)
-#else
-int bt865_init(void)
-#endif
+int __init bt865_init(void)
 {
 	int bars;
 	
-        if( color_bars ) {
+        if (color_bars) {
 		bars = 0x10;
 	} else {
 		bars = 0x00;
@@ -994,23 +990,21 @@ int bt865_init(void)
 	
 	pr_debug("bt865.o: color_bars: %d\n", color_bars);
 	
-	NTSC_CONFIG_BT865  [ 23 ] = ( NTSC_CONFIG_BT865  [ 23 ] & ~0x10) | bars;
-	NTSC60_CONFIG_BT865[ 23 ] = ( NTSC60_CONFIG_BT865[ 23 ] & ~0x10) | bars;
-	PALM_CONFIG_BT865  [ 23 ] = ( PALM_CONFIG_BT865  [ 23 ] & ~0x10) | bars;
-	PALM60_CONFIG_BT865[ 23 ] = ( PALM60_CONFIG_BT865[ 23 ] & ~0x10) | bars;
-	PAL_CONFIG_BT865   [ 23 ] = ( PAL_CONFIG_BT865   [ 23 ] & ~0x10) | bars;
-	PALNC_CONFIG_BT865 [ 23 ] = ( PALNC_CONFIG_BT865 [ 23 ] & ~0x10) | bars;
+	NTSC_CONFIG_BT865[23] = (NTSC_CONFIG_BT865[23] & ~0x10) | bars;
+	NTSC60_CONFIG_BT865[23] = (NTSC60_CONFIG_BT865[23] & ~0x10) | bars;
+	PALM_CONFIG_BT865[23] = (PALM_CONFIG_BT865[23] & ~0x10) | bars;
+	PALM60_CONFIG_BT865[23] = (PALM60_CONFIG_BT865[23] & ~0x10) | bars;
+	PAL_CONFIG_BT865[23] = (PAL_CONFIG_BT865[23] & ~0x10) | bars;
+	PALNC_CONFIG_BT865[23] = (PALNC_CONFIG_BT865[23] & ~0x10) | bars;
 
 	return i2c_add_driver(&bt865_driver);
 }
 
-
-
-#ifdef MODULE
-
-void cleanup_module(void)
+void __exit bt865_cleanup(void)
 {
 	i2c_del_driver(&bt865_driver);
 }
 
-#endif
+module_init(bt865_init);
+module_exit(bt865_cleanup);
+

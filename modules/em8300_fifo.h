@@ -25,8 +25,7 @@ struct pts_fifoslot_s {
 };
 
 struct em8300_s;
-typedef void (*preprocess_cb_t)(struct em8300_s *, unsigned char *,
-				const unsigned char *, int);
+typedef void (*preprocess_cb_t) (struct em8300_s *, unsigned char *, const unsigned char *, int);
 
 struct fifo_s {
 	struct em8300_s *em;

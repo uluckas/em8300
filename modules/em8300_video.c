@@ -26,7 +26,7 @@ extern int bt865_ucode_timeout;
 
 static int mpegvideo_command(struct em8300_s *em, int cmd)
 {
-	if (em8300_waitfor(em,ucregister(MV_Command), 0xffff, 0xffff)) {
+	if (em8300_waitfor(em, ucregister(MV_Command), 0xffff, 0xffff)) {
 		return -1;
 	}
 
@@ -35,7 +35,7 @@ static int mpegvideo_command(struct em8300_s *em, int cmd)
 	if ((cmd == MVCOMMAND_DISPLAYBUFINFO) || (cmd == 0x10)) {
 		return em8300_waitfor_not(em, ucregister(DICOM_Display_Data), 0, 0xffff);
 	} else {
-		return em8300_waitfor(em,ucregister(MV_Command), 0xffff, 0xffff);
+		return em8300_waitfor(em, ucregister(MV_Command), 0xffff, 0xffff);
 	}
 }
 
@@ -43,12 +43,12 @@ int em8300_video_setplaymode(struct em8300_s *em, int mode)
 {
 	if (mode == EM8300_PLAYMODE_FRAMEBUF) {
 		mpegvideo_command(em, MVCOMMAND_DISPLAYBUFINFO);
-		em->video_playmode=mode;
+		em->video_playmode = mode;
 		return 0;
 	}
     
 	if (em->video_playmode != mode) {
-		switch(mode) {
+		switch (mode) {
 		case EM8300_PLAYMODE_STOPPED:
 			em->video_ptsfifo_ptr = 0;
 			em->video_offset = 0;
@@ -70,7 +70,7 @@ int em8300_video_setplaymode(struct em8300_s *em, int mode)
 			return -1;
 		}
 
-		em->video_playmode=mode;
+		em->video_playmode = mode;
 
 		return 0;
 	}
@@ -80,18 +80,18 @@ int em8300_video_setplaymode(struct em8300_s *em, int mode)
 
 int em8300_video_sync(struct em8300_s *em)
 {
-	int rdptr,wrptr,synctimeout;
+	int rdptr, wrptr, synctimeout;
 
 	synctimeout = 0;
     
 	do {
 		wrptr = read_ucregister(MV_Wrptr_Lo) |
-			(read_ucregister(MV_Wrptr_Hi)<<16);
+			(read_ucregister(MV_Wrptr_Hi) << 16);
 		rdptr = read_ucregister(MV_RdPtr_Lo) |
-			(read_ucregister(MV_RdPtr_Hi)<<16);
+			(read_ucregister(MV_RdPtr_Hi) << 16);
 
 		if (rdptr != wrptr && ++synctimeout < 20) {
-			schedule_timeout(HZ/10);
+			schedule_timeout(HZ / 10);
 		}
 
 		if (signal_pending(current)) {
@@ -104,7 +104,7 @@ int em8300_video_sync(struct em8300_s *em)
 	return 0;
 }
 
-void set_dicom_kmin (struct em8300_s *em)
+void set_dicom_kmin(struct em8300_s *em)
 {
 	int kmin;
 
@@ -234,7 +234,7 @@ int em8300_video_setup(struct em8300_s *em)
         
 	write_ucregister(SP_Status, 0x0);
 	
-	if(mpegvideo_command(em, 0x10)) {
+	if (mpegvideo_command(em, 0x10)) {
 		printk(KERN_ERR "em8300: mpegvideo_command(0x10) failed\n");
 		return -ETIME;
 	}
@@ -274,52 +274,50 @@ void em8300_video_check_ptsfifo(struct em8300_s *em)
 	int ptsfifoptr;
     
 	if (em->video_ptsfifo_waiting) {
+		ptsfifoptr = ucregister(MV_PTSFifo) + 4 * em->video_ptsfifo_ptr;
 
-		ptsfifoptr = ucregister(MV_PTSFifo) + 4*em->video_ptsfifo_ptr;
-
-		if (!(read_register(ptsfifoptr+3) & 1)) {
-			em->video_ptsfifo_waiting=0;
+		if (!(read_register(ptsfifoptr + 3) & 1)) {
+			em->video_ptsfifo_waiting = 0;
 			wake_up_interruptible(&em->video_ptsfifo_wait);
 		}
 	}
 }
 
-int em8300_video_write(struct em8300_s *em, const char * buf,
-		       size_t count, loff_t *ppos)
+int em8300_video_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
 {
-	unsigned flags=0;
+	unsigned flags = 0;
 	int written;
 	
 	if (em->video_ptsvalid) {
-		int ptsfifoptr=0;
+		int ptsfifoptr = 0;
 		em->video_lastpts = em->video_pts;
 		em->video_pts >>= 1;
 
 		flags = 0x40000000;
-		ptsfifoptr = ucregister(MV_PTSFifo) + 4*em->video_ptsfifo_ptr;
+		ptsfifoptr = ucregister(MV_PTSFifo) + 4 * em->video_ptsfifo_ptr;
 		
 		if (read_register(ptsfifoptr+3) & 1) {
-			em->video_ptsfifo_waiting=1;
+			em->video_ptsfifo_waiting = 1;
 			interruptible_sleep_on(&em->video_ptsfifo_wait);
-			em->video_ptsfifo_waiting=0;
+			em->video_ptsfifo_waiting = 0;
 			if (signal_pending(current)) {
 				return -EINTR;
 			}
 		}	
 
 #ifdef DEBUG_SYNC
-		pr_debug("em8300_video.o: pts: %u\n", pts>>1);
+		pr_debug("em8300_video.o: pts: %u\n", pts >> 1);
 #endif
 
 		write_register(ptsfifoptr, em->video_offset >> 16);
-		write_register(ptsfifoptr+1, em->video_offset & 0xffff);
-		write_register(ptsfifoptr+2, em->video_pts >> 16);
-		write_register(ptsfifoptr+3, (em->video_pts & 0xffff) | 1);
+		write_register(ptsfifoptr + 1, em->video_offset & 0xffff);
+		write_register(ptsfifoptr + 2, em->video_pts >> 16);
+		write_register(ptsfifoptr + 3, (em->video_pts & 0xffff) | 1);
 	
 		em->video_ptsfifo_ptr++;
 		em->video_ptsfifo_ptr %= read_ucregister(MV_PTSSize) / 4;
 
-		em->video_ptsvalid=0;
+		em->video_ptsvalid = 0;
 	}
 
 	written = em8300_fifo_writeblocking(em->mvfifo, count, buf, flags);
@@ -334,7 +332,7 @@ int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
     unsigned scr,val;
 	switch (_IOC_NR(cmd)) {
 	case _IOC_NR(EM8300_IOCTL_VIDEO_SETPTS):
-		if (get_user(em->video_pts, (int *)arg)) {
+		if (get_user(em->video_pts, (int *) arg)) {
 			return -EFAULT;
 		}
 		em->video_ptsvalid = 1;
@@ -342,7 +340,7 @@ int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 
 	case _IOC_NR(EM8300_IOCTL_VIDEO_SETSCR):
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
-			if (get_user(val,(unsigned*)arg))
+			if (get_user(val, (unsigned*) arg))
 				return -EFAULT;
 			val >>= 1;
 			scr = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);
@@ -357,7 +355,7 @@ int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 		}
 		if (_IOC_DIR(cmd) & _IOC_READ) {
 			scr = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);
-			copy_to_user((void *)arg, &scr, sizeof(unsigned));
+			copy_to_user((void *) arg, &scr, sizeof(unsigned));
 		}
 		break;
 
@@ -376,9 +374,9 @@ void em8300_video_open(struct em8300_s *em)
 
 int em8300_video_release(struct em8300_s *em)
 {
-	em->video_ptsfifo_ptr=0;
-	em->video_offset=0;
-	em->video_ptsvalid=0;
+	em->video_ptsfifo_ptr = 0;
+	em->video_offset = 0;
+	em->video_ptsvalid = 0;
 	em8300_fifo_sync(em->mvfifo);
 	em8300_video_sync(em);
 

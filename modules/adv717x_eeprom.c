@@ -53,6 +53,7 @@
 #define EEPROM_REG_TTXRQ_CTRL 0x24
 
 #ifdef MODULE
+MODULE_SUPPORTED_DEVICE("adv717x_eeprom");
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
 MODULE_LICENSE("GPL");
 #endif
@@ -81,14 +82,14 @@ int eeprom_id = 0;
 static int eeprom_detect(struct i2c_adapter *adapter, int address)
 {
 	struct i2c_client *new_client;
-	int i,j,err;
+	int i, j, err;
 
 	if (i2c_is_isa_adapter(adapter)) {
 		printk(KERN_ERR "eeprom.o: called for an ISA bus adapter?!?\n");
 		return 0;
 	}
 
-	if (! i2c_check_functionality(adapter,I2C_FUNC_SMBUS_READ_BYTE| I2C_FUNC_SMBUS_WRITE_BYTE_DATA)) {
+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA)) {
 		return 0;
 	}
 
@@ -103,7 +104,7 @@ static int eeprom_detect(struct i2c_adapter *adapter, int address)
 	new_client->driver = &eeprom_driver;
 	new_client->flags = 0;
 
-	if ((i2c_smbus_read_byte_data(new_client, 0x0) >= 0) && (i2c_smbus_read_byte_data(new_client, 0xff) >= 0) ) {
+	if ((i2c_smbus_read_byte_data(new_client, 0x0) >= 0) && (i2c_smbus_read_byte_data(new_client, 0xff) >= 0)) {
 		strcpy(new_client->name, "256byte EEPROM chip");
 		new_client->id = eeprom_id++;
 
@@ -114,9 +115,9 @@ static int eeprom_detect(struct i2c_adapter *adapter, int address)
 
 		pr_debug("eeprom.o: EEPROM contents:\n");
 
-		for (i = 0;i < 16; i++) {
-			for (j = 0;j < 16; j++) {
-				pr_debug("%02x ", i2c_smbus_read_byte_data(new_client, i*16+j));
+		for (i = 0; i < 16; i++) {
+			for (j = 0; j < 16; j++) {
+				pr_debug("%02x ", i2c_smbus_read_byte_data(new_client, i * 16 + j));
 			}
 			pr_debug("\n");
 		}
@@ -125,12 +126,12 @@ static int eeprom_detect(struct i2c_adapter *adapter, int address)
 	}
 	 
 	kfree(new_client);
-	return 0;			  
+	return 0;
 }
 
 static int eeprom_attach_adapter(struct i2c_adapter *adapter)
 {
-	eeprom_detect(adapter,0x50);
+	eeprom_detect(adapter, 0x50);
 	return 0;
 }
 
@@ -174,22 +175,15 @@ void eeprom_dec_use (struct i2c_client *client)
 /* ----------------------------------------------------------------------- */
 
 
-#ifdef MODULE
-int init_module(void)
-#else
-int eeprom_init(void)
-#endif
+int __init adv717x_eeprom_init(void)
 {
 	return i2c_add_driver(&eeprom_driver);
 }
 
-
-
-#ifdef MODULE
-
-void cleanup_module(void)
+void __exit adv717x_eeprom_cleanup(void)
 {
 	i2c_del_driver(&eeprom_driver);
 }
 
-#endif
+module_init(adv717x_eeprom_init);
+module_exit(adv717x_eeprom_cleanup);

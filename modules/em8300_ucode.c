@@ -23,8 +23,7 @@
 
 #include "em8300_reg.c"
 
-static
-int upload_block(struct em8300_s *em, int blocktype, int offset, int len, unsigned char *buf)
+static int upload_block(struct em8300_s *em, int blocktype, int offset, int len, unsigned char *buf)
 {
 	int i, val;
 
@@ -43,8 +42,8 @@ int upload_block(struct em8300_s *em, int blocktype, int offset, int len, unsign
 
 		em->mem[0x1c1a] = 1;
 
-		for (i=0; i < len; i+=4) {
-			val = (buf[i+2] << 24) | (buf[i+3] << 16) | (buf[i] << 8) | buf[i+1];
+		for (i = 0; i < len; i += 4) {
+			val = (buf[i + 2] << 24) | (buf[i + 3] << 16) | (buf[i] << 8) | buf[i + 1];
 			em->mem[0x11800] = val;
 		}
 	
@@ -53,15 +52,15 @@ int upload_block(struct em8300_s *em, int blocktype, int offset, int len, unsign
 		}
 		break;
 	case 1:
-		for (i=0; i < len; i+=4) {
-			val = (buf[i+1] << 24) | (buf[i] << 16) | (buf[i+3] << 8) | buf[i+2];
-			em->mem[offset/2 + i/4] = val;
+		for (i = 0; i < len; i += 4) {
+			val = (buf[i + 1] << 24) | (buf[i] << 16) | (buf[i + 3] << 8) | buf[i + 2];
+			em->mem[offset / 2 + i / 4] = val;
 		}
 		break;
 	case 2:
-		for (i=0; i < len; i+=2) {
-			val = (buf[i+1] << 8) | buf[i];
-			em->mem[0x1000 + offset + i/2] = val;
+		for (i = 0; i < len; i += 2) {
+			val = (buf[i + 1] << 8) | buf[i];
+			em->mem[0x1000 + offset + i / 2] = val;
 		}
 		break;
 	}
@@ -116,9 +115,9 @@ int upload_prepare(struct em8300_s *em)
 
 int em8300_ucode_upload(struct em8300_s *em, void *ucode_user, int ucode_size)
 {
-	int flags,offset,len;
-	unsigned char *ucode,*p;
-	int memcount,i;
+	int flags, offset, len;
+	unsigned char *ucode, *p;
+	int memcount, i;
 	char regname[128];
 
 	ucode = kmalloc(ucode_size, GFP_KERNEL);
@@ -130,14 +129,14 @@ int em8300_ucode_upload(struct em8300_s *em, void *ucode_user, int ucode_size)
 	
 	copy_from_user(ucode, ucode_user, ucode_size);
 
-	memcount=0;
+	memcount = 0;
 
 	p = ucode;
 	while (memcount < ucode_size) {
-		flags =  p[0] | (p[1] << 8); p+=2;
-		offset = p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24); p+=4; 
-		len =	p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24); p+=4;
-		memcount+=10;
+		flags =  p[0] | (p[1] << 8); p += 2;
+		offset = p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24); p += 4; 
+		len = p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24); p += 4;
+		memcount += 10;
 		len *= 2;
 
 		if (!flags)
@@ -148,16 +147,16 @@ int em8300_ucode_upload(struct em8300_s *em, void *ucode_user, int ucode_size)
 			upload_block(em, flags, offset, len, p);
 			break;
 		case 0x200:
-			for (i=0;i < len; i++) {
-				if(p[i]) {
+			for (i = 0;i < len; i++) {
+				if (p[i]) {
 					regname[i] = p[i] ^ 0xff;
 				} else {
 					break;
 				}
 			}
-			regname[i]=0;
+			regname[i] = 0;
 
-			for (i=0; i < MAX_UCODE_REGISTER; i++) {
+			for (i = 0; i < MAX_UCODE_REGISTER; i++) {
 				if (!strcmp(ucodereg_names[i], regname)) {
 					em->ucode_regs[i] = 0x1000 + offset;
 					break;

@@ -1,5 +1,10 @@
 2001-07-29  Rick Haines  <rick@kuroyi.net>
 
+	* modules/em8300_audio.c:
+	reset mafifo->bytes when the device is opened
+	
+2001-07-29  Rick Haines  <rick@kuroyi.net>
+
 	* modules/em8300_ioctl.c:
 	Patch from Mike Lampard to fix overlay to
 	tv mode switching

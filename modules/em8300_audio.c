@@ -481,6 +481,8 @@ int em8300_audio_open(struct em8300_s *em)
 	em->audio_lag = 0;
 	em->last_calcbuf = 0;
 
+	em->mafifo->bytes = 0;
+
 	return audio_start(em);
 }
 

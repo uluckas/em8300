@@ -436,10 +436,11 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 
     if(em->audio_ptsvalid) {
 	long picpts;
+	
 	picpts =
 	    read_ucregister(PicPTSLo) +
 	    (read_ucregister(PicPTSHi) << 16);
-
+	picpts = (read_ucregister(MV_SCRhi) << 16) | read_ucregister(MV_SCRlo);
 	if(em->audio_rate) {
 	    em->audio_lag = picpts - (em->audio_pts -
 		45000/4 * em8300_audio_calcbuffered(em)

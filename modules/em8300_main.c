@@ -98,8 +98,8 @@ void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 		em->audio_sync=0;
 	    }
 	    
-	      if(lag > PTSLAG_LIMIT || lag < -PTSLAG_LIMIT) {
-		DEBUG(printk("em8300_main.o: Video out of sync (%ld). Resyncing.\n",lag));
+	    if(lag > PTSLAG_LIMIT || lag < -PTSLAG_LIMIT) {
+		  DEBUG(printk("em8300_main.o: Video out of sync (%ld). Resyncing.\n",lag));
 		scr = picpts + 0x3000;
 		write_ucregister(MV_SCRhi, scr >> 16);		
 		write_ucregister(MV_SCRlo, scr & 0xffff);		

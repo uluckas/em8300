@@ -187,9 +187,16 @@ int em8300_dicom_update(struct em8300_s *em)
 
 		if (em->encoder_type == ENCODER_BT865) {
 			write_register(0x1f47, 0x0);
-			write_register(0x1f42, 0x8c);
-			write_register(0x1f43, 0x2d0);
-			write_register(0x1f45, 0x136);	 
+			write_register(EM8300_HSYNC_LO, 0x8c);
+			write_register(EM8300_HSYNC_HI, 0x2d0);
+
+			if( vmode_ntsc ) {
+				write_register(EM8300_VSYNC_HI, 0x100);	 
+			}
+			else {
+				write_register(EM8300_VSYNC_HI, 0x136);	 
+			}
+
 			write_ucregister(DICOM_VSyncLo1, 0x1); 
 			write_ucregister(DICOM_VSyncLo2, 0x0);
 			write_ucregister(DICOM_VSyncDelay1, 0xd2); 
@@ -262,6 +269,8 @@ void em8300_dicom_enable(struct em8300_s *em)
 
 	if (em->aspect_ratio == EM8300_ASPECTRATIO_16_9) {
 	  em->dicom_tvout |= 0x10;
+	} else {
+	  em->dicom_tvout &= ~0x10;
 	}
 
 	write_ucregister(DICOM_TvOut, em->dicom_tvout);
@@ -347,3 +356,4 @@ void em8300_dicom_init(struct em8300_s *em)
 {
 	em8300_dicom_disable(em);
 }
+

@@ -121,12 +121,12 @@ int em8300_video_setup(struct em8300_s *em)
 		write_ucregister(DICOM_Control, 0x9afe);
 	}
 
-	write_register(0x1f4d, 0x3c3c);
-	write_register(0x1f4e, 0x3c00);
-	write_register(0x1f4e, 0x3c3c);
+	write_register(EM8300_I2C_PIN, 0x3c3c);
+	write_register(EM8300_I2C_OE, 0x3c00);
+	write_register(EM8300_I2C_OE, 0x3c3c);
 	
-	write_register(0x1f4d, 0x808);
-	write_register(0x1f4d, 0x1010);
+	write_register(EM8300_I2C_PIN, 0x808);
+	write_register(EM8300_I2C_PIN, 0x1010);
 	
 	em9010_init(em);
 	
@@ -174,7 +174,7 @@ int em8300_video_setup(struct em8300_s *em)
 	em9010_write(em, 0xc, 0x8c);
 	em9010_write(em, 9, 0);
 
-	write_ucregister(DICOM_Kmin, 0x447); // was 0x613 for BT865, but this works too
+	write_ucregister(DICOM_Kmin, 0x447); // was 0x613 for BT865, but this works too, now 0x447
 
 	em9010_write(em, 7, 0x80);
 	em9010_write(em, 9, 0);
@@ -201,7 +201,7 @@ int em8300_video_setup(struct em8300_s *em)
 
 	write_ucregister(MV_Threshold, 0x90); // was 0x50 for BT865, but this works too
 
-	write_register(0x1ffa, 0x2);
+	write_register(EM8300_INTERRUPT_ACK, 0x2);
 	write_ucregister(Q_IrqMask, 0x0);
 	write_ucregister(Q_IrqStatus, 0x0);
 	write_ucregister(Q_IntCnt, 0x64);

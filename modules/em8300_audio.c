@@ -353,12 +353,12 @@ static int set_audiomode(struct em8300_s *em, int mode)
 	 
 	switch (em->audio_mode) {
 	case EM8300_AUDIOMODE_ANALOG:
-		write_register(0x1fb0, 0x62);
+		write_register(EM8300_AUDIO_RATE, 0x62);
 		em8300_setregblock(em, 2*ucregister(Mute_Pattern), 0, 0x600);
 		printk(KERN_NOTICE "em8300_audio.o: Analog audio enabled\n");
 		break;
 	case EM8300_AUDIOMODE_DIGITALPCM:
-		write_register(0x1fb0, 0x3a0);
+		write_register(EM8300_AUDIO_RATE, 0x3a0);
 
 		em->byte_D90[0]=0x0;
 		sub_prepare_SPDIF(em, mutepattern, mutepattern_src, 0x300);
@@ -367,7 +367,7 @@ static int set_audiomode(struct em8300_s *em, int mode)
 		printk(KERN_NOTICE "em8300_audio.o: Digital PCM audio enabled\n");
 		break;
 	case EM8300_AUDIOMODE_DIGITALAC3:
-		write_register(0x1fb0, 0x3a0);
+		write_register(EM8300_AUDIO_RATE, 0x3a0);
 
 		em->byte_D90[0]=0x40;
 		sub_prepare_SPDIF(em, mutepattern, mutepattern_src, 0x300);

@@ -1,5 +1,21 @@
 2001-06-13  Rick Haines  <rick@kuroyi.net>
 
+	* modules/bt865.c,
+	  modules/em8300_audio.c,
+	  modules/em8300_video.c,
+	  modules/em8300_dicom.c,
+	  modules/em8300_i2c.c,
+	  modules/em8300_main.c,
+	  modules/em8300_reg.h,
+	  modules/encoder.h,
+	  include/linux/em8300.h:
+	merge Chris C. Hoover's bt865 patch
+
+	* modules/README-modules.conf
+	add the lines I put in my modules.conf
+	
+2001-06-13  Rick Haines  <rick@kuroyi.net>
+
 	* libdxr3/dxr3-api.c
 	remove microcode uploading from libdxr3
 	You must now manually upload the microcode before

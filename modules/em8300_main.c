@@ -93,7 +93,7 @@ static void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 
 	if (irqstatus & 0x8000) {
 		write_ucregister(Q_IrqMask, 0x0);
-		em->mem[0x1ffa] = 2;
+		em->mem[EM8300_INTERRUPT_ACK] = 2;
 
 		write_ucregister(Q_IrqStatus, 0x8000);
 

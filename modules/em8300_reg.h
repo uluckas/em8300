@@ -19,12 +19,13 @@
 #define EM8300_I2C_PIN	0x1f4d
 #define EM8300_AUDIO_RATE 0x1fb0
 #define EM8300_INTERRUPT_ACK 0x1ffa
+#define EM8300_HSYNC_HI 0x1f43
+#define EM8300_HSYNC_LO 0x1f42
+#define EM8300_VSYNC_HI 0x1f45
 
 /*
   EM8300 microcode dependent registers
 */
-
-#define MAX_UCODE_REGISTER 110
 
 #define MV_Command 0
 #define MV_Status 1

@@ -58,7 +58,13 @@ COMMON_CFLAGS="-Wall -D_FILE_OFFSET_BITS=64"
 GLOBAL_CFLAGS="$GLOBAL_CFLAGS $CFLAGS $COMMON_CFLAGS"
 DEBUG_CFLAGS="$GLOBAL_CFLAGS $CFLAGS $COMMON_CFLAGS -DDEBUG"
 
-AM_PATH_GTK(1.2.0, ,AC_MSG_ERROR(Cannot find GTK: Is gtk-config in path?))
+AM_PATH_GTK(1.2.0, has_gtk=yes, [has_gtk=no
+	AC_MSG_RESULT(*** GTK not found ***)])
+
+if test x$has_gtk = xyes; then
+    AC_DEFINE(HAVE_GTK)
+fi
+AM_CONDITIONAL(HAVE_GTK, test x$has_gtk = "xyes")
 
 AC_OUTPUT([
 	Makefile

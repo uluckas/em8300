@@ -3,7 +3,11 @@ EXTRA_DIST = autotools/ m4/ modules/ omsplugin/ xine/ scripts/ shinit.sh bootstr
 pkgdata_DATA = omsplugin.tar.gz xine.tar.gz modules.tar.gz
 pkgdata_SCRIPTS = em8300.sysv
 
+if HAVE_GTK
 SUBDIRS = libdxr3 overlay dhc include scripts
+else
+SUBDIRS = libdxr3 include scripts
+endif
 
 debug:
 	list='$(SUBDIRS)'; for subdir in $$list; do \

@@ -1,5 +1,12 @@
 2001-11-04  Rick Haines  <rick@kuroyi.net>
 
+	* acconfig.h,
+	  configure.in:
+	instead of stopping if GTK not found,
+	just don't build dhc and dxr3view.
+
+2001-11-04  Rick Haines  <rick@kuroyi.net>
+
 	* include/libdxr3/api.h,
 	  libdxr3/dxr3-api.c:
 	patch from David to rename

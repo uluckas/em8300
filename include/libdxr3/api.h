@@ -4,8 +4,6 @@
 #include <sys/ioctl.h>
 #include <linux/em8300.h>
 
-#define DXR3_MICROCODE_LOCATION "/etc/dxr3.ux"
-
 #define DXR3_STATUS_CLOSED 0
 #define DXR3_STATUS_OPENED 1
 #define DXR3_STATUS_MICROCODE_LOADED 2
@@ -37,6 +35,10 @@
 #define DXR3_PLAYMODE_PLAY            5
 #define DXR3_PLAYMODE_REVERSEPLAY     6
 #define DXR3_PLAYMODE_SCAN            7
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct
 {
@@ -102,5 +104,9 @@ int dxr3_subpic_get_mode(void);
 
 // Play control functions
 int dxr3_set_playmode(int);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* LIBDXR3_API_H */

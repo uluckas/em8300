@@ -1,5 +1,11 @@
 2001-06-20  Rick Haines  <rick@kuroyi.net>
 
+	* include/libdxr3/api.h
+	Add #ifdef __cplusplus stuff as requested by
+	Stefan Jahn
+	
+2001-06-20  Rick Haines  <rick@kuroyi.net>
+
 	Merge some patches from Daniel Chassot.
 	
 	* modules/em9010.c:

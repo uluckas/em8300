@@ -8,3 +8,4 @@ libtool
 em8300.spec
 em8300.sysv
 *.tar.gz
+autom4te.cache

@@ -1,0 +1,9 @@
+.*.o.cmd
+.*.ko.cmd
+.tmp_versions
+adv717x.ko
+adv717x.mod.c
+bt865.ko
+bt865.mod.c
+em8300.ko
+em8300.mod.c

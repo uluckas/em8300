@@ -20,6 +20,12 @@
 	Make em8300.pm a perl package, and improve error message when
 	/dev/em8300 cannot be opened. Thanks again to Ville Skyttä.
 
+	* .cvsignore,
+	  autotools/.cvsignore,
+	  em8300setup/.cvsignore,
+	  modules/.cvsignore:
+	Add some new files to .cvsignore.
+
 2004-11-10  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Replace remap_page_range with remap_pfn_range for kernels 2.6.10

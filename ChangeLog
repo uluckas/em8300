@@ -1,3 +1,7 @@
+2002-02-02  David Holm  <dholm@iname.com>
+	* modules/em8300_main.c:
+	Added poll/select
+
 2002-01-26  David Holm  <dholm@iname.com>
 	* modules/em8300_audio.c:
 	Fixed a bug in SNDCTL_DSP_RESET which would cause apps to hang

@@ -33,6 +33,7 @@
 #include <linux/signal.h>
 #include <linux/string.h>
 #include <linux/time.h>
+#include <linux/poll.h>
 #ifdef CONFIG_PROC_FS
 #include <linux/proc_fs.h>
 #endif
@@ -411,6 +412,41 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 	return 0;
 }
 
+static unsigned int em8300_poll(struct file *file, struct poll_table_struct *wait)
+{
+	struct em8300_s *em = file->private_data;
+	int subdevice = EM8300_MINOR(file->f_dentry->d_inode) % 4;
+	unsigned int mask = 0;
+
+	switch (subdevice) {
+	case EM8300_SUBDEVICE_AUDIO:
+		poll_wait(file, &em->mafifo->wait, wait);
+		if (file->f_mode & FMODE_WRITE) {
+			if ((em->mafifo->bytes - em8300_fifo_calcbuffered(em->mafifo)) > em->mafifo->slotsize) {
+				mask |= POLLOUT | POLLWRNORM;
+			}
+		}
+		break;
+	case EM8300_SUBDEVICE_VIDEO:
+		poll_wait(file, &em->mvfifo->wait, wait);
+		if (file->f_mode & FMODE_WRITE) {
+			if ((em->mvfifo->bytes - em8300_fifo_calcbuffered(em->mvfifo)) > em->mvfifo->slotsize) {
+				mask |= POLLOUT | POLLWRNORM;
+			}
+		}
+		break;
+	case EM8300_SUBDEVICE_SUBPICTURE:
+		poll_wait(file, &em->spfifo->wait, wait);
+		if (file->f_mode & FMODE_WRITE) {
+			if ((em->spfifo->bytes - em8300_fifo_calcbuffered(em->spfifo)) > em->spfifo->slotsize) {
+				mask |= POLLOUT | POLLWRNORM;
+			}
+		}
+	}
+	
+	return mask;
+}
+
 int em8300_io_release(struct inode* inode, struct file *filp)
 {
 	struct em8300_s *em = filp->private_data;
@@ -441,6 +477,7 @@ static struct file_operations em8300_fops = {
 	write: em8300_io_write,
 	ioctl: em8300_io_ioctl,
 	mmap: em8300_io_mmap,
+	poll: em8300_poll,
 	open: em8300_io_open,
 	release: em8300_io_release,
 };

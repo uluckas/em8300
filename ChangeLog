@@ -1,3 +1,8 @@
+2004-03-25  Nicolas Boullis  <nboullis@debian.org>
+	* modules/ldm:
+	I stupidly reversed the test in my previous update of modules/ldm;
+	repair this. Sorry for this stupid mistake.
+
 2004-03-24  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Since kernel 2.5.69, one should use devfs_remove instead of

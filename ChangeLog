@@ -1,5 +1,14 @@
 2001-04-20  Rick Haines  <rick@kuroyi.net>
 
+	* xine/xine-0.4.01_dxr3.patch.gz:
+	the aspect ratio stuff is really there this time,
+	I promise.
+
+	* modules/em8300_audio.c:
+	work around a weird pts problem in my Evangelion #4 dvd.
+
+2001-04-20  Rick Haines  <rick@kuroyi.net>
+
 	* xine/README,
 	  xine/xine-0.4.01_dxr3.patch.gz:
 	update xine patch to use installed libdxr3.

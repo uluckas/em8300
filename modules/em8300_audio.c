@@ -22,7 +22,7 @@
 
 #include <linux/soundcard.h>
 
-__inline__ int my_abs(int v) {
+__inline__ uint32_t my_abs(int32_t v) {
 	return v < 0 ? -v : v;
 }
 
@@ -419,6 +419,30 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 	static uint32_t rollover_lastpts = 0;
 	static uint32_t rollover_startpts = 0;
 	static uint32_t lastpts_count = 0;
+	static uint32_t dropped_last = 0;
+	static uint32_t pts = 0;
+
+#if 1
+	if (em->audio_ptsvalid) {
+		/* pts has gone backwards, but not far enough to be a rollover */
+		dropped_last = 0;
+		if (em->audio_pts < em->video_lastpts) {
+			if ((em->audio_lastpts - em->audio_pts) < 90000) {
+				em->audio_lastpts += lastpts_count;
+				em->audio_lag -= lastpts_count;
+				lastpts_count = 0;
+				dropped_last = 1;
+				pts = em->audio_pts;
+			}
+		}
+	}
+
+	if (dropped_last) {
+		pr_debug("em8300_audio.o: dropping data, pts: %u lastpts: %u\n",
+			 pts, em->audio_lastpts);
+		return 0;
+	}
+#endif
 
 	if(em->audio_ptsvalid) {
 		em->audio_ptsvalid=0;
@@ -455,6 +479,7 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 	}
 
 	calcbuf = em8300_audio_calcbuffered(em);
+
 #ifdef DEBUG_SYNC
 	pr_debug("em8300_audio.o: calcbuf: %u since_last_pts: %i\n", calcbuf, em->audio_lag);
 #endif

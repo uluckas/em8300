@@ -435,7 +435,7 @@ int loc_2bcfe(struct em8300_s *em)
 	l6 = (l3 << 8) + l2;
 	l7 = 165000/(l6+2);
 	
-	if (l7 > em->overlay_dword_24bb8+1) {
+	if ((l7 > em->overlay_dword_24bb8+1) || (l7 < em->overlay_dword_24bb8-1)) {
 		em->overlay_dword_24bb8 = l7;
 	} else {
 		l7 = em->overlay_dword_24bb8;

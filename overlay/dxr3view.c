@@ -11,6 +11,9 @@
 #include <linux/em8300.h>
 #include "overlay.h"
 
+// X stuff (XOpenDisplay)
+#include <X11/Xlib.h>
+
 #define DEFAULT_RATIO   1.33
 #define DEFAULT_WIDTH   720
 #define NUM_MONITORS    1
@@ -50,7 +53,7 @@ typedef struct _dxr3view_globals {
 
 	int xpos, ypos, width;
 	gint oldx, oldy, oldw;
-	gint scr_wid, scr_hei;
+	gint scr_wid, scr_hei, scr_dep;
 	int monitor_xoff;
 
 	gboolean fullscreen;
@@ -135,6 +138,9 @@ int main( int argc, char *argv[] )
 	GdkColormap *colormap;
 	FILE *dev;
 	float tmpratiolist[7] = {0,1.33,1.5,1.66,1.75,1.85,2.0};
+	Screen *xscrn;
+	Display *dpy;
+	
 	
 	dev = fopen("/dev/em8300","r");
 	g.ov = overlay_init(dev);
@@ -169,13 +175,18 @@ int main( int argc, char *argv[] )
 	
 	/* Setup Overlay */	
 		
+	dpy = XOpenDisplay (NULL);
+	if (!dpy) exit(1);
+	xscrn = ScreenOfDisplay (dpy, 0);
+	g.scr_dep = PlanesOfScreen (xscrn);
+	
 	g.scr_wid = gdk_screen_width() / NUM_MONITORS;
 	g.scr_hei = gdk_screen_height();
-	printf("width: %i\theight: %i\n", g.scr_wid, g.scr_hei);
+	printf("width: %i\theight: %i\tdepth: %i\n", g.scr_wid, g.scr_hei, g.scr_dep);
 
 	/* init/release/init to fix vertical squish */
 
-	overlay_set_screen(g.ov, g.scr_wid, g.scr_hei, 24);
+	overlay_set_screen(g.ov, g.scr_wid, g.scr_hei, g.scr_dep);
 	overlay_read_state(g.ov, NULL);
 	overlay_set_keycolor(g.ov, KEY_COLOR);
 	overlay_set_mode(g.ov, EM8300_OVERLAY_MODE_OVERLAY );
@@ -185,7 +196,7 @@ int main( int argc, char *argv[] )
 	overlay_release(g.ov);
 	g.ov = overlay_init(dev);
 
-	overlay_set_screen(g.ov, g.scr_wid, g.scr_hei, 24);
+	overlay_set_screen(g.ov, g.scr_wid, g.scr_hei, g.scr_dep);
 	overlay_read_state(g.ov, NULL);
 	overlay_set_keycolor(g.ov, KEY_COLOR);
 	overlay_set_mode(g.ov, EM8300_OVERLAY_MODE_OVERLAY ); 

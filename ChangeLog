@@ -1,3 +1,15 @@
+2001-06-20  Rick Haines  <rick@kuroyi.net>
+
+	Merge some patches from Daniel Chassot.
+	
+	* modules/em9010.c:
+	"The em9010 patch fix a problem with the setting of the
+	16bit sync register of the em9010"
+
+	* overlay/dxr3view.c:
+	"The dxr3view patch fixe a problem with the overlay
+	initialisation if the screen depth is not 24"
+	
 2001-06-13  Rick Haines  <rick@kuroyi.net>
 
 	* modules/bt865.c,

@@ -140,6 +140,10 @@ static int _dxr3_open (plugin_codec_t *plugin)
     if (_dxr3_install_firmware (priv, "/etc/dxr3.ux") == -1)
 	return -1;
 
+    // We don't need the control device anymore
+    close(priv->fd_control);
+    priv->fd_control=-1;
+
     // open video device
     snprintf (buffer, size, "%s_mv", priv->path);
     if ((priv->fd_video = open (buffer, O_WRONLY)) < 0) {

@@ -1,3 +1,19 @@
+2002-01-12  David Holm  <dholm@iname.com>
+	* include/linux/em8300.h,
+	  libdxr3/dxr3-api.c,
+	  modules/adv717x.c,
+	  modules/bt865.c,
+	  modules/em8300_audio.c,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_main.c,
+	  modules/encoder.h:
+	Added all supported encoder modes to em8300
+	Added MODULE_PARM_DESC
+	Added MODULE_SUPPORTED_DEVICE
+	Removed audio pts code
+	Fixed devfs bug
+	K&R fixes in em8300_audio.c
+	
 2002-01-11  Jonas Birme <jonas@birme.se>
 	* modules/Makefile:
 	Fixed a bug in install-newkern, and added $(prefix) to 

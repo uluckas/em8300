@@ -1,4 +1,3 @@
-EXTRA_DIST = autotools/
 SUBDIRS = libac3
 
 CFLAGS = @GLOBAL_CFLAGS@

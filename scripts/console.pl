@@ -367,6 +367,11 @@ sub usage {
   print "ra\t\t\tRead out all registers.\n"; 
   print "l\t\t\tList available em8300 registers.\n"; 
   print "sw <REGISTER> <VALUE>\tWrite to mysterious serial device\n"; 
+  print "bcs <BRIGHTNESS> <CONTRAST> <SATURATION>\n"; 
+  print "ow <REGISTER> <DATA>\tWrite to overlay processor\n"; 
+  print "or <REGISTER>\t\tRead from overlay processor\n"; 
+  print "win <WIDTH> <HEIGHT> <XPOS> <YPOS>\tSet overlay window size/position\n"; 
+
   print "status\t\t\tGet status from device driver\n"; 
   print "q\t\t\tQuit\n"; 
   print "h\t\t\tPrint this message\n"; 

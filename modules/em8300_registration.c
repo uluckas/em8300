@@ -21,9 +21,11 @@
 
 #include "em8300_registration.h"
 
+#include "em8300_procfs.h"
 
 static struct em8300_registrar_s *registrars[] =
 {
+	&em8300_procfs_registrar,
 	NULL
 };
 

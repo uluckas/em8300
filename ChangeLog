@@ -8,6 +8,13 @@
 	called when the module in registered/unregistered, when a card is
 	registered/unregistered or enabled/disabled.
 
+	* modules/Makefile,
+	  modules/em8300_main.c,
+	  modules/em8300_procfs.c,
+	  modules/em8300_procfs.h,
+	  modules/em8300_registration.c:
+	Convert all the procfs stuff to that new interface.
+
 2004-04-14  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_compat24.h,
 	  modules/em8300_main.c:

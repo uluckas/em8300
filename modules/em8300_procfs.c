@@ -1,0 +1,168 @@
+/*
+	em8300.c - EM8300 MPEG-2 decoder device driver
+
+	Copyright (C) 2000 Henrik Johansson <henrikjo@post.utfors.se>
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+*/
+#include <linux/config.h>
+#include <linux/proc_fs.h>
+#include <linux/module.h>
+#include "em8300_procfs.h"
+
+#ifdef CONFIG_PROC_FS
+
+#ifndef EM8300_PROCFS_DIR
+#define EM8300_PROCFS_DIR "em8300"
+#endif
+
+struct proc_dir_entry *em8300_proc;
+
+
+static int em8300_proc_read(char *page, char **start, off_t off, int count, int *eof, void *data)
+{
+	int len = 0;
+	struct em8300_s *em = (struct em8300_s *) data;
+
+	*start = 0;
+	*eof = 1;
+
+	len += sprintf(page + len,
+		       "----- Driver Info -----\n");
+	len += sprintf(page + len,
+		       "em8300 module version %s\n",
+		       EM8300_VERSION);
+	if (!em->ucodeloaded) {
+		len += sprintf(page + len,
+			       "Microcode hasn't been loaded\n");
+		return len;
+	}
+	/* Device information */
+	len += sprintf(page + len,
+		       "Card revision %d\n",
+		       em->pci_revision);
+	len += sprintf(page + len,
+		       "Chip revision %d\n",
+		       em->chip_revision);
+	len += sprintf(page + len,
+		       "Video encoder: %s at address 0x%02x on %s\n",
+		       (em->encoder_type == ENCODER_BT865) ? "BT865" :
+		       (em->encoder_type == ENCODER_ADV7170) ? "ADV7170" :
+		       (em->encoder_type == ENCODER_ADV7175) ? "ADV7175" :
+		       "unknown",
+		       em->encoder->addr, em->encoder->adapter->name);
+	len += sprintf(page + len,
+		       "Memory mapped at addressrange 0x%0lx->0x%0lx%s\n",
+		       (unsigned long int) em->mem,
+		       (unsigned long int) em->mem
+		       + (unsigned long int) em->memsize,
+		       em->mtrr_reg ? " (FIFOs using MTRR)" : "");
+	len += sprintf(page + len,
+		       "Displaybuffer resolution: %dx%d\n",
+		       em->dbuf_info.xsize, em->dbuf_info.ysize);
+	len += sprintf(page + len,
+		       "Dicom set to %s\n",
+		       em->dicom_tvout ? "TV-out" : "overlay");
+	if (em->dicom_tvout) {
+		len += sprintf(page + len,
+			       "Using %s\n",
+			       (em->video_mode == EM8300_VIDEOMODE_PAL) ? "PAL" : "NTSC");
+		len += sprintf(page + len,
+			       "Aspect is %s\n",
+			       (em->aspect_ratio == EM8300_ASPECTRATIO_4_3) ? "4:3" : "16:9");
+	} else {
+		len += sprintf(page + len,
+			       "em9010 %s\n",
+			       em->overlay_enabled ? "online" : "offline");
+		len += sprintf(page + len,
+			       "video mapped to screen coordinates %dx%d (%dx%d)\n",
+			       em->overlay_frame_xpos, em->overlay_frame_ypos,
+			       em->overlay_xres, em->overlay_yres);
+	}
+	len += sprintf(page + len,
+		       "%s audio output\n",
+		       (em->audio_mode == EM8300_AUDIOMODE_ANALOG) ? "analog" : "digital");
+	return len;
+}
+
+
+static void em8300_procfs_register_card(struct em8300_s *em)
+{
+	char devname[64];
+	if (em8300_proc) {
+		struct proc_dir_entry *proc;
+		sprintf(devname, "%d", em->card_nr);
+		proc = create_proc_entry(devname,
+					 S_IFREG | S_IRUGO,
+					 em8300_proc);
+		if (proc) {
+			proc->data = (void *) em;
+			proc->read_proc = em8300_proc_read;
+			proc->owner = THIS_MODULE;
+		}
+	}
+}
+
+static void em8300_procfs_unregister_card(struct em8300_s *em)
+{
+	char devname[64];
+	if (em8300_proc) {
+		sprintf(devname, "%d", em->card_nr);
+		remove_proc_entry(devname, em8300_proc);
+	}
+}
+
+static void em8300_procfs_unregister_driver(void)
+{
+	if (em8300_proc) {
+		remove_proc_entry(EM8300_PROCFS_DIR, &proc_root);
+	}
+}
+
+static void em8300_procfs_register_driver(void)
+{
+	em8300_proc = create_proc_entry(EM8300_PROCFS_DIR,
+					S_IFDIR | S_IRUGO | S_IXUGO,
+					&proc_root);
+	if (em8300_proc) {
+		em8300_proc->owner = THIS_MODULE;
+	} else {
+		printk(KERN_ERR "em8300: unable to register proc entry!\n");
+	}
+}
+
+struct em8300_registrar_s em8300_procfs_registrar =
+{
+	.register_driver   = &em8300_procfs_register_driver,
+	.register_card     = &em8300_procfs_register_card,
+	.enable_card       = NULL,
+	.disable_card      = NULL,
+	.unregister_card   = &em8300_procfs_unregister_card,
+	.unregister_driver = &em8300_procfs_unregister_driver,
+};
+
+#else /* CONFIG_PROC_FS */
+
+struct em8300_registrar_s em8300_procfs_registrar =
+{
+	.register_driver   = NULL,
+	.register_card     = NULL,
+	.enable_card       = NULL,
+	.disable_card      = NULL,
+	.unregister_card   = NULL,
+	.unregister_driver = NULL,
+};
+
+#endif /* CONFIG_PROC_FS */

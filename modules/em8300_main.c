@@ -35,7 +35,6 @@
 #include <linux/string.h>
 #include <linux/time.h>
 #include <linux/poll.h>
-#include <linux/proc_fs.h>
 #include <linux/devfs_fs_kernel.h>
 #include <asm/io.h>
 #include <asm/pgtable.h>
@@ -132,9 +131,6 @@ static int dsp_num_table[16];
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,70)
 devfs_handle_t em8300_handle[EM8300_MAX*4];
 #endif
-#endif
-#ifdef CONFIG_PROC_FS
-struct proc_dir_entry *em8300_proc;
 #endif
 
 /* structure to keep track of the memory that has been allocated by
@@ -597,44 +593,6 @@ static struct file_operations em8300_dsp_audio_fops = {
 };
 #endif
 
-#ifdef CONFIG_PROC_FS
-static int em8300_proc_read(char *page, char **start, off_t off, int count, int *eof, void *data)
-{
-	int len = 0;
-	struct em8300_s *em = (struct em8300_s *) data;
-
-	*start = 0;
-	*eof = 1;
-
-	len += sprintf(page + len, "----- Driver Info -----\n");
-	len += sprintf(page + len, "em8300 module version %s\n", EM8300_VERSION);
-	if (em->ucodeloaded) {
-		/* Device information */
-		len += sprintf(page + len, "Card revision %d\n", em->pci_revision);
-		len += sprintf(page + len, "Chip revision %d\n", em->chip_revision);
-		len += sprintf(page + len, "Video encoder: %s at address 0x%02x on %s\n", (em->encoder_type == ENCODER_BT865) ? "BT865" : (em->encoder_type == ENCODER_ADV7170) ? "ADV7170" : (em->encoder_type == ENCODER_ADV7175) ? "ADV7175" : "unknown", em->encoder->addr, em->encoder->adapter->name);
-		len += sprintf(page + len, "Memory mapped at addressrange 0x%0lx->0x%0lx%s\n", (unsigned long int) em->mem,
-				(unsigned long int) em->mem + (unsigned long int) em->memsize, (em->mtrr_reg ? " (FIFOs using MTRR)" : ""));
-		len += sprintf(page + len, "Displaybuffer resolution: %dx%d\n", em->dbuf_info.xsize, em->dbuf_info.ysize);
-		len += sprintf(page + len, "Dicom set to %s\n", (em->dicom_tvout?"TV-out":"overlay"));
-		if (em->dicom_tvout) {
-			len += sprintf(page + len, "Using %s\n", (em->video_mode == EM8300_VIDEOMODE_PAL ? "PAL" : "NTSC"));
-			len += sprintf(page + len, "Aspect is %s\n", (em->aspect_ratio == EM8300_ASPECTRATIO_4_3 ? "4:3" : "16:9"));
-		} else {
-			len += sprintf(page + len, "em9010 %s\n", (em->overlay_enabled ? "online" : "offline"));
-			len += sprintf(page + len, "video mapped to screen coordinates %dx%d (%dx%d)\n", em->overlay_frame_xpos,
-					em->overlay_frame_ypos, em->overlay_xres, em->overlay_yres);
-		}
-		len += sprintf(page + len, "%s audio output\n", (em->audio_mode == EM8300_AUDIOMODE_ANALOG ? "analog" : "digital"));
-	}
-	else {
-		len += sprintf(page + len, "Microcode hasn't been loaded\n");
-	}
-
-	return len;
-}
-#endif
-
 static int init_em8300(struct em8300_s *em)
 {
 	write_register(0x30000, read_register(0x30000));
@@ -731,18 +689,6 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 
 	init_em8300(em);
 
-#ifdef CONFIG_PROC_FS
-	if (em8300_proc) {
-		struct proc_dir_entry *proc;
-		sprintf(devname, "%d", em8300_cards );
-		proc = create_proc_entry(devname, S_IFREG | S_IRUGO, em8300_proc);
-		if (proc) {
-			proc->data = (void *) em;
-			proc->read_proc = em8300_proc_read;
-			proc->owner = THIS_MODULE;
-		}
-	}
-#endif
 #ifdef CONFIG_DEVFS_FS
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,70)
 	sprintf(devname, "%s-%d", EM8300_LOGNAME, em8300_cards );
@@ -813,13 +759,6 @@ static void __devexit em8300_remove(struct pci_dev *pci)
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
 		unregister_sound_dsp(em->dsp_num);
 #endif
-#ifdef CONFIG_PROC_FS
-		if (em8300_proc) {
-			sprintf(devname, "%d", em->card_nr);
-			remove_proc_entry(devname, em8300_proc);
-		}
-#endif
-
 		em8300_unregister_card(em);
 
 		release_em8300(em);
@@ -849,12 +788,6 @@ static void __exit em8300_exit(void)
 	unregister_chrdev(EM8300_MAJOR, EM8300_LOGNAME);
 #endif
 
-#ifdef CONFIG_PROC_FS
-	if (em8300_proc) {
-		remove_proc_entry(EM8300_LOGNAME, &proc_root);
-	}
-#endif
-
 	em8300_unregister_driver();
 }
 
@@ -868,15 +801,6 @@ static int __init em8300_init(void)
 #endif
 
 	em8300_register_driver();
-
-#ifdef CONFIG_PROC_FS
-	em8300_proc = create_proc_entry(EM8300_LOGNAME, S_IFDIR | S_IRUGO | S_IXUGO, &proc_root);
-	if (em8300_proc) {
-		em8300_proc->owner = THIS_MODULE;
-	} else {
-		printk(KERN_ERR "em8300: unable to register proc entry!\n");
-	}
-#endif
 
 #if defined(CONFIG_DEVFS_FS) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
 	if (devfs_register_chrdev(EM8300_MAJOR, EM8300_LOGNAME, &em8300_fops)) {
@@ -909,11 +833,6 @@ static int __init em8300_init(void)
 #endif
 
  err_chrdev:
-#ifdef CONFIG_PROC_FS
-	if (em8300_proc)
-		remove_proc_entry(EM8300_LOGNAME, &proc_root);
-#endif
-
 	em8300_unregister_driver();
 	return err;
 }

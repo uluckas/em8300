@@ -225,9 +225,6 @@ int em8300_i2c_init(struct em8300_s *em);
 void em8300_i2c_exit(struct em8300_s *em);
 void em8300_clockgen_write(struct em8300_s *em, int abyte);
 
-/* em8300_misc.c */
-int em8300_waitfor(struct em8300_s *em, int reg, int val, int mask);
-
 /* em8300_audio.c */
 int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg);
 int em8300_audio_open(struct em8300_s *em);
@@ -242,6 +239,7 @@ int em8300_ucode_upload(struct em8300_s *em, void *ucode_user, int ucode_size);
 
 /* em8300_misc.c */
 int em8300_setregblock(struct em8300_s *em, int offset, int val, int len);
+int em8300_writeregblock(struct em8300_s *em, int offset, unsigned *buf, int len);
 int em8300_waitfor(struct em8300_s *em, int reg, int val, int mask);
 
 /* em8300_dicom.c */

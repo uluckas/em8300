@@ -113,7 +113,7 @@ int em8300_video_setup(struct em8300_s *em) {
     udelay(100);
     
     write_ucregister(ForcedLeftParity,0x2);
-    write_ucregister(MV_Threshold,0x50);
+    write_ucregister(MV_Threshold,0x90);
     write_register(0x1ffa,0x2);
     write_ucregister(Q_IrqMask,0x0);
     write_ucregister(Q_IrqStatus,0x0);

@@ -72,11 +72,13 @@ void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 
 	write_ucregister(Q_IrqStatus,0x8000);
 
-	if(irqstatus & IRQSTATUS_VIDEO_FIFO) 
+	if(irqstatus & IRQSTATUS_VIDEO_FIFO) {
 	    em8300_fifo_check(em->mvfifo);
+	}
 	
-	if(irqstatus & IRQSTATUS_AUDIO_FIFO) 
+	if(irqstatus & IRQSTATUS_AUDIO_FIFO) {
 	    em8300_fifo_check(em->mafifo);
+	}
 
 	if(irqstatus & IRQSTATUS_VIDEO_VBL) {
 	    long picpts,scr,lag;
@@ -90,14 +92,15 @@ void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 	    lag = scr-picpts;
 
 	    if((em->audio_sync == AUDIO_SYNC_INPROGRESS) &&
-	       scr >= em->audio_syncpts) {
+	       (scr >= em->audio_syncpts) )
+	    {	
 		mpegaudio_command(em,MACOMMAND_PLAY);
 		em->audio_sync=0;
 	    }
-
-	    if(lag > PTSLAG_LIMIT || lag < -PTSLAG_LIMIT) {
+	    
+	      if(lag > PTSLAG_LIMIT || lag < -PTSLAG_LIMIT) {
 		DEBUG(printk("em8300_main.o: Video out of sync (%ld). Resyncing.\n",lag));
-		scr = picpts;
+		scr = picpts + 0x3000;
 		write_ucregister(MV_SCRhi, scr >> 16);		
 		write_ucregister(MV_SCRlo, scr & 0xffff);		
 	    }

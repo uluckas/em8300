@@ -106,11 +106,6 @@ em8300.o : gcc-check $(VERSION_HEADER) $(EM8300_OBJS)
 	$(LD) $(EXTRA_LDFLAGS) -r -o $@ $(EM8300_OBJS)
 
 install : $(MODULES)
-	@if [ -f $(DEVFSD_CONF) ]; then \
-	 echo "Installing compatibility symlinks to devfsd"; \
-	 sed -e '/em8300/d' < $(DEVFSD_CONF) >> $(DEVFSD_CONF); \
-	 cat devfs_symlinks >> $(DEVFSD_CONF); \
-	fi
 	@echo Installing modules for $(KERNVER) into `uname -r`
 	@for module in $^ ;\
 	do \
@@ -123,10 +118,6 @@ install : $(MODULES)
 	@echo Installed to running kernel
 
 uninstall : $(MODULES)
-	@if [ -f $(DEVFSD_CONF) ]; then \
-	 echo "Uninstalling compatibility symlinks from devfsd"; \
-	 sed -e '/em8300/d' < $(DEVFSD_CONF) >> $(DEVFSD_CONF); \
-	fi
 	@echo Uninstalling modules for $(KERNVER)
 	@for module in $^ ;\
 	do \

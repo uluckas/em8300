@@ -48,10 +48,10 @@ ifeq "$(MODVERS)" "1"
 endif
 
 ifeq "$(SOUND_BUILTIN)" "1"
-	CFLAGS+=-DCONFIG_SOUND_OSS
+	CFLAGS+=-DCONFIG_OSS
 else
 	ifeq "$(SOUND_MODULE)" "1"
-		CFLAGS+=-DCONFIG_SOUND_OSS
+		CFLAGS+=-DCONFIG_OSS
 	endif
 endif
 

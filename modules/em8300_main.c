@@ -116,7 +116,7 @@ static int em8300_cards,clients;
 static unsigned int remap[EM8300_MAX]={};
 #endif
 static struct em8300_s em8300[EM8300_MAX];
-#ifdef CONFIG_SOUND_OSS
+#ifdef CONFIG_OSS
 static int dsp_num_table[16];
 #endif
 #ifdef CONFIG_DEVFS_FS
@@ -445,7 +445,7 @@ static struct file_operations em8300_fops = {
 	release: em8300_io_release,
 };
 
-#ifdef CONFIG_SOUND_OSS
+#ifdef CONFIG_OSS
 static int em8300_dsp_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, unsigned long arg)
 {
 	struct em8300_s *em = filp->private_data;
@@ -624,7 +624,7 @@ void em8300_exit(void)
 			devfs_unregister(em8300_handle[(card * 4) + frame]);
 		}
 #endif
-#ifdef CONFIG_SOUND_OSS
+#ifdef CONFIG_OSS
 		unregister_sound_dsp(em8300[card].dsp_num);
 #endif
 	}
@@ -653,7 +653,7 @@ int em8300_init(void)
 	struct proc_dir_entry *proc;
 #endif
 	//memset(&em8300, 0, sizeof(em8300) * EM8300_MAX);
-#ifdef CONFIG_SOUND_OSS
+#ifdef CONFIG_OSS
 	memset(&dsp_num_table, 0, sizeof(dsp_num_table));
 #endif
 
@@ -712,13 +712,13 @@ int em8300_init(void)
 		em8300_handle[(card * 4) + 3] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major,
 				(card * 4) + 3, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 #endif
-#ifdef CONFIG_SOUND_OSS
+#ifdef CONFIG_OSS
 		if ((em8300[card].dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, -1)) < 0) {
 			printk(KERN_ERR "em8300: cannot register oss audio device!\n");
 			goto err_audio_dsp;
 		}
 		dsp_num_table[em8300[card].dsp_num >> 4 & 0x0f] = card + 1;
-	        pr_debug("em8300: registered dsp %i for device %i\n", em8300[card].dsp_num >> 4 & 0x0f, card);
+        pr_debug("em8300: registered dsp %i for device %i\n", em8300[card].dsp_num >> 4 & 0x0f, card);
 #endif
 	}
 
@@ -730,7 +730,7 @@ int em8300_init(void)
 #endif
 	return 0;
 
-#ifdef CONFIG_SOUND_OSS
+#ifdef CONFIG_OSS
  err_audio_dsp:
 #endif
  err_chrdev:
@@ -741,7 +741,7 @@ int em8300_init(void)
 #endif
 		}
 		frame = 3;
-#ifdef CONFIG_SOUND_OSS
+#ifdef CONFIG_OSS
 		unregister_sound_dsp(em[card].dsp_num);
 #endif
 	}

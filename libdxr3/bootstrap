@@ -1,6 +1,7 @@
 ln -sf $(pwd)/../modules/em8300.h .
-aclocal $ACLOCAL_FLAGS
+aclocal -I autotools
+libtoolize --force --copy
 autoheader
-automake --add-missing
+automake --gnu --add-missing --copy
 autoconf
 rm -f config.cache

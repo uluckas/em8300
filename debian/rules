@@ -92,7 +92,6 @@ binary-modules: build-modules
 	dh_installchangelogs -p$(pkgmod)
 	dh_installdeb -p$(pkgmod_novers) -Pdebian/$(pkgmod)
 	dh_fixperms -p$(pkgmod)
-	PKGMOD=$(pkgmod) sh -v debian/setvers.sh
 	dh_md5sums -p$(pkgmod)
 	dh_builddeb -p$(pkgmod) --destdir $(MOD_DIR)/..
 

@@ -1,3 +1,9 @@
+em8300 (0.8.1cvs20010910-2) unstable; urgency=high
+
+  * Got rid of setvers.sh. Using substvars
+  
+ -- Jonas Birme <jonas@birme.se>  Mon, 10 sep 2001 23:00:08 +0200
+ 
 em8300 (0.8.1cvs20010910-1) unstable; urgency=high
 
   * New autocal-fix from Daniel

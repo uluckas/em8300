@@ -472,7 +472,7 @@ int em8300_audio_flush(struct em8300_s *em)
 	audiobufsize = read_ucregister(MA_BuffSize) | (read_ucregister(MA_BuffSize_Hi) << 16);
 
 	mpegaudio_command(em, MACOMMAND_PAUSE);
-
+	
 	return em8300_setregblock(em, audiobuf, 0, audiobufsize);
 }
 

@@ -63,8 +63,6 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 	
 	f->writeptr = (unsigned *) ucregister_ptr(wrptr);
 	f->readptr = (unsigned *) ucregister_ptr(rdptr);
-
-	spin_lock_init(&f->lock);
 	
 	switch (f->type) {
 	case FIFOTYPE_AUDIO:
@@ -119,7 +117,8 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 			f->slots.v[i].slotsize = f->slotsize;
 		}
 	}
-
+	
+	spin_lock_init(&f->lock);
 	f->valid = 1;
 	
 	return 0;

@@ -92,6 +92,24 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		em8300_ioctl_getstatus(em, (char *) arg);
 		return 0;
 
+	case _IOC_NR(EM8300_IOCTL_VBI):
+		if (!em->ucodeloaded) {
+			return -ENOTTY;
+		}
+
+		em->irqmask |= IRQSTATUS_VIDEO_VBL;
+		write_ucregister(Q_IrqMask, em->irqmask);
+
+		/* go to sleep */
+		interruptible_sleep_on(&em->vbi_wait);
+		/* check if signal arrived */
+		if (signal_pending(current)) {
+			return -EINTR;
+		}
+		/* copy timestamp and return */
+		copy_to_user((void *) arg, &em->tv, sizeof(struct timeval));
+		return 0;
+
 	case _IOC_NR(EM8300_IOCTL_GETBCS):
 		if (!em->ucodeloaded) {
 			return -ENOTTY;

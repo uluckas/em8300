@@ -79,6 +79,7 @@ typedef struct {
 #define EM8300_IOCTL_SCR_GETSPEED _IOR('C',17,unsigned)
 #define EM8300_IOCTL_SCR_SETSPEED _IOW('C',17,unsigned)
 #define EM8300_IOCTL_FLUSH _IOW('C',18,int)
+#define EM8300_IOCTL_VBI _IOW('C',19,struct timeval)
 
 #define EM8300_OVERLAY_SIGNAL_ONLY 1
 #define EM8300_OVERLAY_SIGNAL_WITH_VGA 2
@@ -323,8 +324,10 @@ struct em8300_s
 	int video_ptsfifo_ptr;
 #if LINUX_VERSION_CODE < 0x020314    
 	struct wait_queue *video_ptsfifo_wait;
+	struct wait_queue *vbi_wait;
 #else
 	wait_queue_head_t video_ptsfifo_wait;
+	wait_queue_head_t vbi_wait;
 #endif
 	int video_ptsfifo_waiting;
 	int video_first;

@@ -1,3 +1,11 @@
+2002-11-17  David Holm  <david@realityrift.com>
+	* modules/em8300_ioctl.c,
+	  modules/em8300_main.c,
+	  modules/em8300_video.c,
+	  include/linux/em8300.h:
+	Added patch from MiHu to add support for getting time of next
+	VBI.
+
 2002-10-26  David Holm  <david@realityrift.com>
         * modules/Makefile,
 	  modules/em8300_audio.c,

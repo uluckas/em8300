@@ -184,6 +184,7 @@ static void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 			em->irqtimediff = TIMEDIFF(tv, em->tv);
 			em->tv = tv;
 			em->irqcount++;
+			wake_up(&em->vbi_wait);
 		}
 	
 		write_ucregister(Q_IrqMask, em->irqmask);

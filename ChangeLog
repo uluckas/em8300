@@ -30,6 +30,12 @@
 	Add sysfs support. Many thanks to Eric Donohue who did most the
 	work.
 
+	* modules/em8300_devfs.c,
+	  modules/em8300_sysfs.c:
+	Only create /dev/em8300_{mv,ma,sp}-{0,1,2,3} when the microcode is
+	loaded.
+
+
 2004-04-14  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_compat24.h,
 	  modules/em8300_main.c:

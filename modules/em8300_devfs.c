@@ -36,6 +36,17 @@ static void em8300_devfs_register_card(struct em8300_s *em)
 	sprintf(devname, "%s-%d", EM8300_LOGNAME, em->card_nr );
 	em8300_handle[em->card_nr * 4] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
 							em->card_nr * 4, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
+#else
+	devfs_mk_cdev(MKDEV(EM8300_MAJOR, em->card_nr * 4),
+		      S_IFCHR | S_IRUGO | S_IWUGO,
+		      "%s-%d", EM8300_LOGNAME, em->card_nr);
+#endif
+}
+
+static void em8300_devfs_enable_card(struct em8300_s *em)
+{
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,70)
+	char devname[64];
 	sprintf(devname, "%s_mv-%d", EM8300_LOGNAME, em->card_nr );
 	em8300_handle[(em->card_nr * 4) + 1] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
 							      (em->card_nr * 4) + 1, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
@@ -46,9 +57,6 @@ static void em8300_devfs_register_card(struct em8300_s *em)
 	em8300_handle[(em->card_nr * 4) + 3] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
 							      (em->card_nr * 4) + 3, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 #else
-	devfs_mk_cdev(MKDEV(EM8300_MAJOR, em->card_nr * 4),
-		      S_IFCHR | S_IRUGO | S_IWUGO,
-		      "%s-%d", EM8300_LOGNAME, em->card_nr);
 	devfs_mk_cdev(MKDEV(EM8300_MAJOR, (em->card_nr * 4) + 1),
 		      S_IFCHR | S_IRUGO | S_IWUGO,
 		      "%s_mv-%d", EM8300_LOGNAME, em->card_nr);
@@ -61,18 +69,25 @@ static void em8300_devfs_register_card(struct em8300_s *em)
 #endif
 }
 
-static void em8300_devfs_unregister_card(struct em8300_s *em)
+static void em8300_devfs_disable_card(struct em8300_s *em)
 {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,69)
-	devfs_unregister(em8300_handle[em->card_nr * 4]);
 	devfs_unregister(em8300_handle[(em->card_nr * 4) + 1]);
 	devfs_unregister(em8300_handle[(em->card_nr * 4) + 2]);
 	devfs_unregister(em8300_handle[(em->card_nr * 4) + 3]);
 #else
-	devfs_remove("%s-%d", EM8300_LOGNAME, em->card_nr);
 	devfs_remove("%s_mv-%d", EM8300_LOGNAME, em->card_nr);
 	devfs_remove("%s_ma-%d", EM8300_LOGNAME, em->card_nr);
 	devfs_remove("%s_sp-%d", EM8300_LOGNAME, em->card_nr);
+#endif
+}
+
+static void em8300_devfs_unregister_card(struct em8300_s *em)
+{
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,69)
+	devfs_unregister(em8300_handle[em->card_nr * 4]);
+#else
+	devfs_remove("%s-%d", EM8300_LOGNAME, em->card_nr);
 #endif
 }
 
@@ -80,8 +95,8 @@ struct em8300_registrar_s em8300_devfs_registrar =
 {
 	.register_driver   = NULL,
 	.register_card     = &em8300_devfs_register_card,
-	.enable_card       = NULL,
-	.disable_card      = NULL,
+	.enable_card       = &em8300_devfs_enable_card,
+	.disable_card      = &em8300_devfs_disable_card,
 	.unregister_card   = &em8300_devfs_unregister_card,
 	.unregister_driver = NULL,
 };

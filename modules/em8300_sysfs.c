@@ -94,17 +94,32 @@ static void em8300_sysfs_register_card(struct em8300_s *em)
 	int i;
 
 	em->classdev.class = &em8300_class;
+
+	em->classdev.dev = &em->dev->dev;
+
+	sprintf(name,"%s-%d", EM8300_LOGNAME, em->card_nr);
+	strcpy(em->classdev.class_id, name);
+
+	if(class_device_register(&em->classdev))
+		printk(KERN_ERR "Unable to register em8300 class device\n");
+
+	for(i = 0; em8300_attrs[i]; i++)
+		class_device_create_file(&(em->classdev), em8300_attrs[i]);
+}
+
+static void em8300_sysfs_enable_card(struct em8300_s *em)
+{
+	char name[64] = "";
+	int i;
+
 	em->classdev_mv.class = &em8300_class;
 	em->classdev_ma.class = &em8300_class;
 	em->classdev_sp.class = &em8300_class;
 
-	em->classdev.dev = &em->dev->dev;
 	em->classdev_mv.dev = &em->dev->dev;
 	em->classdev_ma.dev = &em->dev->dev;
 	em->classdev_sp.dev = &em->dev->dev;
 
-	sprintf(name,"%s-%d", EM8300_LOGNAME, em->card_nr);
-	strcpy(em->classdev.class_id, name);
 	sprintf(name,"%s_mv-%d", EM8300_LOGNAME, em->card_nr);
 	strcpy(em->classdev_mv.class_id, name);
 	sprintf(name,"%s_ma-%d", EM8300_LOGNAME, em->card_nr);
@@ -112,8 +127,6 @@ static void em8300_sysfs_register_card(struct em8300_s *em)
 	sprintf(name,"%s_sp-%d", EM8300_LOGNAME, em->card_nr);
 	strcpy(em->classdev_sp.class_id, name);
 
-	if(class_device_register(&em->classdev))
-		printk(KERN_ERR "Unable to register em8300 class device\n");
 	if(class_device_register(&em->classdev_mv))
 		printk(KERN_ERR "Unable to register em8300_mv class device\n");
 	if(class_device_register(&em->classdev_ma))
@@ -121,19 +134,23 @@ static void em8300_sysfs_register_card(struct em8300_s *em)
 	if(class_device_register(&em->classdev_sp))
 		printk(KERN_ERR "Unable to register em8300_sp class device\n");
 
-	for(i = 0; em8300_attrs[i]; i++)
-		class_device_create_file(&(em->classdev), em8300_attrs[i]);
+	for(i = 0; em8300_attrs[i]; i++) {
 		class_device_create_file(&(em->classdev_mv), em8300_attrs[i]);
 		class_device_create_file(&(em->classdev_ma), em8300_attrs[i]);
 		class_device_create_file(&(em->classdev_sp), em8300_attrs[i]);
+	}
+}
+
+static void em8300_sysfs_disable_card(struct em8300_s *em)
+{
+	class_device_unregister(&(em->classdev_mv));
+	class_device_unregister(&(em->classdev_ma));
+	class_device_unregister(&(em->classdev_sp));
 }
 
 static void em8300_sysfs_unregister_card(struct em8300_s *em)
 {
 	class_device_unregister(&(em->classdev));
-	class_device_unregister(&(em->classdev_mv));
-	class_device_unregister(&(em->classdev_ma));
-	class_device_unregister(&(em->classdev_sp));
 }
 
 static void em8300_sysfs_unregister_driver(void)
@@ -145,8 +162,8 @@ struct em8300_registrar_s em8300_sysfs_registrar =
 {
 	.register_driver   = &em8300_sysfs_register_driver,
 	.register_card     = &em8300_sysfs_register_card,
-	.enable_card       = NULL,
-	.disable_card      = NULL,
+	.enable_card       = &em8300_sysfs_enable_card,
+	.disable_card      = &em8300_sysfs_disable_card,
 	.unregister_card   = &em8300_sysfs_unregister_card,
 	.unregister_driver = &em8300_sysfs_unregister_driver,
 };

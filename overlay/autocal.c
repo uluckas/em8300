@@ -41,12 +41,20 @@ int main( int   argc,
     int tmp;
     int i;
     overlay_t *ov;
+    Screen *xscrn;
     
     em8300_overlay_calibrate_t cal;
     em8300_overlay_screen_t scr;
       
     dpy = XOpenDisplay (NULL);
     if (!dpy) exit(1);
+
+    xscrn=ScreenOfDisplay(dpy, 0);
+    xsize=WidthOfScreen(xscrn);
+    ysize=HeightOfScreen(xscrn);
+    depth=PlanesOfScreen(xscrn);
+    fprintf(stderr, "Width: %d, Height: %d, Depth: "
+	    "%d\n", xsize, ysize, depth);
 
     AllBlackButInit();
 

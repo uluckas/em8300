@@ -173,13 +173,22 @@ int main( int argc, char *argv[] )
 	g.scr_hei = gdk_screen_height();
 	printf("width: %i\theight: %i\n", g.scr_wid, g.scr_hei);
 
-	overlay_set_screen(g.ov, g.scr_wid, g.scr_hei, 24);
+	/* init/release/init to fix vertical squish */
 
+	overlay_set_screen(g.ov, g.scr_wid, g.scr_hei, 24);
 	overlay_read_state(g.ov, NULL);
 	overlay_set_keycolor(g.ov, KEY_COLOR);
-	
-
 	overlay_set_mode(g.ov, EM8300_OVERLAY_MODE_RECTANGLE );
+
+	overlay_set_mode(g.ov, EM8300_OVERLAY_MODE_OFF);
+	overlay_write_state(g.ov, NULL);
+	overlay_release(g.ov);
+	g.ov = overlay_init(dev);
+
+	overlay_set_screen(g.ov, g.scr_wid, g.scr_hei, 24);
+	overlay_read_state(g.ov, NULL);
+	overlay_set_keycolor(g.ov, KEY_COLOR);
+	overlay_set_mode(g.ov, EM8300_OVERLAY_MODE_RECTANGLE ); 
 
 	/* Build Interface */
 

@@ -12,6 +12,10 @@
 	different from /, which is especially useful to build
 	packages. Thanks to Ville Skyttä.
 
+	* scripts/Makefile.am:
+	As Ville Skyttä pointed out, there's no need to install em8300.pm
+	with execute permissions. Thanks again to him.
+
 2004-11-10  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Replace remap_page_range with remap_pfn_range for kernels 2.6.10

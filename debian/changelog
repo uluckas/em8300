@@ -1,3 +1,9 @@
+em8300 (0.11.0-3) unstable; urgency=high
+
+  * added KERNVER=$(KVERS) to the building of the module package
+
+ -- Jonas Birme <jonas@birme.se>  Mon, 11 Feb 2002 00:24:55 +0100
+
 em8300 (0.11.0-2) unstable; urgency=high
 
   * minor bug, don't uses install-newkern

@@ -93,7 +93,7 @@ binary-modules: build-modules
 	install -d "debian/$(pkgmod)/usr/share/doc/$(pkgmod)"
 	dh_installdebconf -p$(pkgmod)
 	cd modules ;\
-	$(MAKE) prefix=`pwd`/../debian/$(pkgmod)/ install-newkern ;\
+	$(MAKE) prefix=`pwd`/../debian/$(pkgmod)/ KERNVER=$(KVERS) install-newkern ;\
 	cd ..
 	install -d "debian/$(pkgmod)/etc/init.d"
 	install -m755 debian/em8300-modules.initd debian/$(pkgmod)/etc/init.d/em8300

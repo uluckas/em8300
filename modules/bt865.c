@@ -1,12 +1,12 @@
-/* 
+/*
    BT865A - Brook Tree BT865A video encoder driver version 0.0.4
 
    Henrik Johannson <henrikjo@post.utfors.se>
    As modified by Chris C. Hoover <cchoover@home.com>
-  
+
    Modified by Luis Correia <lfcorreia@users.sourceforge.net>
    added rgb_mode (requires hacking DXR3 hardware)
- 
+
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
@@ -45,6 +45,7 @@
 #include <linux/version.h>
 #include <asm/uaccess.h>
 
+#include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 #include <linux/video_encoder.h>
 
@@ -76,8 +77,6 @@ EXPORT_NO_SYMBOLS;
 static int bt865_attach_adapter(struct i2c_adapter *adapter);
 int bt865_detach_client(struct i2c_client *client);
 int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg);
-void bt865_inc_use (struct i2c_client *client);
-void bt865_dec_use (struct i2c_client *client);
 static int bt865_setup(struct i2c_client *client);
 
 struct bt865_data_s {
@@ -93,29 +92,30 @@ struct bt865_data_s {
 
 /* This is the driver that will be inserted */
 static struct i2c_driver bt865_driver = {
-  /* name */		"BT865 video encoder driver",
-  /* id */		I2C_DRIVERID_BT865,
-  /* flags */		I2C_DF_NOTIFY,
-  /* attach_adapter */  &bt865_attach_adapter,
-  /* detach_client */   &bt865_detach_client,
-  /* command */		&bt865_command,
-  /* inc_use */		&bt865_inc_use,
-  /* dec_use */		&bt865_dec_use
+#ifdef _LINUX_I2C_H /* i2c version 2.8.0 or above */
+	.owner =		THIS_MODULE,
+#endif
+	.name =			"BT865 video encoder driver",
+	.id =			I2C_DRIVERID_BT865,
+	.flags =		I2C_DF_NOTIFY,
+	.attach_adapter =	&bt865_attach_adapter,
+	.detach_client =	&bt865_detach_client,
+	.command =		&bt865_command
 };
 
 int bt865_id = 0;
 
-// Register settings come from Rockwell Semiconductor 
+// Register settings come from Rockwell Semiconductor
 // Advance Information sheet l865a.pdf
 
 // Bits from the Left for Register A0
 // 1. one bit EWSF2 (Enable Wide Screen for Field 2)
-//    enable/disable Wide Screen Signaling/Copy Generation Management 
+//    enable/disable Wide Screen Signaling/Copy Generation Management
 //    System encoding for field 2 (16:9)
 //    if 0 then Disable WSS/CGMS for Field 2
 //    if 1 then Enable WSS/CGMS for Field 2
 // 2. one bit EWSF1 (Enable Wide Screen for Field 1)
-//    enable/disable Wide Screen Signaling/Copy Generation Management 
+//    enable/disable Wide Screen Signaling/Copy Generation Management
 //    System encoding for field 1 (16:9)
 //    if 0 then Disable WSS/CGMS for Field 1
 //    if 1 then Enable WSS/CGMS for Field 1
@@ -162,9 +162,9 @@ int bt865_id = 0;
 //    1    0              2 Pixel Clock Delay
 //    1    1              3 Pixel Clock Delay
 //    used to program the Luminance Delay on the CVBS/B Output
-// 2. three bits TXHE[10:8] (Last Three Bits Teletext Falling Edge) 
+// 2. three bits TXHE[10:8] (Last Three Bits Teletext Falling Edge)
 //    (Falling Edge Position of TeleText Request Pin)
-// 3. three bits TXHS[10:8] (Last Three Bits Teletext Rising Edge) 
+// 3. three bits TXHS[10:8] (Last Three Bits Teletext Rising Edge)
 //    (Rising Edge Position of TeleText Request Pin)
 // (It's a programmable pulse generator)
 
@@ -177,21 +177,21 @@ int bt865_id = 0;
 // 3. one bit TXE (Teletext Enable)
 //    if 0 then Disable Teletext
 //    if 1 then Enable Teletext
-// 4. one bit TXEF2[8] (Last Line of Teletext Field 2 (last bit)) 
-// 5. one bit TXBF2[8] (First Line of Teletext Field 2 (last bit)) 
-// 6. one bit TXEF1[8] (Last Line of Teletext Field 1 (last bit)) 
-// 7. one bit TXBF1[8] (First Line of Teletext Field 1 (last bit)) 
+// 4. one bit TXEF2[8] (Last Line of Teletext Field 2 (last bit))
+// 5. one bit TXBF2[8] (First Line of Teletext Field 2 (last bit))
+// 6. one bit TXEF1[8] (Last Line of Teletext Field 1 (last bit))
+// 7. one bit TXBF1[8] (First Line of Teletext Field 1 (last bit))
 
 // Bits from the Left for Register B4
-// 1. eight bits TXBF1[7:0] (First Line of Teletext Field 1 
+// 1. eight bits TXBF1[7:0] (First Line of Teletext Field 1
 //    (first eight bits))
 
 // Bits from the Left for Register B6
-// 1. eight bits TXEF1[7:0] (Last Line of Teletext Field 1 
+// 1. eight bits TXEF1[7:0] (Last Line of Teletext Field 1
 //    (first eight bits))
 
 // Bits from the Left for Register B8
-// 1. eight bits TXBF2[7:0] (First Line of Teletext Field 2 
+// 1. eight bits TXBF2[7:0] (First Line of Teletext Field 2
 //    (first eight bits))
 
 // Bits from the Left for Register BA
@@ -199,16 +199,16 @@ int bt865_id = 0;
 //    (first eight bits))
 
 // Bits from the Left for Register BC
-// 1. one bit ECCF2 (Enable Closed Caption Encoding on Field 2) 
+// 1. one bit ECCF2 (Enable Closed Caption Encoding on Field 2)
 //    if 0 then Disable Closed Caption Encoding on Field 2
 //    if 1 then Enable Closed Caption Encoding on Field 2
-// 2. one bit ECCF1 (Enable Closed Caption Encoding on Field 1) 
+// 2. one bit ECCF1 (Enable Closed Caption Encoding on Field 1)
 //    if 0 then Disable Closed Caption Encoding on Field 1
 //    if 1 then Enable Closed Caption Encoding on Field 1
 // 3. one bit ECCGATE (Closed Caption Mode)
-//    if 0 then Normal Closed Caption Encoding 
+//    if 0 then Normal Closed Caption Encoding
 //    if 1 then Prevent Encoding of Redundant or Incomplete Data
-//         Future Encoding is Disabled Until a Complete Pair of 
+//         Future Encoding is Disabled Until a Complete Pair of
 //         New Data Bytes is Received
 // 4. one reserved bit, zero for normal operation
 //    this should have been done by the reset above
@@ -233,30 +233,30 @@ int bt865_id = 0;
 //         by Narrowing Front and Back Porch in Favor of Active Video
 
 // Bits from the Left for Register BE
-// 1. eight bits CCF2B1[7:0] (First Byte of Closed Captioning 
+// 1. eight bits CCF2B1[7:0] (First Byte of Closed Captioning
 //    Information for Field 2)
 
 // Bits from the Left for Register C0
-// 1. eight bits CCF2B2[7:0] (Second Byte of Closed Captioning 
+// 1. eight bits CCF2B2[7:0] (Second Byte of Closed Captioning
 //    Information for Field 2)
 
 // Bits from the Left for Register C2
-// 1. eight bits CCF1B1[7:0] (First Byte of Closed Captioning 
+// 1. eight bits CCF1B1[7:0] (First Byte of Closed Captioning
 //    Information for Field 1)
 
 // Bits from the Left for Register C4
-// 1. eight bits CCF1B2[7:0] (Second Byte of Closed Captioning 
+// 1. eight bits CCF1B2[7:0] (Second Byte of Closed Captioning
 //    Information for Field 1)
 
 // Bits from the Left for Register C6
-// 1. eight bits HSYNCF[7:0] (First Eight Bits Falling Edge Sync Data) 
+// 1. eight bits HSYNCF[7:0] (First Eight Bits Falling Edge Sync Data)
 //    SYNC Pulse Position Relative to Internal Horizontal Pixel Clock
 //    for Falling Edge of HSYNC
 // Needs ADJHSYNC = 1
 // Master Mode Only
 
 // Bits from the Left for Register C8
-// 1. eight bits HSYNCR[7:0] (First Eight Bits Rising Edge Sync Data) 
+// 1. eight bits HSYNCR[7:0] (First Eight Bits Rising Edge Sync Data)
 //    SYNC Pulse Position Relative to Internal Horizontal Pixel Clock
 //    for Rising Edge of HSYNC
 // Needs ADJHSYNC = 1
@@ -280,8 +280,8 @@ int bt865_id = 0;
 //         Rising and Falling Times
 //    See HSYNCR[7:0] and HSYNCF[7:0] Above
 //    (It's a programmable pulse generator and this is it's Enable Bit)
-// 5. two bits HSYNCF[9:8] (Last Two Bits Falling Edge Sync Data) 
-// 6. two bits HSYNCR[9:8] (Last Two Bits Rising Edge Sync Data) 
+// 5. two bits HSYNCF[9:8] (Last Two Bits Falling Edge Sync Data)
+// 6. two bits HSYNCR[9:8] (Last Two Bits Rising Edge Sync Data)
 
 // Bits from the Left for Register CC
 // 1. one bit SETMODE (Automatic Mode Detection)
@@ -324,7 +324,7 @@ int bt865_id = 0;
 //    if 0 then Normal Operation
 //    if 1 then Enable Internally Generated Color Bars on Output
 // 5. one bit SCRESET (Sub Carrier Reset Mode)
-//    if 0 then Normal Operation 
+//    if 0 then Normal Operation
 //         (SC Phase is Reset at Beginning of Each Field)
 //    if 1 then Disable Sub Carrier Reset Event at the
 //         Beginning of Each Field Sequence
@@ -841,7 +841,7 @@ static int bt865_setmode(int mode, struct i2c_client *client)
 static int bt865_setup(struct i2c_client *client)
 {
 	struct bt865_data_s *data = client->data ;
-	
+
 	if (memset(data->config, 0, sizeof(data->config)) != data->config) {
 		printk(KERN_NOTICE "bt865_setup: memset error\n");
 		return -1;
@@ -863,7 +863,7 @@ static int bt865_setup(struct i2c_client *client)
 		printk(KERN_NOTICE "bt865_setup: bt865_update error\n");
 		return -1;
 	}
-	
+
 	return 0;
 }
 
@@ -885,7 +885,7 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
 		return 0;
 	}
 
-	new_client = kmalloc(sizeof(struct i2c_client) + sizeof(struct bt865_data_s), 
+	new_client = kmalloc(sizeof(struct i2c_client) + sizeof(struct bt865_data_s),
 			GFP_KERNEL);
 
 	if (!new_client) {
@@ -920,11 +920,15 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
 			return -1;
 		}
 
+#ifdef MODULE
+		MOD_INC_USE_COUNT;
+#endif
+
 		return 0;
 	}
 
 	kfree(new_client);
-	return 0;			  
+	return 0;
 }
 
 static int bt865_attach_adapter(struct i2c_adapter *adapter)
@@ -942,6 +946,10 @@ int bt865_detach_client(struct i2c_client *client)
 		printk(KERN_ERR "bt865.o: Client deregistration failed, client not detached.\n");
 		return err;
 	}
+
+#ifdef MODULE
+	MOD_DEC_USE_COUNT;
+#endif
 
 	kfree(client);
 
@@ -968,36 +976,20 @@ int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg)
 	return 0;
 }
 
-/* Nothing here yet */
-void bt865_inc_use (struct i2c_client *client)
-{
-#ifdef MODULE
-	MOD_INC_USE_COUNT;
-#endif
-}
-
-/* Nothing here yet */
-void bt865_dec_use (struct i2c_client *client)
-{
-#ifdef MODULE
-	MOD_DEC_USE_COUNT;
-#endif
-}
-
 /* ----------------------------------------------------------------------- */
 
 
 int __init bt865_init(void)
 {
 	int bars;
-	
-        if (color_bars) {
+
+	if (color_bars) {
 		bars = 0x10;
 	} else {
 		bars = 0x00;
-        }
-	
-        if (rgb_mode) {
+	}
+
+	if (rgb_mode) {
 
 	bars = bars | 0x40;
 	pr_debug("bt865.o: rgb_mode: %d\n", rgb_mode);
@@ -1005,7 +997,7 @@ int __init bt865_init(void)
 	}
 
 	pr_debug("bt865.o: color_bars: %d\n", color_bars);
-	
+
 	NTSC_CONFIG_BT865[23] = (NTSC_CONFIG_BT865[23] & ~0x10) | bars;
 	NTSC60_CONFIG_BT865[23] = (NTSC60_CONFIG_BT865[23] & ~0x10) | bars;
 	PALM_CONFIG_BT865[23] = (PALM_CONFIG_BT865[23] & ~0x10) | bars;

@@ -14,6 +14,7 @@
 #include <asm/io.h>
 #include <asm/uaccess.h>
 
+#include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 
 #include "em8300_reg.h"
@@ -115,14 +116,6 @@ static int em8300_i2c_unreg(struct i2c_client *client)
 	return 0;
 }
 
-static void em8300_i2c_inc(struct i2c_adapter *adapter)
-{	
-}
-
-static void em8300_i2c_dec(struct i2c_adapter *adapter)
-{	
-}
-
 /* ----------------------------------------------------------------------- */
 /* I2C functions							   */
 /* ----------------------------------------------------------------------- */
@@ -132,7 +125,7 @@ int em8300_i2c_init(struct em8300_s *em)
 	struct private_data_s *pdata;
 
 	//request_module("i2c-algo-bit");
-	
+
 	switch (em->chip_revision) {
 	case 2:
 		em->i2c_oe_reg = EM8300_I2C_OE;
@@ -143,7 +136,7 @@ int em8300_i2c_init(struct em8300_s *em)
 		em->i2c_pin_reg = EM8300_I2C_OE;
 		break;
 	}
-	
+
 	/*
 	  Reset devices on I2C bus
 	*/
@@ -152,11 +145,11 @@ int em8300_i2c_init(struct em8300_s *em)
 	em->mem[em->i2c_pin_reg] = 0x0100;
 	em->mem[em->i2c_pin_reg] = 0x0101;
 	em->mem[em->i2c_pin_reg] = 0x0808;
-	
+
 	/*
 	  Setup info structure for bus 1
 	*/
-	
+
 	em->i2c_data_1.setsda = &em8300_setsda;
 	em->i2c_data_1.setscl = &em8300_setscl;
 	em->i2c_data_1.getsda = &em8300_getsda;
@@ -169,19 +162,17 @@ int em8300_i2c_init(struct em8300_s *em)
 	pdata->clk = 0x10;
 	pdata->data = 0x8;
 	pdata->em = em;
-	
+
 	em->i2c_data_1.data = pdata;
 
 	strcpy(em->i2c_ops_1.name, "EM8300 I2C bus 1");
 	em->i2c_ops_1.id = I2C_HW_B_EM8300;
 	em->i2c_ops_1.algo = NULL;
 	em->i2c_ops_1.algo_data = &em->i2c_data_1;
-	em->i2c_ops_1.inc_use = em8300_i2c_inc;
-	em->i2c_ops_1.dec_use = em8300_i2c_dec;
 	em->i2c_ops_1.client_register = em8300_i2c_reg;
 	em->i2c_ops_1.client_unregister = em8300_i2c_unreg;
 	em->i2c_ops_1.data = em;
-	
+
 	ret = i2c_bit_add_bus(&em->i2c_ops_1);
 
 	if (ret) {
@@ -204,19 +195,17 @@ int em8300_i2c_init(struct em8300_s *em)
 	pdata->clk = 0x4;
 	pdata->data = 0x8;
 	pdata->em = em;
-	
+
 	em->i2c_data_2.data = pdata;
 
 	strcpy(em->i2c_ops_2.name, "EM8300 I2C bus 2");
 	em->i2c_ops_2.id = I2C_HW_B_EM8300;
 	em->i2c_ops_2.algo = NULL;
 	em->i2c_ops_2.algo_data = &em->i2c_data_2;
-	em->i2c_ops_2.inc_use = em8300_i2c_inc;
-	em->i2c_ops_2.dec_use = em8300_i2c_dec;
 	em->i2c_ops_2.client_register = em8300_i2c_reg;
 	em->i2c_ops_2.client_unregister = em8300_i2c_unreg;
 	em->i2c_ops_2.data = em;
-	
+
 	ret = i2c_bit_add_bus(&em->i2c_ops_2);
 	return ret;
 }
@@ -245,7 +234,7 @@ void em8300_clockgen_write(struct em8300_s *em, int abyte)
 	em->mem[em->i2c_pin_reg] = 0x200;
 	udelay(10);
 	em->mem[em->i2c_pin_reg] = 0x202;
-}	
+}
 
 static void I2C_clk(struct em8300_s *em, int level)
 {
@@ -280,7 +269,7 @@ static void I2C_out(struct em8300_s *em, int data, int bits)
 static int I2C_in(struct em8300_s *em, int bits)
 {
 	int i, data = 0;
-	
+
 	for(i = bits - 1; i >= 0; i--) {
 		data |= I2C_read_data << i;
 		I2C_clk(em, 0);
@@ -293,7 +282,7 @@ static void sub_23660(struct em8300_s *em, int arg1, int arg2)
 {
 	I2C_clk(em, 0);
 	I2C_out(em, arg1, 8);
-	I2C_data(em, arg2);  
+	I2C_data(em, arg2);
 	I2C_clk(em, 1);
 }
 

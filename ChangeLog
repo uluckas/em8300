@@ -1,3 +1,21 @@
+2003-11-22  David Holm  <dholm@gentoo.org>
+	* modules/adv717x.c,
+	  modules/bt865.c,
+	  modules/em8300_audio.c,
+	  modules/em8300_dicom.c,
+	  modules/em8300_fifo.c,
+	  modules/em8300_fifo.h,
+	  modules/em8300_i2c.c,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_main.c,
+	  modules/em8300_misc.c,
+	  modules/em8300_spu.c,
+	  modules/em8300_ucode.c,
+	  modules/em8300_video.c,
+	  modules/em9010.c:
+	Added a patch from Nicolas Boullis <Nicolas Boullis at free fr> which
+	seamlessly integrates i2c-2.8 support.
+
 2003-08-10  David Holm  <david@realityrift.com>
 	* modules/em8300_audio.c,
 	  modules/em8300_fifo.c,

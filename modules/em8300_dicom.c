@@ -14,6 +14,7 @@
 #include <asm/io.h>
 #include <asm/uaccess.h>
 
+#include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 
 #include "em8300_reg.h"
@@ -127,7 +128,7 @@ int sub_40137(struct em8300_s *em)
 	return 1;
 }
 
-void em8300_dicom_setBCS(struct em8300_s *em, int brightness, int contrast, int saturation) 
+void em8300_dicom_setBCS(struct em8300_s *em, int brightness, int contrast, int saturation)
 {
 	em->dicom_brightness = brightness;
 	em->dicom_contrast = contrast;
@@ -143,11 +144,11 @@ void em8300_dicom_setBCS(struct em8300_s *em, int brightness, int contrast, int 
 	write_ucregister(DICOM_UpdateFlag, 1);
 }
 
-int em8300_dicom_update(struct em8300_s *em) 
+int em8300_dicom_update(struct em8300_s *em)
 {
 	int ret;
 	int vmode_ntsc = 1;
-	
+
 	if (dicom_other_pal) {
 		vmode_ntsc = (em->video_mode == EM8300_VIDEOMODE_NTSC);
 	}
@@ -209,21 +210,21 @@ int em8300_dicom_update(struct em8300_s *em)
 			}
 			if (vmode_ntsc) {
 				write_register(EM8300_VSYNC_HI, 260);
-			        write_register(0x1f5e, 0xfefe);
+				write_register(0x1f5e, 0xfefe);
 			} else {
-				write_register(EM8300_VSYNC_HI, 310);	 
-			        write_register(0x1f5e, 0x9cfe);
+				write_register(EM8300_VSYNC_HI, 310);
+				write_register(0x1f5e, 0x9cfe);
 			}
 
-			write_ucregister(DICOM_VSyncLo1, 0x1); 
+			write_ucregister(DICOM_VSyncLo1, 0x1);
 			write_ucregister(DICOM_VSyncLo2, 0x0);
-			write_ucregister(DICOM_VSyncDelay1, 0xd2); 
-			write_ucregister(DICOM_VSyncDelay2, 0x00);  
+			write_ucregister(DICOM_VSyncDelay1, 0xd2);
+			write_ucregister(DICOM_VSyncDelay2, 0x00);
 
 			write_register(0x1f46, 0x00);
 			write_register(0x1f47, 0x1f);
 
-			write_ucregister(DICOM_Control, 0x9efe);		
+			write_ucregister(DICOM_Control, 0x9efe);
 		} else { /* ADV7170 or ADV7175A */
 			write_register(0x1f47, 0x18);
 
@@ -245,13 +246,13 @@ int em8300_dicom_update(struct em8300_s *em)
 				} else {
 					write_register(0x1f5e, 0x1efe);
 				}
-	
+
 				if (dicom_control) {
 					write_ucregister(DICOM_Control, 0x9afe);
 				} else {
 					write_ucregister(DICOM_Control, 0x9efe);
 				}
-			}			 
+			}
 		}
 	}
 
@@ -261,7 +262,7 @@ int em8300_dicom_update(struct em8300_s *em)
 	pr_debug("em8300_dicom.o: dicom_fix: %d\n", dicom_fix);
 
 	write_ucregister(DICOM_UpdateFlag, 1);
-	
+
 	return em8300_waitfor(em, ucregister(DICOM_UpdateFlag), 0, 1);
 }
 
@@ -282,9 +283,9 @@ void em8300_dicom_enable(struct em8300_s *em)
 	}
 
 	if (em->aspect_ratio == EM8300_ASPECTRATIO_16_9) {
-	  em->dicom_tvout |= 0x10;
+		em->dicom_tvout |= 0x10;
 	} else {
-	  em->dicom_tvout &= ~0x10;
+		em->dicom_tvout &= ~0x10;
 	}
 
 	write_ucregister(DICOM_TvOut, em->dicom_tvout);
@@ -294,7 +295,7 @@ int em8300_dicom_get_dbufinfo(struct em8300_s *em)
 {
 	int displaybuffer;
 	struct displaybuffer_info_s *di = &em->dbuf_info;
-	
+
 	displaybuffer = read_ucregister(DICOM_DisplayBuffer) + 0x1000;
 
 	di->xsize = read_register(displaybuffer);
@@ -324,14 +325,14 @@ int em8300_dicom_get_dbufinfo(struct em8300_s *em)
 	} else {
 		di->unk_present = 0;
 	}
-	
+
 	pr_debug("DICOM buffer: xsize=0x%x(%d)\n", di->xsize, di->xsize);
 	pr_debug("			  ysize=0x%x(%d)\n", di->ysize, di->ysize);
 	pr_debug("			  xsize2=0x%x(%d)\n", di->xsize2, di->xsize2);
 	pr_debug("			  flag1=%d, flag2=%d\n", di->flag1, di->flag2);
 	pr_debug("			  buffer1=0x%x(%d)\n", di->buffer1, di->buffer1);
 	pr_debug("			  buffer2=0x%x(%d)\n", di->buffer2, di->buffer2);
-	
+
 	if (di->unk_present) {
 		pr_debug("			  unknown1=0x%x(%d)\n", di->unknown1, di->unknown1);
 		pr_debug("			  unknown2=0x%x(%d)\n", di->unknown2, di->unknown2);
@@ -341,7 +342,7 @@ int em8300_dicom_get_dbufinfo(struct em8300_s *em)
 }
 
 /* sub_42A32
-   Arguments 
+   Arguments
    xoffset = ebp+0x8
    yoffset = ebp+0xc
    c = ebp+0x10
@@ -355,7 +356,7 @@ void em8300_dicom_fill_dispbuffers(struct em8300_s *em, int xpos, int ypos, int 
 
 	pr_debug("ysize: %d, xsize: %d\n", ysize, xsize);
 	pr_debug("buffer1: %d, buffer2: %d\n", em->dbuf_info.buffer1, em->dbuf_info.buffer2);
-	
+
 	for (i = 0; i < ysize; i++) {
 		em8300_setregblock(em, em->dbuf_info.buffer1 + xpos + (ypos + i) * em->dbuf_info.xsize, pat1, xsize);
 		em8300_setregblock(em, em->dbuf_info.buffer2 + xpos + (ypos + i) / 2 * em->dbuf_info.xsize, pat2, xsize);

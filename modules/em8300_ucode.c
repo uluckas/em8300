@@ -14,6 +14,7 @@
 #include <asm/io.h>
 #include <asm/uaccess.h>
 
+#include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 
 #include "em8300_reg.h"
@@ -46,7 +47,7 @@ static int upload_block(struct em8300_s *em, int blocktype, int offset, int len,
 			val = (buf[i + 2] << 24) | (buf[i + 3] << 16) | (buf[i] << 8) | buf[i + 1];
 			em->mem[0x11800] = val;
 		}
-	
+
 		if (em8300_waitfor(em, 0x1c1a, 0, 1)) {
 			return -ETIME;
 		}
@@ -90,7 +91,7 @@ int upload_prepare(struct em8300_s *em)
 	em->mem[0x1c04] = em->var_ucode_reg3;
 	em->mem[0x1c00] = em->var_ucode_reg1;
 	em->mem[0x1c04] = em->var_ucode_reg2;
-	 
+
 	em->mem[0x1c08];
 	em->mem[0x1c10] = 0x8;
 	em->mem[0x1c20] = 0x8;
@@ -109,7 +110,7 @@ int upload_prepare(struct em8300_s *em)
 	em->mem[0x1c01] = 0x5555;
 	em->mem[0x1c02] = 0x55a;
 	em->mem[0x1c03] = 0x0;
-	
+
 	return 0;
 }
 
@@ -126,7 +127,7 @@ int em8300_ucode_upload(struct em8300_s *em, void *ucode_user, int ucode_size)
 	}
 
 	upload_prepare(em);
-	
+
 	copy_from_user(ucode, ucode_user, ucode_size);
 
 	memcount = 0;
@@ -134,14 +135,14 @@ int em8300_ucode_upload(struct em8300_s *em, void *ucode_user, int ucode_size)
 	p = ucode;
 	while (memcount < ucode_size) {
 		flags =  p[0] | (p[1] << 8); p += 2;
-		offset = p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24); p += 4; 
+		offset = p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24); p += 4;
 		len = p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24); p += 4;
 		memcount += 10;
 		len *= 2;
 
 		if (!flags)
 			break;
-	
+
 		switch (flags & 0xf00) {
 		case 0:
 			upload_block(em, flags, offset, len, p);
@@ -167,7 +168,7 @@ int em8300_ucode_upload(struct em8300_s *em, void *ucode_user, int ucode_size)
 		memcount += len;
 		p += len;
 	}
-	
+
 	kfree(ucode);
 	return 0;
 }

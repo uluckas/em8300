@@ -41,6 +41,7 @@
 #include <linux/version.h>
 #include <asm/uaccess.h>
 
+#include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 
 #include "em8300_reg.h"
@@ -58,12 +59,12 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 	f->preprocess_ratio = 1;
 	f->preprocess_cb = NULL;
 	f->preprocess_buffer = NULL;
-	
+
 	f->type = fifotype;
-	
+
 	f->writeptr = (unsigned * volatile) ucregister_ptr(wrptr);
 	f->readptr = (unsigned * volatile) ucregister_ptr(rdptr);
-	
+
 	switch (f->type) {
 	case FIFOTYPE_AUDIO:
 		f->slotptrsize = 3;
@@ -79,7 +80,7 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 		f->nslots = read_ucregister(pcisize) / 4;
 		break;
 	}
-	
+
 	f->slotsize = slotsize;
 	f->start = ucregister(start) - 0x1000;
 	f->threshold = f->nslots / 2;
@@ -89,7 +90,7 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 	if (f->fifobuffer) {
 		kfree(f->fifobuffer);
 	}
-	
+
 	f->fifobuffer = kmalloc(f->nslots * f->slotsize, GFP_KERNEL);
 	if (f->fifobuffer == NULL) {
 		return -ENOMEM;
@@ -99,8 +100,8 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 	init_waitqueue(&f->wait);
 #else
 	init_waitqueue_head(&f->wait);
-#endif	
-	
+#endif
+
 	for (i = 0; i < f->nslots; i++) {
 		phys = virt_to_phys(f->fifobuffer + i * f->slotsize);
 		switch (f->type) {
@@ -116,10 +117,10 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 			f->slots.v[i].slotsize = f->slotsize;
 		}
 	}
-	
+
 	spin_lock_init(&f->lock);
 	f->valid = 1;
-	
+
 	return 0;
 }
 
@@ -148,7 +149,7 @@ struct fifo_s *em8300_fifo_alloc()
 int em8300_fifo_check(struct fifo_s *fifo)
 {
 	int freeslots;
-	
+
 	if (!fifo || !fifo->valid) {
 		return -1;
 	}
@@ -174,7 +175,7 @@ int em8300_fifo_sync(struct fifo_s *fifo)
 		}
 
 		if (signal_pending(current)) {
-			printk(KERN_ERR "em8300.o: FIFO sync interrupted\n");		
+			printk(KERN_ERR "em8300.o: FIFO sync interrupted\n");
 			return -EINTR;
 		}
 	}
@@ -189,7 +190,7 @@ int em8300_fifo_write_nolock(struct fifo_s *fifo, int n, const char *userbuffer,
 	if (!fifo || !fifo->valid) {
 		return -1;
 	}
-	
+
 	freeslots = em8300_fifo_freeslots(fifo);
 	writeindex = (*fifo->writeptr - fifo->start) / fifo->slotptrsize;
 	for (i = 0; i < freeslots && n; i++) {
@@ -210,7 +211,7 @@ int em8300_fifo_write_nolock(struct fifo_s *fifo, int n, const char *userbuffer,
 		} else {
 			copy_from_user(fifo->fifobuffer + writeindex * fifo->slotsize, userbuffer, copysize);
 		}
-	
+
 		writeindex++;
 		writeindex %= fifo->nslots;
 		n -= copysize;
@@ -219,7 +220,7 @@ int em8300_fifo_write_nolock(struct fifo_s *fifo, int n, const char *userbuffer,
 		fifo->bytes += copysize;
 	}
 	*fifo->writeptr = fifo->start + writeindex * fifo->slotptrsize;
-	
+
 	return bytes_transferred;
 }
 
@@ -242,15 +243,15 @@ int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *use
 	if (!fifo->valid) {
 		return -EPERM;
 	}
-	
-	
+
+
 	while (n) {
 		copy_size = em8300_fifo_write_nolock(fifo, n, userbuffer, flags);
 
 		if (copy_size < 0) {
 			return -EIO;
 		}
-	
+
 		n -= copy_size;
 		userbuffer += copy_size;
 		total_bytes_written += copy_size;
@@ -262,7 +263,7 @@ int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *use
 				printk("Fifo still full, trying stop %p\n", fifo);
 				em8300_video_setplaymode(fifo->em, EM8300_PLAYMODE_STOPPED);
 				em8300_video_setplaymode(fifo->em, EM8300_PLAYMODE_PLAY);
-		    
+
 				safe_jiff = jiffies;
 				interruptible_sleep_on_timeout(&fifo->wait, 3 * HZ);
 				if time_after_eq(jiffies, safe_jiff + (3 * HZ)) {
@@ -271,7 +272,7 @@ int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *use
 				}
 			}
 		}
-	
+
 		if (signal_pending(current)) {
 			if (total_bytes_written) {
 				return total_bytes_written;
@@ -282,8 +283,8 @@ int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *use
 
 	}
 
-	// printk(KERN_ERR "em8300.o: count = %d\n", total_bytes_written);		
-	// printk(KERN_ERR "em8300.o: time  = %d\n", jiffies - safe_jiff);		
+	// printk(KERN_ERR "em8300.o: count = %d\n", total_bytes_written);
+	// printk(KERN_ERR "em8300.o: time  = %d\n", jiffies - safe_jiff);
 	return total_bytes_written;
 }
 
@@ -313,7 +314,7 @@ int em8300_fifo_calcbuffered(struct fifo_s *fifo)
 {
 	int readindex, writeindex, i, n;
 
-	writeindex = (*fifo->writeptr - fifo->start) / fifo->slotptrsize;	
+	writeindex = (*fifo->writeptr - fifo->start) / fifo->slotptrsize;
 	readindex = (*fifo->readptr - fifo->start) / fifo->slotptrsize;
 	n = 0;
 	i = readindex;

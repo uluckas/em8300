@@ -14,6 +14,7 @@
 #include <asm/io.h>
 #include <asm/uaccess.h>
 
+#include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 
 #include "em8300_reg.h"
@@ -29,7 +30,7 @@ unsigned default_palette[16] = {
 int em8300_spu_setpalette(struct em8300_s *em, unsigned *pal)
 {
 	int i, palette;
-	
+
 	palette = ucregister(SP_Palette);
 
 	for (i=0; i < 16; i++) {
@@ -43,7 +44,7 @@ int em8300_spu_setpalette(struct em8300_s *em, unsigned *pal)
 int em8300_spu_button(struct em8300_s *em, em8300_button_t *btn)
 {
 	write_ucregister(SP_Command, 0x2);
-	
+
 	if (btn == 0) /* btn = 0 means release button */
 		return 0;
 
@@ -63,7 +64,7 @@ int em8300_spu_button(struct em8300_s *em, em8300_button_t *btn)
 void em8300_spu_check_ptsfifo(struct em8300_s *em)
 {
 	int ptsfifoptr;
-	
+
 		ptsfifoptr = ucregister(SP_PTSFifo) + 2 * em->sp_ptsfifo_ptr;
 
 		if (!(read_register(ptsfifoptr + 1) & 1)) {
@@ -75,14 +76,14 @@ int em8300_spu_write(struct em8300_s *em, const char * buf, size_t count, loff_t
 {
 	int flags = 0;
 	unsigned int safe_jiff = jiffies;
-    
+
 	if (!(em->sp_mode)) return 0;
 //	em->sp_ptsvalid=0;
 	if (em->sp_ptsvalid) {
 		int ptsfifoptr;
-	
+
 		ptsfifoptr = ucregister(SP_PTSFifo) + 2 * em->sp_ptsfifo_ptr;
-	
+
 		if (read_register(ptsfifoptr + 1) & 1) {
 			interruptible_sleep_on_timeout(&em->sp_ptsfifo_wait, HZ);
 			if (time_after_eq(jiffies, safe_jiff + HZ)) {
@@ -114,7 +115,7 @@ int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 {
 	int err;
 	unsigned clu[16];
-	
+
 	switch (cmd) {
 	case EM8300_IOCTL_SPU_SETPTS:
 		if (get_user(em->sp_pts, (int *) arg)) {

@@ -14,6 +14,7 @@
 #include <asm/io.h>
 #include <asm/uaccess.h>
 
+#include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 
 #include "em8300_reg.h"
@@ -31,7 +32,7 @@ static int mpegvideo_command(struct em8300_s *em, int cmd)
 	}
 
 	write_ucregister(MV_Command, cmd);
-	
+
 	if ((cmd == MVCOMMAND_DISPLAYBUFINFO) || (cmd == 0x10)) {
 		return em8300_waitfor_not(em, ucregister(DICOM_Display_Data), 0, 0xffff);
 	} else {
@@ -46,7 +47,7 @@ int em8300_video_setplaymode(struct em8300_s *em, int mode)
 		em->video_playmode = mode;
 		return 0;
 	}
-    
+
 	if (em->video_playmode != mode) {
 		switch (mode) {
 		case EM8300_PLAYMODE_STOPPED:
@@ -84,7 +85,7 @@ int em8300_video_sync(struct em8300_s *em)
 
 	rdptr_last = 0;
 	synctimeout = 0;
-    
+
 	do {
 		wrptr = read_ucregister(MV_Wrptr_Lo) |
 			(read_ucregister(MV_Wrptr_Hi) << 16);
@@ -94,7 +95,7 @@ int em8300_video_sync(struct em8300_s *em)
 		if (rdptr == wrptr) {
 			break;
 		}
-		
+
 		if (rdptr == rdptr_last) {
 			printk(KERN_DEBUG "em8300_video.o: Video sync rdptr is stuck at 0x%08x, wrptr 0x%08x, left %d\n", rdptr, wrptr, wrptr - rdptr);
 			break;
@@ -116,7 +117,7 @@ int em8300_video_sync(struct em8300_s *em)
 	}
 
 	set_current_state(TASK_RUNNING);
-	
+
 	return 0;
 }
 
@@ -150,7 +151,7 @@ int em8300_video_setup(struct em8300_s *em)
 #else
 	init_waitqueue_head(&em->video_ptsfifo_wait);
 	init_waitqueue_head(&em->vbi_wait);
-#endif	
+#endif
 
 	write_register(0x1f47, 0x0);
 
@@ -165,21 +166,21 @@ int em8300_video_setup(struct em8300_s *em)
 	write_register(EM8300_I2C_PIN, 0x3c3c);
 	write_register(EM8300_I2C_OE, 0x3c00);
 	write_register(EM8300_I2C_OE, 0x3c3c);
-	
+
 	write_register(EM8300_I2C_PIN, 0x808);
 	write_register(EM8300_I2C_PIN, 0x1010);
-	
+
 	em9010_init(em);
-	
+
 	em9010_write(em, 7, 0x40);
 	em9010_write(em, 9, 0x4);
-	
+
 	em9010_read(em, 0);
-	
+
 	udelay(100);
-	
+
 	write_ucregister(DICOM_UpdateFlag, 0x0);
-	
+
 	write_ucregister(DICOM_VisibleLeft, 0x168);
 	write_ucregister(DICOM_VisibleTop, 0x2e);
 	write_ucregister(DICOM_VisibleRight, 0x36b);
@@ -199,11 +200,11 @@ int em8300_video_setup(struct em8300_s *em)
 	if (em9010_cabledetect(em)) {
 		pr_debug("em8300: overlay loop-back cable detected\n");
 	}
-    
+
 	pr_debug("em8300: overlay reg 0x80 = %x \n", em9010_read16(em, 0x80));
-	
+
 	em9010_write(em, 0xb, 0xc8);
-	
+
 	pr_debug("em8300: register 0x1f4b = %x (0x138)\n", read_register(0x1f4b));
 
 	em9010_write16(em, 1, 0x4fe);
@@ -235,9 +236,9 @@ int em8300_video_setup(struct em8300_s *em)
 	}
 
 	write_ucregister(DICOM_UpdateFlag, 0x1);
-	
+
 	udelay(100);
-	
+
 	write_ucregister(ForcedLeftParity, 0x2);
 
 	write_ucregister(MV_Threshold, 0x90); // was 0x50 for BT865, but this works too
@@ -250,18 +251,18 @@ int em8300_video_setup(struct em8300_s *em)
 	write_register(0x1ffb, em->var_video_value);
 
 	write_ucregister(MA_Threshold, 0x8);
-	
+
 	/* Release reset */
 	write_register(0x2000, 0x1);
-	
+
 	if (mpegvideo_command(em, MVCOMMAND_DISPLAYBUFINFO)) {
 		printk(KERN_ERR "em8300_video: mpegvideo_command(0x11) failed\n");
 		return -ETIME;
 	}
 	em8300_dicom_get_dbufinfo(em);
-        
+
 	write_ucregister(SP_Status, 0x0);
-	
+
 	if (mpegvideo_command(em, 0x10)) {
 		printk(KERN_ERR "em8300: mpegvideo_command(0x10) failed\n");
 		return -ETIME;
@@ -300,7 +301,7 @@ void em8300_video_setspeed(struct em8300_s *em, int speed)
 void em8300_video_check_ptsfifo(struct em8300_s *em)
 {
 	int ptsfifoptr;
-    
+
 	ptsfifoptr = ucregister(MV_PTSFifo) + 4 * em->video_ptsfifo_ptr;
 
 	if (!(read_register(ptsfifoptr + 3) & 1)) {
@@ -312,7 +313,7 @@ int em8300_video_write(struct em8300_s *em, const char * buf, size_t count, loff
 {
 	unsigned flags = 0;
 	int written;
-	unsigned int safe_jiff = jiffies;	
+	unsigned int safe_jiff = jiffies;
 
 	if (em->video_ptsvalid) {
 		int ptsfifoptr = 0;
@@ -320,7 +321,7 @@ int em8300_video_write(struct em8300_s *em, const char * buf, size_t count, loff
 
 		flags = 0x40000000;
 		ptsfifoptr = ucregister(MV_PTSFifo) + 4 * em->video_ptsfifo_ptr;
-		
+
 		if (read_register(ptsfifoptr+3) & 1) {
 			interruptible_sleep_on_timeout(&em->video_ptsfifo_wait, HZ);
 			if (time_after_eq(jiffies, safe_jiff + HZ)) {
@@ -330,7 +331,7 @@ int em8300_video_write(struct em8300_s *em, const char * buf, size_t count, loff
 			if (signal_pending(current)) {
 				return -EINTR;
 			}
-		}	
+		}
 
 #ifdef DEBUG_SYNC
 		pr_info("em8300_video.o: pts: %u\n", em->video_pts >> 1);
@@ -340,7 +341,7 @@ int em8300_video_write(struct em8300_s *em, const char * buf, size_t count, loff
 		write_register(ptsfifoptr + 1, em->video_offset & 0xffff);
 		write_register(ptsfifoptr + 2, em->video_pts >> 16);
 		write_register(ptsfifoptr + 3, (em->video_pts & 0xffff) | 1);
-	
+
 		em->video_ptsfifo_ptr++;
 		em->video_ptsfifo_ptr %= read_ucregister(MV_PTSSize) / 4;
 

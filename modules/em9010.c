@@ -14,6 +14,7 @@
 #include <asm/io.h>
 #include <asm/uaccess.h>
 
+#include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 #include <linux/time.h>
 
@@ -43,7 +44,7 @@ static int testcable(struct em8300_s *em)
 
 	return 1;
 }
-	 
+
 /* loc_2abac */
 int em9010_cabledetect(struct em8300_s *em)
 {
@@ -85,7 +86,7 @@ static inline void my_timeval_less(struct timeval a, struct timeval b, struct ti
 		result->tv_usec = a.tv_usec - b.tv_usec;
 }
 
-static 
+static
 int sub_2AC2D(struct em8300_s *em)
 {
 	int a;
@@ -103,7 +104,7 @@ int sub_2AC2D(struct em8300_s *em)
 		}
 	}
 
-	do_gettimeofday(&t);	
+	do_gettimeofday(&t);
 	a = 1000;
 	while (!(em9010_read(em, 0x0) & 0x20)) {
 		if (!a--) {
@@ -134,7 +135,7 @@ int sub_2AC2D(struct em8300_s *em)
 void sub_4288c(struct em8300_s *em, int pa, int pb, int pc, int pd, int pe, int pf, int pg, int ph)
 {
   int pav, pbv, pcv, pdv, i;
-	/*	pr_debug("sub_4288c:  xpos=%d, ypos=%d, xwin=%d, ywin=%d, xoff=%d, yoff=%d, xcorr=%d, xd=%d\n", 
+	/*	pr_debug("sub_4288c:  xpos=%d, ypos=%d, xwin=%d, ywin=%d, xoff=%d, yoff=%d, xcorr=%d, xd=%d\n",
 	  pa,pb,pc,pd,pe,pf,pg,ph); */
 	if (pg >= 800) {
 		if (ph) {
@@ -149,7 +150,7 @@ void sub_4288c(struct em8300_s *em, int pa, int pb, int pc, int pd, int pe, int 
 		else {
 			pav = pa;
 			pcv = pc;
-		}  
+		}
 		if (pb < 0) {
 			pbv = 0;
 			pdv = pd + pb;
@@ -157,32 +158,31 @@ void sub_4288c(struct em8300_s *em, int pa, int pb, int pc, int pd, int pe, int 
 		else {
 			pbv = pb;
 			pdv = pd;
-		}  
+		}
 		if (pav + pcv>em->overlay_xres) {
 			pcv=em->overlay_xres - pav;
 		}
 		if (pb+pd > em->overlay_yres) {
 		  pdv=em->overlay_yres - pb;
 		}
-  
+
 		pa = (pa * 1000) / pg;
 		pc = (pc * 1000) / pg;
 		pav = (pav * 1000) / pg;
 		pcv = (pcv * 1000) / pg;
 
 		if (read_ucregister(DICOM_UpdateFlag) == 1) {
-		  i=0;
-		  while ((read_ucregister(DICOM_UpdateFlag) == 1) & (i < 20))
-		  {
-		    udelay(50);
-		    i++;
-		  }
-		  if (read_ucregister(DICOM_UpdateFlag) == 1) {
-			write_ucregister(DICOM_UpdateFlag, 0);
-			udelay(50);
-		  }  
+			i=0;
+			while ((read_ucregister(DICOM_UpdateFlag) == 1) & (i < 20)) {
+				udelay(50);
+				i++;
+			}
+			if (read_ucregister(DICOM_UpdateFlag) == 1) {
+				write_ucregister(DICOM_UpdateFlag, 0);
+				udelay(50);
+			}
 		}
-		    
+
 		write_ucregister(DICOM_VisibleLeft, pe + pav);
 		write_ucregister(DICOM_VisibleRight, pe + pav + pcv - 1);
 		write_ucregister(DICOM_VisibleTop, pf + pbv);
@@ -214,7 +214,7 @@ int em9010_calibrate_yoffset(struct em8300_s *em)
 	int i;
 
 	pr_debug("em9010: Starting yoffset calibration\n");
-	
+
 	//clear the stability value
 	em9010_write(em, 0x6, 0x0);
 
@@ -229,7 +229,7 @@ int em9010_calibrate_yoffset(struct em8300_s *em)
 	em9010_write16(em, 0x20, 0xff20);
 
 	em9010_write(em, 0xa, 0x6);
-	
+
 	em8300_video_setplaymode(em, EM8300_PLAYMODE_FRAMEBUF );
 
 	if (em->overlay_double_y) {
@@ -260,7 +260,7 @@ int em9010_calibrate_yoffset(struct em8300_s *em)
 		if (!(em9010_read(em,0) & 4)) {
 			sub_4288c(em, 0, i, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET],
 					em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
-    			if (!sub_2AC2D(em)) {
+			if (!sub_2AC2D(em)) {
 			    return 0;
 			}
 		} else {
@@ -271,7 +271,7 @@ int em9010_calibrate_yoffset(struct em8300_s *em)
 	if (i == 60) {
 		return 0;
 	}
-	
+
 	em->overlay_a[EM9010_ATTRIBUTE_YOFFSET] = em->overlay_a[EM9010_ATTRIBUTE_YOFFSET] + i - 2;
 
 	if (em->overlay_double_y) {
@@ -279,7 +279,7 @@ int em9010_calibrate_yoffset(struct em8300_s *em)
 	}
 
 	pr_debug("em9010: Sucessfully calibrated yoffset (%d)\n", em->overlay_a[EM9010_ATTRIBUTE_YOFFSET]);
-	
+
 	return 1;
 }
 
@@ -294,16 +294,16 @@ int em9010_calibrate_xoffset(struct em8300_s *em)
 	em9010_write16(em, 0x20, 0xff20);
 
 	em9010_write(em, 0xa, 0x6);
-	
+
 	em8300_dicom_fill_dispbuffers(em, 0, 0, em->dbuf_info.xsize, 4, 0, 0x80808080 );
-	em8300_dicom_fill_dispbuffers(em, 2, 0, 2, em->dbuf_info.ysize, 0xffffffff, 0x80808080 ); 
+	em8300_dicom_fill_dispbuffers(em, 2, 0, 2, em->dbuf_info.ysize, 0xffffffff, 0x80808080 );
 
 	em->overlay_a[EM9010_ATTRIBUTE_XCORR] = 1000;
 	em->overlay_a[EM9010_ATTRIBUTE_XOFFSET] = 100000 / em->overlay_a[EM9010_ATTRIBUTE_XCORR];
 
 	sub_4288c(em, 0, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET],
 			em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
-	
+
 	pr_debug("em9010: Done drawing x testpattern\n");
 
 	mdelay(20);
@@ -323,7 +323,7 @@ int em9010_calibrate_xoffset(struct em8300_s *em)
 		if (!(em9010_read(em,0) & 4)) {
 			sub_4288c(em, i, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET],
 					em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
-    			if (!sub_2AC2D(em)) {
+			if (!sub_2AC2D(em)) {
 			    return 0;
 			}
 		} else {
@@ -334,11 +334,11 @@ int em9010_calibrate_xoffset(struct em8300_s *em)
 	if (i == 220) {
 		return 0;
 	}
-	
+
 	em->overlay_a[EM9010_ATTRIBUTE_XOFFSET] = em->overlay_a[EM9010_ATTRIBUTE_XOFFSET] + i;
 
 	pr_debug("em9010: Sucessfully calibrated xoffset (%d)\n", em->overlay_a[EM9010_ATTRIBUTE_XOFFSET]);
-	
+
 	return 1;
 }
 
@@ -346,9 +346,9 @@ static int color_cal(struct em8300_s *em,int ul, int a, int b, int c,int d, int 
 {
 	int i;
 
-	if (ul == 1) { 
+	if (ul == 1) {
 		/* Measure upper threshold level */
-	
+
 		em9010_write16(em, a, d << 8);
 		em9010_write(em, 0xa, b);
 
@@ -358,7 +358,7 @@ static int color_cal(struct em8300_s *em,int ul, int a, int b, int c,int d, int 
 
 		em9010_write(em, 0, 0x17);
 		em9010_write(em, 0, 0x10);
-	
+
 		for (i = d; i > 0; i--) {
 			em9010_write16(em, a, i << 8);
 			if (em9010_read(em, 0) & (a >> 3)) {
@@ -368,7 +368,7 @@ static int color_cal(struct em8300_s *em,int ul, int a, int b, int c,int d, int 
 			}
 		}
 	} else if (ul == 2) {
-		/* Measure lower threshold level */	
+		/* Measure lower threshold level */
 		em9010_write16(em, a, 0x0);
 		em9010_write(em, 0xa, c);
 		if (!sub_2AC2D(em)) {
@@ -376,7 +376,7 @@ static int color_cal(struct em8300_s *em,int ul, int a, int b, int c,int d, int 
 		}
 		em9010_write(em, 0, 0x17);
 		em9010_write(em, 0, 0x10);
-	
+
 		for (i = 0; i < d; i++) {
 			em9010_write16(em, a, i);
 			if (em9010_read(em, 0) & (a >> 3)) {
@@ -388,7 +388,7 @@ static int color_cal(struct em8300_s *em,int ul, int a, int b, int c,int d, int 
 	} else {
 		return -1;
 	}
-	
+
 	*res = i;
 
 	return 1;
@@ -405,15 +405,15 @@ int em9010_calibrate_xcorrection(struct em8300_s *em)
 	em9010_write16(em, 0x20, 0xff20);
 
 	em9010_write(em, 0xa, 0x6);
-	
+
 	em8300_dicom_fill_dispbuffers(em, 2, 0, 2, em->dbuf_info.ysize, 0, 0x80808080 );
-	em8300_dicom_fill_dispbuffers(em, 356, 0, 2, em->dbuf_info.ysize, 0xffffffff, 0x80808080 ); 
+	em8300_dicom_fill_dispbuffers(em, 356, 0, 2, em->dbuf_info.ysize, 0xffffffff, 0x80808080 );
 
 	em->overlay_a[EM9010_ATTRIBUTE_XCORR] = em->overlay_xcorr_default;
 
 	sub_4288c(em, 0, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET],
 			em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
-	
+
 	pr_debug("em9010: Done drawing xcorr testpattern\n");
 
 	mdelay(20);
@@ -429,7 +429,7 @@ int em9010_calibrate_xcorrection(struct em8300_s *em)
 	if (em->overlay_xcorr_default > 1200) {
 		j = 2;
 	}
-	
+
 	for (i = -100; i < 150; i++) {
 		if (!sub_2AC2D(em)) {
 			return 0;
@@ -438,7 +438,7 @@ int em9010_calibrate_xcorrection(struct em8300_s *em)
 			em->overlay_a[EM9010_ATTRIBUTE_XCORR] = i * j + em->overlay_xcorr_default;
 			sub_4288c(em, 0, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET],
 					em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
-    			if (!sub_2AC2D(em)) {
+			if (!sub_2AC2D(em)) {
 			    return 0;
 			}
 		} else {
@@ -450,13 +450,13 @@ int em9010_calibrate_xcorrection(struct em8300_s *em)
 	if (em->overlay_xcorr_default > 1500) {
 		em->overlay_a[EM9010_ATTRIBUTE_XCORR] += 2;
 	} else {
-		em->overlay_a[EM9010_ATTRIBUTE_XCORR] -= 2;		
+		em->overlay_a[EM9010_ATTRIBUTE_XCORR] -= 2;
 	}
 	sub_4288c(em, 0, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET],
 			em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
 
 	pr_debug("em9010: Sucessfully calibrated x correction (%d)\n", em->overlay_a[EM9010_ATTRIBUTE_XCORR]);
-	
+
 	return 1;
 }
 
@@ -472,12 +472,12 @@ int em9010_calibrate_xcorrection(struct em8300_s *em)
 int loc_2bcfe(struct em8300_s *em)
 {
 	int l1 = 10,l2,l3,l4,l5,l6,l7;
-	
-	em9010_write(em, 4, 0);	
-	em9010_write(em, 3, 0x80);	
+
+	em9010_write(em, 4, 0);
+	em9010_write(em, 3, 0x80);
 	l2 = em9010_read(em, 2);
 	l3 = em9010_read(em, 1);
-	
+
 	while (--l1 != 0) {
 		l4 = em9010_read(em, 1);
 		if ((l4 & 0xff) == (l3 & 0xff)) {
@@ -495,7 +495,7 @@ int loc_2bcfe(struct em8300_s *em)
 
 	l6 = (l3 << 8) + l2;
 	l7 = 165000 / (l6 + 2);
-	
+
 	if ((l7 > em->overlay_dword_24bb8 + 1) || (l7 < em->overlay_dword_24bb8 - 1)) {
 		em->overlay_dword_24bb8 = l7;
 	} else {
@@ -507,13 +507,13 @@ int loc_2bcfe(struct em8300_s *em)
 			l7 = em->overlay_yres * 62 / 100;
 		}
 	}
-	
+
 	pr_debug("em9010: loc_2bcfe -> %d\n", l7);
 	return l7;
 }
 /*
   loc_2a66e
-  
+
   l13 [ebp-38]
   l12 [ebp-8]
   l11 [ebp-20]
@@ -674,7 +674,7 @@ int em9010_overlay_update(struct em8300_s *em)
 		em9010_write(em, 9, em->overlay_gamma_enable);
 		em9010_overlay_set_signalmode(em, EM8300_OVERLAY_VGA_ONLY);
 	}
-	
+
 	em9010_write(em, 8, 0x80);
 
 	if (em->overlay_gamma_enable) {
@@ -697,7 +697,7 @@ int em9010_overlay_update(struct em8300_s *em)
 	case EM8300_OVERLAY_MODE_OVERLAY:
 		em9010_write(em, 0xb, 0xc8);
 		em9010_write(em, 0xa, 0x0);
-		set_keycolor(em, em->overlay_a[EM9010_ATTRIBUTE_KEYCOLOR_UPPER], em->overlay_a[EM9010_ATTRIBUTE_KEYCOLOR_LOWER]); 
+		set_keycolor(em, em->overlay_a[EM9010_ATTRIBUTE_KEYCOLOR_UPPER], em->overlay_a[EM9010_ATTRIBUTE_KEYCOLOR_LOWER]);
 		break;
 	}
 
@@ -777,11 +777,11 @@ int em8300_ioctl_overlay_calibrate(struct em8300_s *em, em8300_overlay_calibrate
 		break;
 	case EM8300_OVERLAY_CALMODE_COLOR:
 		r1=1;
-		
+
 		em9010_write(em, 0xb, 0xc8);
 
 		mdelay(1);
-	
+
 		if (color_cal(em, c->arg2, 8, 0x37, 0x73, c->arg, &r1)) {
 			c->result = r1 << 16;
 		} else {

@@ -15,6 +15,7 @@
 #include <asm/io.h>
 #include <asm/uaccess.h>
 
+#include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 
 #include "em8300_reg.h"
@@ -30,7 +31,7 @@
 int em8300_audio_calcbuffered(struct em8300_s *em);
 static int set_audiomode(struct em8300_s *em, int mode);
 
-/* C decompilation of sub_prepare_SPDIF by 
+/* C decompilation of sub_prepare_SPDIF by
 *  Anton Altaparmakov <antona@bigfoot.com>
 *
 *  If outblock == inblock generate mute pattern.
@@ -43,7 +44,7 @@ static int set_audiomode(struct em8300_s *em, int mode);
 
 void sub_prepare_SPDIF(struct em8300_s *em, unsigned char *outblock, unsigned char *inblock, unsigned int inlength)
 {
-	// 	ebp-4 = local1 = in	ebp-8 = local2
+	//	ebp-4 = local1 = in	ebp-8 = local2
 	//	ebp-0ch = local3 = i	ebp-10h = local4
 
 	unsigned char *in; // 32 bit points to array of 8 bit chars
@@ -60,7 +61,7 @@ void sub_prepare_SPDIF(struct em8300_s *em, unsigned char *outblock, unsigned ch
 		if (em->dword_DB4 == 0xc0) {
 			em->dword_DB4 = 0;
 		}
-		
+
 		{
 			register int ebx;
 			if (em->dword_DB4 < 0) {
@@ -85,7 +86,7 @@ void sub_prepare_SPDIF(struct em8300_s *em, unsigned char *outblock, unsigned ch
 		outblock[i * 8 + 1] = local2 >> 4;
 		outblock[i * 8] = local2 >> 12 | local4;
 
-       		local2 = in[0] << 8 | in[1];
+		local2 = in[0] << 8 | in[1];
 		if (!mute)
 			in +=2;
 
@@ -96,14 +97,14 @@ void sub_prepare_SPDIF(struct em8300_s *em, unsigned char *outblock, unsigned ch
 
 		++em->dword_DB4;
 	}
-	
+
 	return;
 }
 
 static void preprocess_analog(struct em8300_s *em, unsigned char *outbuf, const unsigned char *inbuf_user, int inlength)
 {
 	int i;
-	
+
 #ifdef __BIG_ENDIAN
 	if (em->audio.format == AFMT_S16_BE) {
 #else /* __LITTLE_ENDIAN */
@@ -129,7 +130,7 @@ static void preprocess_analog(struct em8300_s *em, unsigned char *outbuf, const 
 		for (i = 0; i < inlength / 2; i++) {
 			outbuf[2 * i] = inbuf_user[i];
 			outbuf[2 * i + 1] = inbuf_user[i];
-		}	
+		}
 	}
 }
 
@@ -149,12 +150,12 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
 #endif
 		if (em->audio.channels == 2) {
 			for(i = 0; i < inlength; i += 2) {
-				get_user(em->mafifo->preprocess_buffer[i + 1], inbuf_user++);				
+				get_user(em->mafifo->preprocess_buffer[i + 1], inbuf_user++);
 				get_user(em->mafifo->preprocess_buffer[i], inbuf_user++);
 			}
 		} else {
 			for(i = 0; i < inlength; i += 2) {
-				get_user(em->mafifo->preprocess_buffer[2 * i + 1], inbuf_user++);				
+				get_user(em->mafifo->preprocess_buffer[2 * i + 1], inbuf_user++);
 				get_user(em->mafifo->preprocess_buffer[2 * i], inbuf_user++);
 				em->mafifo->preprocess_buffer[2 * i + 3] = em->mafifo->preprocess_buffer[2 * i + 1];
 				em->mafifo->preprocess_buffer[2 * i + 2] = em->mafifo->preprocess_buffer[2 * i];
@@ -226,11 +227,11 @@ static int set_speed(struct em8300_s *em, int speed)
 		em->clockgen |= CLOCKGEN_SAMPFREQ_48;
 		speed = 48000;
 	}
-	
+
 	em->audio.speed = speed;
 
 	em8300_clockgen_write(em, em->clockgen);
-	
+
 	return speed;
 }
 
@@ -249,30 +250,27 @@ static int set_format(struct em8300_s *em, int fmt)
 		switch (fmt) {
 #ifdef AFMT_AC3
 		case AFMT_AC3:
-			if (em->audio_mode != EM8300_AUDIOMODE_DIGITALAC3)
-            {
-			    set_speed(em, 48000);
+			if (em->audio_mode != EM8300_AUDIOMODE_DIGITALAC3) {
+				set_speed(em, 48000);
 				set_audiomode(em, EM8300_AUDIOMODE_DIGITALAC3);
-                setup_mafifo(em);
-            }
+				setup_mafifo(em);
+			}
 			em->audio.format = fmt;
 			break;
 #endif
 		case AFMT_S16_BE:
 		case AFMT_S16_LE:
-			if (em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3)
-            {
+			if (em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3) {
 				set_audiomode(em, em->pcm_mode);
-                setup_mafifo(em);
-            }
+				setup_mafifo(em);
+			}
 			em->audio.format = fmt;
 			break;
 		default:
-			if (em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3)
-            {
+			if (em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3) {
 				set_audiomode(em, em->pcm_mode);
-                setup_mafifo(em);
-            }
+				setup_mafifo(em);
+			}
 			fmt = AFMT_S16_BE;
 			break;
 		}
@@ -305,7 +303,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		}
 	}
 
-	switch (cmd) { 
+	switch (cmd) {
 	case SNDCTL_DSP_RESET: /* reset device */
 		pr_debug("em8300_audio.o: SNDCTL_DSP_RESET\n");
 		em8300_audio_flush(em);
@@ -420,7 +418,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETOSPACE\n");
 		return copy_to_user((void *) arg, &buf_info, sizeof(audio_buf_info));
 	}
-	
+
 	case SNDCTL_DSP_GETISPACE:
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETISPACE\n");
 		return -ENOSYS;
@@ -489,7 +487,7 @@ int em8300_audio_open(struct em8300_s *em)
 	if (!em->ucodeloaded) {
 		return -ENODEV;
 	}
-	
+
 	em->mafifo->bytes = 0;
 
 	return audio_start(em);
@@ -499,13 +497,13 @@ int em8300_audio_release(struct em8300_s *em)
 {
 	em8300_fifo_sync(em->mafifo);
 	em8300_audio_flush(em);
-	return audio_stop(em);	
+	return audio_stop(em);
 }
 
 static int set_audiomode(struct em8300_s *em, int mode)
 {
 	em->audio_mode = mode;
-	
+
 	em->clockgen &= ~CLOCKGEN_OUTMASK;
 
 	if (em->audio_mode == EM8300_AUDIOMODE_ANALOG) {
@@ -513,7 +511,7 @@ static int set_audiomode(struct em8300_s *em, int mode)
 	} else {
 		em->clockgen |= CLOCKGEN_DIGITALOUT;
 	}
-	
+
 	em8300_clockgen_write(em, em->clockgen);
 
 	memset(em->byte_D90, 0, sizeof(em->byte_D90));
@@ -531,7 +529,7 @@ static int set_audiomode(struct em8300_s *em, int mode)
 		em->byte_D90[3] = 0x40;
 		break;
 	}
-	 
+
 	switch (em->audio_mode) {
 	case EM8300_AUDIOMODE_ANALOG:
 		em->pcm_mode = EM8300_AUDIOMODE_ANALOG;
@@ -546,9 +544,9 @@ static int set_audiomode(struct em8300_s *em, int mode)
 		write_register(EM8300_AUDIO_RATE, 0x3a0);
 
 		em->byte_D90[0] = 0x0;
-        sub_prepare_SPDIF(em, em->mafifo->preprocess_buffer, em->mafifo->preprocess_buffer, 0x300);
+		sub_prepare_SPDIF(em, em->mafifo->preprocess_buffer, em->mafifo->preprocess_buffer, 0x300);
 
-        em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)em->mafifo->preprocess_buffer, em->mafifo->slotsize);
+		em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)em->mafifo->preprocess_buffer, em->mafifo->slotsize);
 
 		printk(KERN_NOTICE "em8300_audio.o: Digital PCM audio enabled\n");
 		break;
@@ -556,9 +554,9 @@ static int set_audiomode(struct em8300_s *em, int mode)
 		write_register(EM8300_AUDIO_RATE, 0x3a0);
 
 		em->byte_D90[0] = 0x40;
-        sub_prepare_SPDIF(em, em->mafifo->preprocess_buffer, em->mafifo->preprocess_buffer, 0x300);
+		sub_prepare_SPDIF(em, em->mafifo->preprocess_buffer, em->mafifo->preprocess_buffer, 0x300);
 
-        em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)em->mafifo->preprocess_buffer, em->mafifo->slotsize);
+		em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)em->mafifo->preprocess_buffer, em->mafifo->slotsize);
 		printk(KERN_NOTICE "em8300_audio.o: Digital AC3 audio enabled\n");
 		break;
 	}
@@ -576,20 +574,20 @@ int em8300_audio_setup(struct em8300_s *em)
 	em->clockgen = em->clockgen_tvmode;
 
 	set_speed(em, 48000);
-	
+
 	set_audiomode(em, EM8300_AUDIOMODE_DEFAULT);
-	
+
 	ret = em8300_audio_flush(em);
 
 	setup_mafifo(em);
-	
+
 	if (ret) {
 		printk(KERN_ERR "em8300_audio.o: Couldn't zero audio buffer\n");
 		return ret;
 	}
-	
+
 	write_ucregister(MA_Threshold, 6);
-	
+
 	mpegaudio_command(em, MACOMMAND_PLAY);
 	mpegaudio_command(em, MACOMMAND_PAUSE);
 

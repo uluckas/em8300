@@ -1,4 +1,4 @@
-/* 
+/*
    ADV7175A - Analog Devices ADV7175A video encoder driver version 0.0.3
 
    Copyright (C) 2000 Henrik Johannson <henrikjo@post.utfors.se>
@@ -41,6 +41,7 @@
 #include <linux/version.h>
 #include <asm/uaccess.h>
 
+#include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 #include <linux/video_encoder.h>
 
@@ -100,8 +101,6 @@ MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be d
 static int adv717x_attach_adapter(struct i2c_adapter *adapter);
 int adv717x_detach_client(struct i2c_client *client);
 int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg);
-void adv717x_inc_use (struct i2c_client *client);
-void adv717x_dec_use (struct i2c_client *client);
 
 #define CHIP_ADV7175A 1
 #define CHIP_ADV7170  2
@@ -119,14 +118,15 @@ struct adv717x_data_s {
 
 /* This is the driver that will be inserted */
 static struct i2c_driver adv717x_driver = {
-  /* name */		"ADV717X video encoder driver",
-  /* id */		I2C_DRIVERID_ADV717X,
-  /* flags */		I2C_DF_NOTIFY,
-  /* attach_adapter */  &adv717x_attach_adapter,
-  /* detach_client */   &adv717x_detach_client,
-  /* command */		&adv717x_command,
-  /* inc_use */		&adv717x_inc_use,
-  /* dec_use */		&adv717x_dec_use
+#ifdef _LINUX_I2C_H /* i2c version 2.8.0 or above */
+	.owner =		THIS_MODULE,
+#endif
+	.name =			"ADV717X video encoder driver",
+	.id =			I2C_DRIVERID_ADV717X,
+	.flags =		I2C_DF_NOTIFY,
+	.attach_adapter =	&adv717x_attach_adapter,
+	.detach_client =	&adv717x_detach_client,
+	.command =		&adv717x_command
 };
 
 int adv717x_id = 0;
@@ -145,11 +145,11 @@ static unsigned char PAL_config_7170[27] = {
 	0x8a,   // Subcarrier Frequency Register 1
 	0x09,   // Subcarrier Frequency Register 2
 	0x2a,   // Subcarrier Frequency Register 3
-	0x00,   // Subcarrier Phase Register 
+	0x00,   // Subcarrier Phase Register
 	0x00,   // Closed Captioning Ext Register 0
 	0x00,   // Closed Captioning Ext Register 1
-	0x00,   // Closed Captioning Register 0 
-	0x00,   // Closed Captioning Register 1 
+	0x00,   // Closed Captioning Register 0
+	0x00,   // Closed Captioning Register 1
 	0x00,   // Pedestal Control Register 0
 	0x00,   // Pedestal Control Register 1
 	0x00,   // Pedestal Control Register 2
@@ -174,11 +174,11 @@ static unsigned char NTSC_config_7170[27] = {
 	0x7c,   // Subcarrier Frequency Register 1
 	0xf0,   // Subcarrier Frequency Register 2
 	0x21,   // Subcarrier Frequency Register 3
-	0x00,   // Subcarrier Phase Register 
+	0x00,   // Subcarrier Phase Register
 	0x00,   // Closed Captioning Ext Register 0
 	0x00,   // Closed Captioning Ext Register 1
-	0x00,   // Closed Captioning Register 0 
-	0x00,   // Closed Captioning Register 1 
+	0x00,   // Closed Captioning Register 0
+	0x00,   // Closed Captioning Register 1
 	0x00,   // Pedestal Control Register 0
 	0x00,   // Pedestal Control Register 1
 	0x00,   // Pedestal Control Register 2
@@ -193,17 +193,17 @@ static unsigned char PAL_M_config_7175[19] = {   //These need to be tested
 	0x06,   // Mode Register 0
 	0x00,   // Mode Register 1
 	0xa3,   // Subcarrier Frequency Register 0
-	0xef, 	// Subcarrier Frequency Register 1
-	0xe6, 	// Subcarrier Frequency Register 2
-	0x21,  	// Subcarrier Frequency Register 3
+	0xef,	// Subcarrier Frequency Register 1
+	0xe6,	// Subcarrier Frequency Register 2
+	0x21,	// Subcarrier Frequency Register 3
 	0x00,   // Subcarrier Phase Register
 	0x0d,   // Timing Register 0
 	0x00,   // Closed Captioning Ext Register 0
 	0x00,   // Closed Captioning Ext Register 1
 	0x00,   // Closed Captioning Register 0
 	0x00,   // Closed Captioning Register 1
-	0x70, 	// Timing Register 1
-	0x73,  	// Mode Register 2
+	0x70,	// Timing Register 1
+	0x73,	// Mode Register 2
 	0x00,   // Pedestal Control Register 0
 	0x00,   // Pedestal Control Register 1
 	0x00,   // Pedestal Control Register 2
@@ -218,12 +218,12 @@ static unsigned char PAL_config_7175[19] = {
 	0x8a,   // Subcarrier Frequency Register 1
 	0x09,   // Subcarrier Frequency Register 2
 	0x2a,   // Subcarrier Frequency Register 3
-	0x00,   // Subcarrier Phase Register 
+	0x00,   // Subcarrier Phase Register
 	0x0d,   // Timing Register 0
 	0x00,   // Closed Captioning Ext Register 0
 	0x00,   // Closed Captioning Ext Register 1
-	0x00,   // Closed Captioning Register 0 
-	0x00,   // Closed Captioning Register 1 
+	0x00,   // Closed Captioning Register 0
+	0x00,   // Closed Captioning Register 1
 	0x73,   // Timing Register 1
 	0x08,   // Mode Register 2
 	0x00,   // Pedestal Control Register 0
@@ -240,12 +240,12 @@ static unsigned char PAL60_config_7175[19] = {
 	0x8a,   // Subcarrier Frequency Register 1
 	0x09,   // Subcarrier Frequency Register 2
 	0x2a,   // Subcarrier Frequency Register 3
-	0x00,   // Subcarrier Phase Register 
+	0x00,   // Subcarrier Phase Register
 	0x0d,   // Timing Register 0
 	0x00,   // Closed Captioning Ext Register 0
 	0x00,   // Closed Captioning Ext Register 1
-	0x00,   // Closed Captioning Register 0 
-	0x00,   // Closed Captioning Register 1 
+	0x00,   // Closed Captioning Register 0
+	0x00,   // Closed Captioning Register 1
 	0x73,   // Timing Register 1
 	0x08,   // Mode Register 2
 	0x00,   // Pedestal Control Register 0
@@ -259,17 +259,17 @@ static unsigned char NTSC_config_7175[19] = {
 	0x04,   // Mode Register 0
 	0x00,   // Mode Register 1
 	0x16,   // Subcarrier Frequency Register 0
-	0x7c, 	// Subcarrier Frequency Register 1
-	0xf0, 	// Subcarrier Frequency Register 2
-	0x21,  	// Subcarrier Frequency Register 3
+	0x7c,	// Subcarrier Frequency Register 1
+	0xf0,	// Subcarrier Frequency Register 2
+	0x21,	// Subcarrier Frequency Register 3
 	0x00,   // Subcarrier Phase Register
 	0x0d,   // Timing Register 0
 	0x00,   // Closed Captioning Ext Register 0
 	0x00,   // Closed Captioning Ext Register 1
 	0x00,   // Closed Captioning Register 0
 	0x00,   // Closed Captioning Register 1
-	0x77,  	// Timing Register 1
-	0x00, 	// Mode Register 2
+	0x77,	// Timing Register 1
+	0x00,	// Mode Register 2
 	0x00,   // Pedestal Control Register 0
 	0x00,   // Pedestal Control Register 1
 	0x00,   // Pedestal Control Register 2
@@ -299,11 +299,11 @@ static int adv717x_update(struct i2c_client *client)
 		}
 		break;
 	}
-	
+
 	if (!data->enableoutput) {
 		tmpconfig[1] |= 0x7f;
 	}
-	
+
 	for(i=0; i < data->configlen; i++) {
 		n = i2c_smbus_write_byte_data(client, i, tmpconfig[i]);
 	}
@@ -320,7 +320,7 @@ static int adv717x_setmode(int mode, struct i2c_client *client) {
 	unsigned char *config = NULL;
 
 	pr_debug("adv717x_setmode(%d,%p)\n", mode, client);
-	
+
 	switch (mode) {
 	case ENCODER_MODE_PAL:
 		printk(KERN_NOTICE "adv717x.o: Configuring for PAL\n");
@@ -363,7 +363,7 @@ static int adv717x_setmode(int mode, struct i2c_client *client) {
 		break;
 	case ENCODER_MODE_NTSC:
 		printk(KERN_NOTICE "adv717x.o: Configuring for NTSC\n");
-	 	switch (data->chiptype) {
+		switch (data->chiptype) {
 		case CHIP_ADV7175A:
 			config = NTSC_config_7175;
 			data->configlen = sizeof(NTSC_config_7175);
@@ -390,7 +390,7 @@ static int adv717x_setmode(int mode, struct i2c_client *client) {
 static int adv717x_setup(struct i2c_client *client)
 {
 	struct adv717x_data_s *data = client->data ;
-	
+
 	memset(data->config, 0, sizeof(data->config));
 
 	data->bars = 0;
@@ -398,9 +398,9 @@ static int adv717x_setup(struct i2c_client *client)
 	data->enableoutput = 0;
 
 	adv717x_setmode(ENCODER_MODE_PAL60, client);
-	
+
 	adv717x_update(client);
-	
+
 	return 0;
 }
 
@@ -420,8 +420,8 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 		return 0;
 	}
 
-	 
-	 
+
+
 	if (!(new_client = kmalloc(sizeof(struct i2c_client) + sizeof(struct adv717x_data_s), GFP_KERNEL))) {
 		return -ENOMEM;
 	}
@@ -435,7 +435,7 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 
 	i2c_smbus_write_byte_data(new_client, ADV7175_REG_MR1, 0x55);
 	mr1=i2c_smbus_read_byte_data(new_client, ADV7175_REG_MR1);
-	 
+
 	if (mr1 == 0x55) {
 		mr0 = i2c_smbus_read_byte_data(new_client, ADV7175_REG_MR0);
 
@@ -448,7 +448,7 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 			data->chiptype = CHIP_ADV7170;
 			printk(KERN_NOTICE "adv717x.o: ADV7170 chip detected\n");
 		}
-	 
+
 		new_client->id = adv717x_id++;
 
 		if ((err = i2c_attach_client(new_client))) {
@@ -458,11 +458,15 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 
 		adv717x_setup(new_client);
 
+#ifdef MODULE
+		MOD_INC_USE_COUNT;
+#endif
+
 		return 0;
-	} 
+	}
 	kfree(new_client);
 
-	return 0;			  
+	return 0;
 }
 
 static int adv717x_attach_adapter(struct i2c_adapter *adapter)
@@ -482,6 +486,10 @@ int adv717x_detach_client(struct i2c_client *client)
 		printk(KERN_ERR "adv717x.o: Client deregistration failed, client not detached.\n");
 		return err;
 	}
+
+#ifdef MODULE
+	MOD_DEC_USE_COUNT;
+#endif
 
 	kfree(client);
 
@@ -507,22 +515,6 @@ int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
 	}
 
 	return 0;
-}
-
-/* Nothing here yet */
-void adv717x_inc_use (struct i2c_client *client)
-{
-#ifdef MODULE
-	MOD_INC_USE_COUNT;
-#endif
-}
-
-/* Nothing here yet */
-void adv717x_dec_use (struct i2c_client *client)
-{
-#ifdef MODULE
-	MOD_DEC_USE_COUNT;
-#endif
 }
 
 /* ----------------------------------------------------------------------- */
@@ -572,7 +564,7 @@ int __init adv717x_init(void)
 	PAL_config_7175[7] = (PAL_config_7175[7] & ~0x40) | pp_pal;
 	PAL60_config_7175[7] = (PAL60_config_7175[7] & ~0x40) | pp_pal;
 	NTSC_config_7175[7] = (NTSC_config_7175[7] & ~0x40) | pp_ntsc;
-	
+
 	PAL_config_7170[12] = (PAL_config_7170[12] & ~0xC0) | pd_adj_pal;
 	NTSC_config_7170[12] = (NTSC_config_7170[12] & ~0xC0) | pd_adj_ntsc;
 	PAL_M_config_7175[12] = (PAL_M_config_7175[12] & ~0xC0) | pd_adj_pal;

@@ -31,7 +31,7 @@ typedef void (*preprocess_cb_t) (struct em8300_s *, unsigned char *, const unsig
 
 struct fifo_s {
 	struct em8300_s *em;
-    
+
 	int valid;
 
 	int type;
@@ -43,7 +43,7 @@ struct fifo_s {
 	} slots;
 	int slotptrsize;
 	int slotsize;
-	
+
 	int start;
 	int * volatile writeptr;
 	int * volatile readptr;
@@ -53,16 +53,16 @@ struct fifo_s {
 	int bytes;
 
 	char *fifobuffer;
-	
+
 	preprocess_cb_t preprocess_cb;
 	int preprocess_ratio;
 	char *preprocess_buffer;
-	
-#if LINUX_VERSION_CODE < 0x020314    
+
+#if LINUX_VERSION_CODE < 0x020314
 	struct wait_queue *wait;
 #else
 	wait_queue_head_t wait;
-#endif	
+#endif
 	spinlock_t lock;
 };
 

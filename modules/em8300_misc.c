@@ -14,6 +14,7 @@
 #include <asm/io.h>
 #include <asm/uaccess.h>
 
+#include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 
 #include "em8300_reg.h"
@@ -102,9 +103,9 @@ int em8300_setregblock(struct em8300_s *em, int offset, int val, int len)
 		}
 	}
 
-#if 0 /* FIXME: was in zeev01 branch, verify if it is necessary */	
-	if (em8300_waitfor(em, 0x1c1a, 0, 1)) 
-	        return -ETIME;  
+#if 0 /* FIXME: was in zeev01 branch, verify if it is necessary */
+	if (em8300_waitfor(em, 0x1c1a, 0, 1))
+		return -ETIME;
 #endif
 
 	return 0;

@@ -1,3 +1,7 @@
+2002-02-11  Jonas Birme´ <jonas@birme.se>
+   * modules/Makefile
+   Fixed the install-newkern so it uses $(prefix) for all files.
+
 2002-02-09  David Holm  <dholm@iname.com>
 	* include/linux/em8300.h,
 	  modules/em8300_audio.c,

@@ -1,3 +1,8 @@
+2001-08-01  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_audio.c:
+	only use AFMT_AC3 if it's defined
+	
 2001-07-29  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_audio.c:

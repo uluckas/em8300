@@ -100,8 +100,9 @@ static void preprocess_analog(struct em8300_s *em, unsigned char *outbuf, const 
 	
 #if BYTE_ORDER == BIG_ENDIAN
 	if (em->audio.format == AFMT_S16_BE) {
-#elif BYTE_ORDER == LITTLE_ENDIAN
-	if (em->audio.format == AFMT_S16_LE || em->audio.format == AFMT_AC3) {
+#else /* BYTE_ORDER == LITTLE_ENDIAN */
+	if (em->audio.format == AFMT_S16_LE ||
+	    em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3) {
 #endif
 		if (em->audio.channels == 2) {
 			for (i=0; i < inlength; i+=4) {
@@ -134,8 +135,9 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
 
 #if BYTE_ORDER == BIG_ENDIAN
 	if (em->audio.format == AFMT_S16_BE) {
-#elif BYTE_ORDER == LITTLE_ENDIAN
-        if (em->audio.format == AFMT_S16_LE || em->audio.format == AFMT_AC3) {
+#else /* BYTE_ORDER == LITTLE_ENDIAN */
+        if (em->audio.format == AFMT_S16_LE ||
+	    em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3) {
 #endif
 		for(i=0; i < inlength; i+=2) {
 			get_user(tmpbuf[i+1], inbuf_user++);
@@ -239,11 +241,13 @@ static int set_format(struct em8300_s *em, int fmt)
 {
 	if (fmt != AFMT_QUERY) {
 		switch (fmt) {
+#ifdef AFMT_AC3
 		case AFMT_AC3:
 			if (em->audio_mode != EM8300_AUDIOMODE_DIGITALAC3)
 				set_audiomode(em, EM8300_AUDIOMODE_DIGITALAC3);
 			em->audio.format = fmt;
 			break;
+#endif
 		case AFMT_S16_BE:
 		case AFMT_S16_LE:
 		  /* we do want to be able to use DIGITALPCM somehow eventually */
@@ -359,7 +363,11 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		break;
 
 	case SNDCTL_DSP_GETFMTS: /* get possible formats */
+#ifdef AFMT_AC3
 		val = AFMT_AC3 | AFMT_S16_BE | AFMT_S16_LE;
+#else
+		val = AFMT_S16_BE | AFMT_S16_LE;
+#endif
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETFMTS\n");
 		break;
 
@@ -425,7 +433,12 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	case SNDCTL_DSP_GETOPTR:
 	{
 		count_info ci;
-		ci.bytes = em->mafifo->bytes - em8300_audio_calcbuffered(em);
+		int calc;
+		calc = em8300_fifo_calcbuffered(em->mafifo);
+		ci.bytes = em->mafifo->bytes - calc;
+#if 0
+		pr_info("audio bytes = %i   buffered = %i\n", em->mafifo->bytes, calc);
+#endif
 		ci.blocks = 0;
 		ci.ptr = 0;
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETOPTR %i\n", ci.bytes);
@@ -595,7 +608,9 @@ int em8300_audio_calcbuffered(struct em8300_s *em)
 	bufsize = read_ucregister(MA_BuffSize) | (read_ucregister(MA_BuffSize_Hi) << 16);
 
 	n = (bufsize+writeptr-readptr) % bufsize;
-	
+#if 0
+	pr_info("n = %i   fifo = %i\n", n, em8300_fifo_calcbuffered(em->mafifo));
+#endif
 	return em8300_fifo_calcbuffered(em->mafifo) + n;
 }
 

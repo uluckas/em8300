@@ -1,3 +1,8 @@
+2002-01-10  David Holm  <dholm@iname.com>
+	* modules/Makefile:
+	It now automatically installs/removes the appropriate
+	entries in devfsd.conf
+
 2002-01-09  David Holm  <dholm@iname.com>
 	* em8300_main.c:
 	Fixed a bug I accidentally introduced with devfs

@@ -17,7 +17,7 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-#include <linux/autoconf.h>
+#include <linux/config.h>
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/delay.h>
@@ -44,6 +44,7 @@
 #include <linux/i2c-algo-bit.h>
 #include <linux/video_encoder.h>
 
+#include "em8300_compat24.h"
 #include "em8300_reg.h"
 #include <linux/em8300.h>
 
@@ -51,14 +52,9 @@
 #include "encoder.h"
 
 MODULE_SUPPORTED_DEVICE("adv717x");
-
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
 MODULE_LICENSE("GPL");
-#endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,18)
 EXPORT_NO_SYMBOLS;
-#endif
 
 #ifdef CONFIG_ADV717X_PIXELPORT16BIT
 int pixelport_16bit[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
@@ -284,12 +280,7 @@ static unsigned char NTSC_config_7175[19] = {
 
 static int adv717x_update(struct i2c_client *client)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
-	struct adv717x_data_s *data = client->data ;
-#else
 	struct adv717x_data_s *data = i2c_get_clientdata(client);
-#endif
-
 	char tmpconfig[32];
 	int n, i;
 
@@ -326,12 +317,7 @@ static int adv717x_update(struct i2c_client *client)
 }
 
 static int adv717x_setmode(int mode, struct i2c_client *client) {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
-	struct adv717x_data_s *data = client->data ;
-#else
 	struct adv717x_data_s *data = i2c_get_clientdata(client);
-#endif
-
 	unsigned char *config = NULL;
 
 	pr_debug("adv717x_setmode(%d,%p)\n", mode, client);
@@ -431,13 +417,8 @@ static int adv717x_setmode(int mode, struct i2c_client *client) {
 
 static int adv717x_setup(struct i2c_client *client)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
-	struct adv717x_data_s *data = client->data ;
-	struct em8300_s *em = client->adapter->data;
-#else
 	struct adv717x_data_s *data = i2c_get_clientdata(client);
 	struct em8300_s *em = i2c_get_adapdata(client->adapter);
-#endif
 
 	memset(data->config, 0, sizeof(data->config));
 
@@ -493,11 +474,7 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 	new_client->driver = &adv717x_driver;
 	new_client->flags = 0;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
-	new_client->data = data;
-#else
 	i2c_set_clientdata(new_client, data);
-#endif
 
 	i2c_smbus_write_byte_data(new_client, ADV7175_REG_MR1, 0x55);
 	mr1=i2c_smbus_read_byte_data(new_client, ADV7175_REG_MR1);
@@ -524,9 +501,7 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 
 		adv717x_setup(new_client);
 
-#if defined(MODULE) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
-		MOD_INC_USE_COUNT;
-#endif
+		EM8300_MOD_INC_USE_COUNT;
 
 		return 0;
 	}
@@ -553,9 +528,7 @@ int adv717x_detach_client(struct i2c_client *client)
 		return err;
 	}
 
-#if defined(MODULE) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
-	MOD_DEC_USE_COUNT;
-#endif
+	EM8300_MOD_DEC_USE_COUNT;
 
 	kfree(client);
 
@@ -564,11 +537,7 @@ int adv717x_detach_client(struct i2c_client *client)
 
 int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
-	struct adv717x_data_s *data = client->data;
-#else
 	struct adv717x_data_s *data = i2c_get_clientdata(client);
-#endif
 
 	switch (cmd) {
 	case ENCODER_CMD_SETMODE:

@@ -48,10 +48,14 @@
 #include <linux/i2c-algo-bit.h>
 #include <linux/video_encoder.h>
 
+#include "em8300_compat24.h"
 #include "bt865.h"
 #include "encoder.h"
 
 MODULE_SUPPORTED_DEVICE("bt865");
+MODULE_LICENSE("GPL");
+
+EXPORT_NO_SYMBOLS;
 
 static int color_bars[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 MODULE_PARM(color_bars, "1-" __MODULE_STRING(EM8300_MAX) "i");
@@ -60,14 +64,6 @@ MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be d
 static int rgb_mode[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 MODULE_PARM(rgb_mode, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(rgb_mode, "If you set this to 1, RGB output is enabled. You will need to hack the DXR3 hardware. Defaults to 0.");
-
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
-MODULE_LICENSE("GPL");
-#endif
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,18)
-EXPORT_NO_SYMBOLS;
-#endif
 
 #define i2c_is_isa_client(clientptr) \
 		((clientptr)->adapter->algo->id == I2C_ALGO_ISA)
@@ -757,12 +753,7 @@ static unsigned char PALNC_CONFIG_BT865[ 48 ] = {
 
 static int bt865_update( struct i2c_client *client )
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
-	struct bt865_data_s *data = client->data ;
-#else
 	struct bt865_data_s *data = i2c_get_clientdata(client);
-#endif
-
 	char tmpconfig[48];
 	int i;
 
@@ -792,12 +783,7 @@ static int bt865_update( struct i2c_client *client )
 
 static int bt865_setmode(int mode, struct i2c_client *client)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
-	struct bt865_data_s *data = client->data ;
-#else
 	struct bt865_data_s *data = i2c_get_clientdata(client);
-#endif
-
 	unsigned char *config = NULL;
 
 	pr_debug("bt865_setmode( %d, %p )\n", mode, client);
@@ -851,13 +837,8 @@ static int bt865_setmode(int mode, struct i2c_client *client)
 
 static int bt865_setup(struct i2c_client *client)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
-	struct bt865_data_s *data = client->data ;
-	struct em8300_s *em = client->adapter->data;
-#else
 	struct bt865_data_s *data = i2c_get_clientdata(client);
 	struct em8300_s *em = i2c_get_adapdata(client->adapter);
-#endif
 
 	if (memset(data->config, 0, sizeof(data->config)) != data->config) {
 		printk(KERN_NOTICE "bt865_setup: memset error\n");
@@ -915,11 +896,7 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
 	new_client->driver = &bt865_driver;
 	new_client->flags = 0;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
-	new_client->data = data;
-#else
 	i2c_set_clientdata(new_client, data);
-#endif
 
 //	i2c_smbus_write_byte_data(new_client,0xa6, 0x80/*b1*/);
 //	the write is not needed
@@ -942,9 +919,7 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
 			return -1;
 		}
 
-#if defined(MODULE) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
-		MOD_INC_USE_COUNT;
-#endif
+		EM8300_MOD_INC_USE_COUNT;
 
 		return 0;
 	}
@@ -969,9 +944,7 @@ int bt865_detach_client(struct i2c_client *client)
 		return err;
 	}
 
-#if defined(MODULE) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
-	MOD_DEC_USE_COUNT;
-#endif
+	EM8300_MOD_DEC_USE_COUNT;
 
 	kfree(client);
 
@@ -980,11 +953,7 @@ int bt865_detach_client(struct i2c_client *client)
 
 int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
-	struct bt865_data_s *data = client->data ;
-#else
 	struct bt865_data_s *data = i2c_get_clientdata(client);
-#endif
 
 	switch(cmd) {
 	case ENCODER_CMD_SETMODE:

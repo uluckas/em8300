@@ -17,6 +17,7 @@
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 
+#include "em8300_compat24.h"
 #include "em8300_reg.h"
 #include <linux/em8300.h>
 
@@ -77,11 +78,7 @@ static int em8300_getsda(void *data)
 
 static int em8300_i2c_reg(struct i2c_client *client)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
-	struct em8300_s *em = client->adapter->data;
-#else
 	struct em8300_s *em = i2c_get_adapdata(client->adapter);
-#endif
 
 	switch (client->driver->id) {
 	case I2C_DRIVERID_ADV717X:
@@ -107,11 +104,7 @@ static int em8300_i2c_reg(struct i2c_client *client)
 
 static int em8300_i2c_unreg(struct i2c_client *client)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
-	struct em8300_s *em = client->adapter->data;
-#else
 	struct em8300_s *em = i2c_get_adapdata(client->adapter);
-#endif
 
 	switch (client->driver->id) {
 	case I2C_DRIVERID_ADV717X:
@@ -181,11 +174,7 @@ int em8300_i2c_init(struct em8300_s *em)
 	em->i2c_ops_1.client_register = em8300_i2c_reg;
 	em->i2c_ops_1.client_unregister = em8300_i2c_unreg;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
-	em->i2c_ops_1.data = em;
-#else
 	i2c_set_adapdata(&em->i2c_ops_1, (void *)em);
-#endif
 
 	ret = i2c_bit_add_bus(&em->i2c_ops_1);
 
@@ -219,11 +208,7 @@ int em8300_i2c_init(struct em8300_s *em)
 	em->i2c_ops_2.client_register = em8300_i2c_reg;
 	em->i2c_ops_2.client_unregister = em8300_i2c_unreg;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
-	em->i2c_ops_1.data = em;
-#else
 	i2c_set_adapdata(&em->i2c_ops_1, (void *)em);
-#endif
 
 	ret = i2c_bit_add_bus(&em->i2c_ops_2);
 	return ret;

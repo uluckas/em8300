@@ -1,3 +1,16 @@
+2004-03-26  Nicolas Boullis  <nboullis@debian.org>
+	* modules/adv717x.c,
+	  modules/adv717x.h,
+	  modules/bt865.c,
+	  modules/bt865.h,
+	  modules/em8300_compat24.h,
+	  modules/em8300_i2c.c,
+	  modules/em8300_main.c:
+	Add a new modules/em8300_compat24.h file, and put there everything
+	that is needed for compatibility between 2.4 and 2.6 kernels. Many
+	thanks to Andreas Schultz for the idea and for doing most (not to
+	say all) the work.
+
 2004-03-25  Nicolas Boullis  <nboullis@debian.org>
 	* modules/ldm:
 	I stupidly reversed the test in my previous update of modules/ldm;

@@ -17,7 +17,7 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-#include <linux/autoconf.h>
+#include <linux/config.h>
 #include <linux/version.h>
 #include <linux/module.h>
 #include <linux/delay.h>
@@ -35,31 +35,21 @@
 #include <linux/string.h>
 #include <linux/time.h>
 #include <linux/poll.h>
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,12)
-#include <linux/wrapper.h>	/* for mem_map_reserve */
-#endif
-#ifdef CONFIG_PROC_FS
 #include <linux/proc_fs.h>
-#endif
-#ifdef CONFIG_DEVFS_FS
 #include <linux/devfs_fs_kernel.h>
-#endif
 #include <asm/io.h>
 #include <asm/pgtable.h>
 #include <asm/page.h>
 #include <linux/sched.h>
 #include <asm/segment.h>
-#ifdef CONFIG_MTRR
 #include <asm/mtrr.h>
-#endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,48)
 #include <linux/interrupt.h>
-#endif
 #include <asm/uaccess.h>
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 
+#include "em8300_compat24.h"
 #include "encoder.h"
 
 #include "em8300_reg.h"
@@ -70,17 +60,6 @@
 #include "em8300_ioctl32.h"
 #endif
 
-/* It seems devfs will implement a new scheme of enumerating minor numbers.
- * Currently it seems broken. But that is why we added these macros.
- */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,2) || LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
-#define EM8300_MINOR(inode) (MINOR((inode)->i_rdev) % 4)
-#define EM8300_CARD(inode) (MINOR((inode)->i_rdev) / 4)
-#else
-#define EM8300_MINOR(inode) (minor((inode)->i_rdev) % 4)
-#define EM8300_CARD(inode) (minor((inode)->i_rdev) / 4)
-#endif
-
 #if !defined(CONFIG_I2C_ALGOBIT) && !defined(CONFIG_I2C_ALGOBIT_MODULE)
 #error "This needs the I2C Bit Banging Interface in your Kernel"
 #endif
@@ -88,14 +67,9 @@
 MODULE_AUTHOR("Henrik Johansson <henrikjo@post.utfors.se>");
 MODULE_DESCRIPTION("EM8300 MPEG-2 decoder");
 MODULE_SUPPORTED_DEVICE("em8300");
-
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
 MODULE_LICENSE("GPL");
-#endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,18)
 EXPORT_NO_SYMBOLS;
-#endif
 
 static unsigned int use_bt865[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 MODULE_PARM(use_bt865, "1-" __MODULE_STRING(EM8300_MAX) "i");
@@ -168,11 +142,7 @@ struct memory_info
 	char *ptr;
 };
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,69)
 static irqreturn_t em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
-#else
-static void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
-#endif
 {
 	struct em8300_s *em = (struct em8300_s *) dev_id;
 	int irqstatus;
@@ -208,13 +178,9 @@ static void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 
 		write_ucregister(Q_IrqMask, em->irqmask);
 		write_ucregister(Q_IrqStatus, 0x0000);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,69)
 		return IRQ_HANDLED;
-#endif
 	}
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,69)
 	return IRQ_NONE;
-#endif
 }
 
 static void release_em8300(int max)
@@ -305,7 +271,7 @@ static int find_em8300(void)
 static int em8300_io_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, unsigned long arg)
 {
 	struct em8300_s *em = filp->private_data;
-	int subdevice = EM8300_MINOR(inode);
+	int subdevice = EM8300_IMINOR(inode) % 4;
 
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_AUDIO:
@@ -323,8 +289,8 @@ static int em8300_io_ioctl(struct inode* inode, struct file* filp, unsigned int 
 
 static int em8300_io_open(struct inode* inode, struct file* filp)
 {
-	int card = EM8300_CARD(inode);
-	int subdevice = EM8300_MINOR(inode);
+	int card = EM8300_IMINOR(inode) / 4;
+	int subdevice = EM8300_IMINOR(inode) % 4;
 	struct em8300_s *em = &em8300[card];
 	int err = 0;
 
@@ -383,9 +349,7 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 	clients++;
 	pr_debug("em8300_main.o: Opening device %d, Clients:%d\n", subdevice, clients);
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
-	MOD_INC_USE_COUNT;
-#endif
+	EM8300_MOD_INC_USE_COUNT;
 
 	return(0);
 }
@@ -393,7 +357,7 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 static ssize_t em8300_io_write(struct file *file, const char * buf, size_t count, loff_t *ppos)
 {
 	struct em8300_s *em = file->private_data;
-	int subdevice = EM8300_MINOR(file->f_dentry->d_inode);
+	int subdevice = EM8300_IMINOR(file->f_dentry->d_inode) % 4;
 
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_VIDEO:
@@ -417,7 +381,7 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 {
 	struct em8300_s *em = file->private_data;
 	unsigned long size = vma->vm_end - vma->vm_start;
-	int subdevice = EM8300_MINOR(file->f_dentry->d_inode);
+	int subdevice = EM8300_IMINOR(file->f_dentry->d_inode) % 4;
 
 	if (subdevice != EM8300_SUBDEVICE_CONTROL) {
 		return -EPERM;
@@ -446,11 +410,7 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 
 		/* reserve all pages */
 		for(adr = (long)mem; adr < (long)mem + size; adr += PAGE_SIZE) {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,12)
-			mem_map_reserve(virt_to_page(adr));
-#else
 			SetPageReserved(virt_to_page(adr));
-#endif
 		}
 
 		/* lock the area*/
@@ -505,7 +465,7 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 static unsigned int em8300_poll(struct file *file, struct poll_table_struct *wait)
 {
 	struct em8300_s *em = file->private_data;
-	int subdevice = EM8300_MINOR(file->f_dentry->d_inode);
+	int subdevice = EM8300_IMINOR(file->f_dentry->d_inode) % 4;
 	unsigned int mask = 0;
 
 	switch (subdevice) {
@@ -543,7 +503,7 @@ static unsigned int em8300_poll(struct file *file, struct poll_table_struct *wai
 int em8300_io_release(struct inode* inode, struct file *filp)
 {
 	struct em8300_s *em = filp->private_data;
-	int subdevice = EM8300_MINOR(inode);
+	int subdevice = EM8300_IMINOR(inode) % 4;
 
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_AUDIO:
@@ -565,11 +525,7 @@ int em8300_io_release(struct inode* inode, struct file *filp)
 		list_del(&info->item);
 
 		for(adr = (long)info->ptr; adr < (long)info->ptr + info->length; adr += PAGE_SIZE) {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,12)
-			mem_map_unreserve(virt_to_page(adr));
-#else
 			ClearPageReserved(virt_to_page(adr));
-#endif
 		}
 
 		kfree(info->ptr);
@@ -581,9 +537,7 @@ int em8300_io_release(struct inode* inode, struct file *filp)
 	clients--;
 	pr_debug("em8300_main.o: Releasing device %d, clients:%d\n", subdevice, clients);
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
-	MOD_DEC_USE_COUNT;
-#endif
+	EM8300_MOD_DEC_USE_COUNT;
 
 	return(0);
 }
@@ -607,11 +561,7 @@ static int em8300_dsp_ioctl(struct inode* inode, struct file* filp, unsigned int
 
 static int em8300_dsp_open(struct inode* inode, struct file* filp)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,2) || LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
-	int dsp_num = ((MINOR(inode->i_rdev) >> 4) & 0x0f);
-#else
-	int dsp_num = ((minor(inode->i_rdev) >> 4) & 0x0f);
-#endif
+	int dsp_num = ((EM8300_IMINOR(inode) >> 4) & 0x0f);
 	int card = dsp_num_table[dsp_num] - 1;
 	int err = 0;
 
@@ -638,9 +588,7 @@ static int em8300_dsp_open(struct inode* inode, struct file* filp)
 	clients++;
 	pr_debug("em8300_main.o: Opening device %d, Clients:%d\n", EM8300_SUBDEVICE_AUDIO, clients);
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
-	MOD_INC_USE_COUNT;
-#endif
+	EM8300_MOD_INC_USE_COUNT;
 
 	return(0);
 }
@@ -676,9 +624,7 @@ int em8300_dsp_release(struct inode* inode, struct file* filp)
 	clients--;
 	pr_debug("em8300_main.o: Releasing device %d, clients:%d\n", EM8300_SUBDEVICE_AUDIO, clients);
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,48)
-	MOD_DEC_USE_COUNT;
-#endif
+	EM8300_MOD_DEC_USE_COUNT;
 
 	return(0);
 }
@@ -786,7 +732,7 @@ int init_em8300(struct em8300_s *em)
 void __exit em8300_exit(void)
 {
 	int card;
-#ifdef CONFIG_DEVFS_FS
+#if defined(CONFIG_DEVFS_FS) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,69)
 	int frame;
 #endif
 	char devname[64];

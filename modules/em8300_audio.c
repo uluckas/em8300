@@ -353,7 +353,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	case SNDCTL_DSP_POST: /* "there is likely to be a pause in the output" */
 		pr_debug("em8300_audio.o: SNDCTL_DSP_POST\n");
 		pr_info("em8300_audio.o: SNDCTL_DSP_GETPOST not implemented yet\n");
-		return -EINVAL;
+		return -ENOSYS;
 		break;
 
 	case SNDCTL_DSP_SETFRAGMENT: /* set fragment size */
@@ -409,7 +409,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	
 	case SNDCTL_DSP_GETISPACE:
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETISPACE\n");
-		return -EINVAL;
+		return -ENOSYS;
 		break;
 
 	case SNDCTL_DSP_GETCAPS:
@@ -435,7 +435,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 
 	case SNDCTL_DSP_GETIPTR:
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETIPTR\n");
-		return -EINVAL;
+		return -ENOSYS;
 		break;
 
 	case SNDCTL_DSP_GETOPTR:

@@ -27,34 +27,50 @@
 #
 
 #
-# Including functions
+# Sort out if this machine is using the System V
+# startup system. Set the INITD variable accordingly.
 #
-initdir=/etc/rc.d/init.d
-funcfile=${initdir}/functions
+INITD=NONSYSV
+[ -d /etc/init.d ]      && INITD=/etc/init.d
+[ -d /etc/rc.d/init.d ] && INITD=/etc/rc.d/init.d
 
-if [ ! -f ${funcfile} ]
+if [ "$INITD" = "NONSYSV" ]
 then
-  echo "Error: $0 needs a functions script"
-  exit 1
+  echo "Error: This script needs to operate in a System V startup environment"
+  exit 0
 fi
 
-. ${funcfile}
+#
+# Pull in helper functions
+#
+FUNCFILE=${INITD}/functions
+
+if [ ! -f ${FUNCFILE} ]
+then
+  echo "Error: $0 needs a functions script"
+  exit 0
+fi
+
+. ${FUNCFILE}
 
 #
-# A few directories
+#
+#
+unset CHKCONFIG
+[ -x /sbin/chkconfig ] && CHKCONFIG=/sbin/chkconfig
+
+#
+# A few directories and files
 #
 BUILDDIR=/tmp/em8300.$$
 MODDIR="/lib/modules/`uname -r`/video"
+MODULE_TAR=/usr/share/em8300/modules.tar.gz
+SYSV_SCRIPT=/usr/share/em8300/em8300.sysv
 
 #
 # List of modules to install"
 #
 modlist="adv717x bt865 eeprom em8300"
-
-#
-# Location of tarfile
-#
-module_tar=/usr/lib/em8300/modules.tar.gz
 
 #
 # Is this kernel 2.4
@@ -66,13 +82,6 @@ case $MINV in
   4) K24=Y ;;
   *) K24=N ;;
 esac
-
-if [ "$K24" = "N" ]
-then
-  echo -n "em8300: Needs kernel version 2.4.0 or higher"
-  echo_failure;echo
-  exit 1
-fi
 
 modload()
 {
@@ -109,7 +118,7 @@ modbuild()
   echo
   echo "  That didn't work. Rebuilding modules"
   echo
-  action "  Extracting modules source" tar xzf ${module_tar}
+  action "  Extracting modules source" tar xzf ${MODULE_TAR}
   cd modules
   
   echo -n "  Building modules (see /tmp/em8300.build.log)"
@@ -172,6 +181,56 @@ function stop() {
   done
 }
 
+install()
+{
+  #
+  # Install the System V initialisation
+  # scripts into the appropriate /etc
+  # directory
+  #
+  [ -f ${INITD}/em8300 ] && mv ${INITD}/em8300 ${INITD}/em8300.bak
+
+  cp -p ${SYSV_SCRIPT} ${INITD}/em8300
+
+  if [ -z "$CHKCONFIG" ]
+  then
+    echo "Warning: chkconfig not installed: hand enable em8300 service"
+  else
+    ${CHKCONFIG} --add em8300
+  fi
+
+  rm -f /dev/em8300    ; mknod /dev/em8300    c 121 0
+  rm -f /dev/em8300_mv ; mknod /dev/em8300_mv c 121 1
+  rm -f /dev/em8300_ma ; mknod /dev/em8300_ma c 121 2
+  rm -f /dev/em8300_sp ; mknod /dev/em8300_sp c 121 3
+}
+
+uninstall()
+{
+  #
+  # Install the System V initialisation
+  # scripts into the appropriate /etc
+  # directory
+  #
+  if [ -z "$CHKCONFIG" ]
+  then
+    echo "Warning: chkconfig not installed: hand disable em8300 service"
+  else
+    ${CHKCONFIG} --del em8300
+  fi
+
+  for module in ${modlist}
+  do
+    rm -f ${MODDIR}/${module}.o
+  done
+
+  rm -f ${INITD}/em8300
+  rm -f /dev/em8300
+  rm -f /dev/em8300_mv
+  rm -f /dev/em8300_ma
+  rm -f /dev/em8300_sp
+}
+
 # See how we were called.
 case "$1" in
   start)
@@ -184,9 +243,15 @@ case "$1" in
 	$0 stop
 	$0 start
 	;;
+  install)
+	install
+        ;;
+  uninstall)
+	uninstall
+        ;;
   *)
         echo "Usage: $0 {start|stop|restart}"
-        exit 1
+        exit 0
 esac
 
 exit 0

@@ -1,5 +1,10 @@
 2001-03-13  Rick Haines  <rick@kuroyi.net>
 
+	another patch from Andrew to clean up a few things
+	from the last one.
+	
+2001-03-13  Rick Haines  <rick@kuroyi.net>
+
 	merge patch from Andrew Meredith; fixes make dist
 	for the headers, adds make dist-rpm, adds boot
 	self-build scripts.  I'm a bit iffy about a couple

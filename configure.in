@@ -58,12 +58,13 @@ DEBUG_CFLAGS="$GLOBAL_CFLAGS $CFLAGS $COMMON_CFLAGS -DDEBUG"
 
 AC_OUTPUT([
 	Makefile
+	em8300.spec
+	em8300.sysv
+	include/Makefile
+	include/libdxr3/Makefile
+	include/linux/Makefile
 	libdxr3/Makefile
 	libdxr3/libac3/Makefile
 	overlay/Makefile
-	include/Makefile
-	include/linux/Makefile
-	include/libdxr3/Makefile
-	em8300.spec
-	em8300.sysv
+	scripts/Makefile
 ])

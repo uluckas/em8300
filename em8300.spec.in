@@ -1,6 +1,6 @@
 %define name		@PACKAGE@
 %define name_devel	@PACKAGE@-devel
-%define name_modules	@PACKAGE@-modules
+%define name_kmods	@PACKAGE@-kmods
 %define version	@VERSION@
 %define release	1
 %define builddir	$RPM_BUILD_DIR/%{name}-%{version}
@@ -34,11 +34,11 @@ This contains the development libraries used when
 building an application that will make use of the
 shared objects in the em8300 package.
 
-%package modules
+%package kmods
 Summary: Modules and boot self build for Hollywood plus / DXR3 device driver for Linux
 Group: Development/Libraries
 
-%description modules
+%description kmods
 This contains the source code for the modules that drive
 the Hollywood plus and DXR3 devices. it also contains
 a System V initialisation script that modprobes the
@@ -58,7 +58,6 @@ make
 if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 mkdir -p $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
-make modules_install DESTDIR=$RPM_BUILD_ROOT
 
 %pre
 
@@ -68,20 +67,13 @@ make modules_install DESTDIR=$RPM_BUILD_ROOT
 %postun
 /sbin/ldconfig
 
-%post modules
-/sbin/chkconfig --add em8300
-/etc/rc.d/init.d/em8300 restart >&2
+%post kmods
+%{prefix}/share/em8300/em8300.sysv install
+%{prefix}/share/em8300/em8300.sysv restart
 
-%preun modules
-if [ "$1" = 0 ] ; then
-	/etc/rc.d/init.d/em8300 stop >&2
-	/sbin/chkconfig --del em8300
-fi
-
-rm -f /lib/modules/`uname -r`/video/adv717x.o
-rm -f /lib/modules/`uname -r`/video/bt865.o
-rm -f /lib/modules/`uname -r`/video/eeprom.o
-rm -f /lib/modules/`uname -r`/video/em8300.o
+%preun kmods
+%{prefix}/share/em8300/em8300.sysv stop
+%{prefix}/share/em8300/em8300.sysv uninstall
 
 %clean
 rm -rf ${RPM_BUILD_ROOT}
@@ -100,16 +92,14 @@ rm -rf ${RPM_BUILD_ROOT}
 /usr/lib/*.la
 %doc README NEWS AUTHORS COPYING ChangeLog INSTALL
 
-%files modules
+%files kmods
 %defattr(-,root,root)
-/etc/rc.d/init.d/*
-/usr/lib/em8300/
-/dev/*
+/usr/share/em8300/
 %doc README NEWS AUTHORS COPYING ChangeLog INSTALL
 
 %changelog
 * Tue Mar 13 2001 Andrew Meredith <andrew@anvil.org>
-- Added em8300-modules package
+- Added em8300-kmods package
 
 * Mon Mar 12 2001 Andrew Meredith <andrew@anvil.org>
 - First draft of rpm package for em8300 including

@@ -1,6 +1,9 @@
-EXTRA_DIST = autotools/ modules/ omsplugin/ xine/ scripts/ shinit.sh modules.tar.gz em8300.sysv
+EXTRA_DIST = autotools/ modules/ omsplugin/ xine/ scripts/ shinit.sh bootstrap
 
-SUBDIRS = libdxr3 overlay include
+pkgdata_DATA = omsplugin.tar.gz xine.tar.gz modules.tar.gz
+pkgdata_SCRIPTS = em8300.sysv
+
+SUBDIRS = libdxr3 overlay include scripts
 
 debug:
 	list='$(SUBDIRS)'; for subdir in $$list; do \
@@ -11,19 +14,14 @@ clean-generic:
 	rm -rf BUILD SPECS RPMS SOURCES SRPMS
 	rm -f rpmrc rpmmacros
 
+omsplugin.tar.gz:
+	tar czvf omsplugin.tar.gz omsplugin
+
+xine.tar.gz:
+	tar czvf xine.tar.gz xine
+
 modules.tar.gz:
 	tar czvf modules.tar.gz modules
-
-modules_install:
-	$(mkinstalldirs) $(DESTDIR)$(libdir)/em8300
-	$(INSTALL_DATA) modules.tar.gz $(DESTDIR)$(libdir)/em8300/
-	$(mkinstalldirs) $(DESTDIR)/etc/rc.d/init.d/
-	$(INSTALL_PROGRAM) em8300.sysv $(DESTDIR)/etc/rc.d/init.d/em8300
-	$(mkinstalldirs) $(DESTDIR)/dev/
-	mknod $(DESTDIR)/dev/em8300 c 121 0
-	mknod $(DESTDIR)/dev/em8300_mv c 121 1
-	mknod $(DESTDIR)/dev/em8300_ma c 121 2
-	mknod $(DESTDIR)/dev/em8300_sp c 121 3
 
 dist-rpm: em8300.spec modules.tar.gz dist
 	rm -rf    BUILD SPECS RPMS/{noarch,i386,i686} SOURCES SRPMS

@@ -409,12 +409,15 @@ static ssize_t em8300_io_write(struct file *file, const char * buf, size_t count
 
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_VIDEO:
+		em->nonblock[2] = ((file->f_flags&O_NONBLOCK) == O_NONBLOCK);
 		return em8300_video_write(em, buf, count, ppos);
 		break;
 	case EM8300_SUBDEVICE_AUDIO:
+		em->nonblock[1] = ((file->f_flags&O_NONBLOCK) == O_NONBLOCK);
 		return em8300_audio_write(em, buf, count, ppos);
 		break;
 	case EM8300_SUBDEVICE_SUBPICTURE:
+		em->nonblock[3] = ((file->f_flags&O_NONBLOCK) == O_NONBLOCK);
 		return em8300_spu_write(em, buf, count, ppos);
 		break;
 	default:

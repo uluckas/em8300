@@ -23,6 +23,8 @@
 
 #include "encoder.h"
 
+#include "em8300_registration.h"
+
 int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 {
 	em8300_register_t reg;
@@ -425,6 +427,9 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc)
 	}
 
 	em8300_ioctl_enable_videoout(em, 1);
+
+	if (em->ucodeloaded == 0)
+		em8300_enable_card(em);
 
 	em->ucodeloaded = 1;
 

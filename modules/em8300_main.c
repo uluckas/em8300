@@ -57,6 +57,7 @@
 #include "em8300_reg.h"
 #include <linux/em8300.h>
 #include "em8300_fifo.h"
+#include "em8300_registration.h"
 
 #ifdef CONFIG_EM8300_IOCTL32
 #include "em8300_ioctl32.h"
@@ -771,6 +772,9 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 		      "%s_sp-%d", EM8300_LOGNAME, em8300_cards);
 #endif
 #endif
+
+	em8300_register_card(em);
+
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
 	if ((em->dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, -1)) < 0) {
 		printk(KERN_ERR "em8300: cannot register oss audio device!\n");
@@ -790,6 +794,9 @@ static void __devexit em8300_remove(struct pci_dev *pci)
 	char devname[64];
 
 	if (em) {
+		if (em->ucodeloaded == 1)
+			em8300_disable_card(em);
+
 #ifdef CONFIG_DEVFS_FS
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,69)
 		devfs_unregister(em8300_handle[(em->card_nr * 4) + 3]);
@@ -812,6 +819,9 @@ static void __devexit em8300_remove(struct pci_dev *pci)
 			remove_proc_entry(devname, em8300_proc);
 		}
 #endif
+
+		em8300_unregister_card(em);
+
 		release_em8300(em);
 	}
 
@@ -844,6 +854,8 @@ static void __exit em8300_exit(void)
 		remove_proc_entry(EM8300_LOGNAME, &proc_root);
 	}
 #endif
+
+	em8300_unregister_driver();
 }
 
 static int __init em8300_init(void)
@@ -855,6 +867,8 @@ static int __init em8300_init(void)
 	memset(&dsp_num_table, 0, sizeof(dsp_num_table));
 #endif
 
+	em8300_register_driver();
+
 #ifdef CONFIG_PROC_FS
 	em8300_proc = create_proc_entry(EM8300_LOGNAME, S_IFDIR | S_IRUGO | S_IXUGO, &proc_root);
 	if (em8300_proc) {
@@ -863,6 +877,7 @@ static int __init em8300_init(void)
 		printk(KERN_ERR "em8300: unable to register proc entry!\n");
 	}
 #endif
+
 #if defined(CONFIG_DEVFS_FS) && LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
 	if (devfs_register_chrdev(EM8300_MAJOR, EM8300_LOGNAME, &em8300_fops)) {
 #else
@@ -898,6 +913,8 @@ static int __init em8300_init(void)
 	if (em8300_proc)
 		remove_proc_entry(EM8300_LOGNAME, &proc_root);
 #endif
+
+	em8300_unregister_driver();
 	return err;
 }
 

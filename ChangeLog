@@ -1,3 +1,13 @@
+2004-05-02  Nicolas Boullis  <nboullis@debian.org>
+	* modules/Makefile,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_main.c,
+	  modules/em8300_registration.c,
+	  modules/em8300_registration.h:
+	Define a new common interface for all functions that need to be
+	called when the module in registered/unregistered, when a card is
+	registered/unregistered or enabled/disabled.
+
 2004-04-14  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_compat24.h,
 	  modules/em8300_main.c:

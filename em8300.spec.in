@@ -87,7 +87,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %files devel
 %defattr(-,root,root)
 /usr/bin/*
-/usr/include/*/*.h
+/usr/include/libdxr3/
+/usr/include/linux/*
 /usr/lib/*.a
 /usr/lib/*.la
 %doc README NEWS AUTHORS COPYING ChangeLog INSTALL

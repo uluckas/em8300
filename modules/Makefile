@@ -47,14 +47,6 @@ ifeq "$(MODVERS)" "1"
 	CFLAGS+=-DMODVERSIONS -include $(KERNEL_LOCATION)/include/linux/modversions.h
 endif
 
-ifeq "$(SOUND_BUILTIN)" "1"
-	CFLAGS+=-DCONFIG_OSS
-else
-	ifeq "$(SOUND_MODULE)" "1"
-		CFLAGS+=-DCONFIG_OSS
-	endif
-endif
-
 ifeq "$(I2CALGO_BUILTIN)" "1"
 	CFLAGS+=-DI2C_BITBANGING
 else

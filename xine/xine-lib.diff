@@ -1,0 +1,21 @@
+--- /misc/moserv/xine-lib/src/libspudec/spu_decoder_api.h	Wed Jul  4 19:10:24 2001
++++ xine-lib/src/libspudec/spu_decoder_api.h	Sun Jul 15 20:12:26 2001
+@@ -48,6 +48,8 @@
+ 
+   char* (*get_identifier) (void);
+ 
++  metronom_t *metronom;
++
+ };
+ 
+ 
+--- /misc/moserv/xine-lib/src/xine-engine/load_plugins.c	Sun Jul 15 18:30:52 2001
++++ xine-lib/src/xine-engine/load_plugins.c	Sun Jul 15 20:12:26 2001
+@@ -326,6 +326,7 @@
+             int              streamtype;
+ 
+             sdp = (spu_decoder_t *) initplug(iface_version, config);
++            sdp->metronom = this->metronom;
+                printf("SPU Can Handle ?\n");
+             for (streamtype = 0; streamtype<256; streamtype++) {
+               if (sdp->can_handle (sdp, (streamtype<<16) | BUF_SPU_BASE))

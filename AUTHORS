@@ -3,7 +3,7 @@ original reverse engineering, project
   Henrik Johansson <lhj@users.sourceforge.net>
   Ze'ev Maor <zeev@users.sourceforge.net>
 
-maintaining, updating oms plugin, xine patch, autoconfiging
+maintaining, updating oms plugin, xine 0.4 patch, autoconfiging
 
   Rick Haines <rick@kuroyi.net>
 
@@ -11,13 +11,19 @@ kernel 2.4 makefile stuff
 
   Anton Altaparmakov <aia21@cam.ac.uk>
 
-Contributions
+Contributions (in semi-random order)
+
+  Eduard Hasenleithner <eduardh@aon.at>
+    Xine 0.5 plugin
 
   Ralph Zimmermann <rz@ooe.net>
     bt865 initialization
 
   Chris C. Hoover <cchoover@home.com>
-    bt865 module rewrite
+    bt865 module rewrite, ntsc sync tweaking
+
+  John Stebbins <jstebbins@home.com>
+    ntsc sync fixes
 
   Edward Salley <drawdeyellas@hotmail.com>
     dxr3view patches

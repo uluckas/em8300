@@ -1,27 +1,49 @@
-This is a patch to add dxr3/hollywood+ support to xine.
+This directory contains the Xine 0.5 plugin for dxr3 support
+The Xine 0.4.x patches are now located at
+http://dxr3.sourceforge.net/download/xine
 
-If you are not using xine from cvs, please use the patches from
-ftp://dxr3.sourceforge.net/pub/dxr3/xine
+This is still a work in progress.  Audio output currently does
+not use the dxr3 device, although the oss ioctl's will likely be
+implemented soon.  dhc is be necessary to switch to 16x9 mode.
 
-Xine cvs is broken for now.  Use the 0.4.01 patch.  You'll also
-need the updated libcss input plugin from http://www.kuroyi.net/xine
+You'll need to edit the Makefile to specify your xine src patch and
+xine installation path.
 
-cvs -z3 -d:pserver:anonymous@cvs.xine.sourceforge.net:/cvsroot/xine co xine
-patch -p0 <xine_dxr3.patch
-cd xine
-./autogen.sh --enable-dxr3
+"After having installed the dxr3 plugin you must also delete the
+corresponding software decoders in the plugins directory. This
+is later solved with a priority mechanism (not yet coded).  
+(xineplug_decode_spu.so xineplug_decode_mpeg2.so)"
+
+I used:
+
+cvs -z3 -d:pserver:anonymous@cvs.xine.sourceforge.net:/cvsroot/xine co xine-lib
+patch -p0 <em8300/xine/xine-lib.diff
+cd xine-lib
+./cvscompile.sh --prefix=/tmp
 make
 make install
 cd ..
 
-You may want to read the Xine FAQ for info about CSS, etc.
+export XINE_CONFIG=/tmp/xine/bin/xine-config
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/tmp/xine/lib
 
-Run it with:
+cvs -z3 -d:pserver:anonymous@cvs.xine.sourceforge.net:/cvsroot/xine co xine-ui
+cd xine-ui
+./cvscompile.sh --prefix=/tmp
+make
+make install
+cd ..
 
-xine_dxr3 -A dxr3
-or
-xine_dxr3 -A dxr3 -t pal
-or
-xine_dxr3 -S -A dxr3
-or
-xine_dxr3 -a1 -u0 -A dxr3
+rm -f /tmp/xine/lib/xine/plugins/xineplug_decode_mpeg2*
+rm -f /tmp/xine/lib/xine/plugins/xineplug_decode_spu*
+
+cd em8300/xine
+make
+make install
+cd ..
+
+cd modules
+./ldm
+../scripts/microcode_upload.pl /etc/dxr3.ux
+
+/tmp/xine/bin/xine

@@ -316,6 +316,7 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
 
 int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 {
+    unsigned scr,val;
 	switch (cmd) {
 	case EM8300_IOCTL_VIDEO_SETPTS:
 		if (get_user(em->video_pts, (int *)arg)) {
@@ -323,6 +324,27 @@ int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 		}
 		em->video_ptsvalid = 1;
 		break;
+
+	case EM8300_IOCTL_VIDEO_SETSCR:
+		if (_IOC_DIR(cmd) & _IOC_WRITE) {
+			if (get_user(val,(unsigned*)arg))
+				return -EFAULT;
+			val >>= 1;
+			scr = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);
+			scr -= val;
+			if (scr < 0) scr = -scr;
+			if (scr > 9000) {
+				write_ucregister(MV_SCRlo, val & 0xffff);
+				write_ucregister(MV_SCRhi, (val >> 16) & 0xffff);
+			}
+
+		}
+		if (_IOC_DIR(cmd) & _IOC_READ) {
+			scr = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);
+			copy_to_user((void *)arg, &scr, sizeof(unsigned));
+		}
+		break;
+
 	default:
 		return -EINVAL;
 	}

@@ -34,7 +34,7 @@ struct dicom_tvmode {
 struct dicom_tvmode tvmodematrix[EM8300_VIDEOMODE_LAST+1] = {
 	{576, 720, 46, 130},     // PAL 4:3
 	{480, 720, 46, 138},     // PAL60 4:3
-	{480, 720, 24, 118},     // NTSC 4:3
+	{480, 720, 20, 118},     // NTSC 4:3
 };
 
 
@@ -164,12 +164,9 @@ int em8300_dicom_update(struct em8300_s *em)
 
 	if (em->aspect_ratio == EM8300_ASPECTRATIO_16_9) {
 		em->dicom_tvout |= 0x10;
-	}
-#if 0 /* for now don't clear 16x9 mode (maybe fix xine resetting it when you skip) */
 	} else {
 		em->dicom_tvout &= ~0x10;
 	}
-#endif
 
 	write_ucregister(DICOM_TvOut, em->dicom_tvout);
 
@@ -194,10 +191,10 @@ int em8300_dicom_update(struct em8300_s *em)
 
 		if (em->encoder_type == ENCODER_BT865) {
 			write_register(0x1f47, 0x0);
-			write_register(EM8300_HSYNC_LO, 63);
-			write_register(EM8300_HSYNC_HI, 791);
+			write_register(EM8300_HSYNC_LO, 62);
+			write_register(EM8300_HSYNC_HI, 796);
 			if( vmode_ntsc ) {
-				write_register(EM8300_VSYNC_HI, 0x106);
+				write_register(EM8300_VSYNC_HI, 0x100);
 			}
 			else {
 				write_register(EM8300_VSYNC_HI, 0x136);	 

@@ -1,3 +1,18 @@
+2001-07-17  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_dicom.c:
+	updated sync values from John Stebbins
+
+	* modules/em8300_video.c,
+	  include/linux/em8300.h:
+	Add SCR GET/SET ioctl's partly from Eduard Hasenleithner
+
+	* xine/*
+	remove old patches and add 0.5 plugin from Eduard Hasenleithner
+
+	* AUTHORS
+	Thanks guys
+	
 2001-07-16  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_dicom.c:

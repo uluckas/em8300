@@ -1,3 +1,18 @@
+em8300 (0.10.1cvs20020115-5) unstable; urgency=high
+
+  * --added-modules=em8300 so it only compiles em8300 and not all
+    modules in /usr/src/modules
+
+  * some minor cleanup, removed some unecessary messages
+
+ -- Jonas Birme <jonas@birme.se>  Sat, 19 Jan 2001 16:02:11 +0100
+
+em8300 (0.10.1cvs20020115-4) unstable; urgency=high
+
+  * fixed bug showing compiling... even though it shouldn't
+ 
+ -- Jonas Birme <jonas@birme.se>  Wed, 16 Jan 2001 19:43:49 +0100
+
 em8300 (0.10.1cvs20020115-3) unstable; urgency=high
 
   * more debconf features

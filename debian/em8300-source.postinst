@@ -8,9 +8,9 @@ if [ "$1" = "configure" ]; then
 	if [ "$RET" = "true" ]; then
 		db_get em8300-source/kernel-source
 		tar -xzf /usr/src/em8300.tar.gz -C /usr/src/
-		BUILD_OUTPUT=`mktemp /tmp/em8300-kernel-soure.XXXXXX`
+		BUILD_OUTPUT=`mktemp /tmp/em8300-kernel-source.XXXXXX`
 		echo "Building kernel modules... (output -> $BUILD_OUTPUT)"
-		cd "$RET" && make-kpkg modules_image > $BUILD_OUTPUT 2>&1			
+		cd "$RET" && make-kpkg --added-modules=em8300 modules_image > $BUILD_OUTPUT 2>&1			
 		rm -f $BUILD_OUTPUT
 		echo "Your em8300-modules package has been built, resides in $RET/../"
 	fi

@@ -13,6 +13,7 @@ Default: false
 Description: Build modules automatically? 
  I can try to build and install your em8300 kernel modules, as long as
  your current kernel's source (and gcc) are present on your computer.
+ This could take several minutes...
  .
  The modules will be built and compiled into a debian package, that you
  have to manually install.

@@ -67,7 +67,7 @@ Contributions (in semi-random order)
   Malcolm Lashley <?>
     em8300setup
 
-  Nicolas Boullis <Nicolas Boullis at free fr>
+  Nicolas Boullis <nboullis@debian.org>
     Alpha support
     integrated the i2c-2.8.0 patch without removing support for older versions
     better support for multiple cards

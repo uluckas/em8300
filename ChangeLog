@@ -1,3 +1,11 @@
+2003-12-08 Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_fifo.c,
+	  ChangeLog:
+	Fix a bug (introduced by myself in the patch for alpha support)
+	that caused sound to to skip. Thanks to arj (sorry, I don't know
+	your real name) for spotting this bug. Also change my own e-mail
+	in this ChangeLog and in the AUTHORS file.
+
 2003-12-06  Nicolas Boullis  <nboullis@debian.org>
 	* scripts/microcode_extract.pl:
 	Fix a tiny bug in scripts/microcode_extract.pl that caused the
@@ -20,7 +28,7 @@
 	  modules/em8300_spu.c,
 	  modules/em8300_ucode.c,
 	  modules/em8300_video.c:
-	Applied patch from Nicolas Boullis <Nicolas Boullis at free fr> which
+	Applied patch from Nicolas Boullis <nboullis@debian.org> which
 	effectively adds Alpha support and a patch from the same guy which
 	makes it possible to set different module options for multiple cards.
 
@@ -52,7 +60,7 @@
 	  modules/em8300_ucode.c,
 	  modules/em8300_video.c,
 	  modules/em9010.c:
-	Added a patch from Nicolas Boullis <Nicolas Boullis at free fr> which
+	Added a patch from Nicolas Boullis <nboullis@debian.org> which
 	seamlessly integrates i2c-2.8 support.
 
 2003-08-10  David Holm  <david@realityrift.com>

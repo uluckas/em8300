@@ -192,7 +192,7 @@ int em8300_fifo_write_nolock(struct fifo_s *fifo, int n, const char *userbuffer,
 	}
 
 	freeslots = em8300_fifo_freeslots(fifo);
-	writeindex = (readl(fifo->writeptr) - fifo->start) / fifo->slotptrsize;
+	writeindex = ((int)readl(fifo->writeptr) - fifo->start) / fifo->slotptrsize;
 	for (i = 0; i < freeslots && n; i++) {
 		copysize = n < fifo->slotsize / fifo->preprocess_ratio ? n : fifo->slotsize / fifo->preprocess_ratio;
 
@@ -301,7 +301,7 @@ int em8300_fifo_writeblocking(struct fifo_s *fifo, int n, const char *userbuffer
 
 int em8300_fifo_freeslots(struct fifo_s *fifo)
 {
-	return ((readl(fifo->readptr) - readl(fifo->writeptr)) / fifo->slotptrsize + fifo->nslots - 1) % fifo->nslots;
+	return (((int)readl(fifo->readptr) - (int)readl(fifo->writeptr)) / fifo->slotptrsize + fifo->nslots - 1) % fifo->nslots;
 }
 
 void em8300_fifo_statusmsg(struct fifo_s *fifo, char *str)
@@ -314,8 +314,8 @@ int em8300_fifo_calcbuffered(struct fifo_s *fifo)
 {
 	int readindex, writeindex, i, n;
 
-	writeindex = (readl(fifo->writeptr) - fifo->start) / fifo->slotptrsize;
-	readindex = (readl(fifo->readptr) - fifo->start) / fifo->slotptrsize;
+	writeindex = ((int)readl(fifo->writeptr) - fifo->start) / fifo->slotptrsize;
+	readindex = ((int)readl(fifo->readptr) - fifo->start) / fifo->slotptrsize;
 	n = 0;
 	i = readindex;
 	while (i != writeindex) {
@@ -336,5 +336,5 @@ int em8300_fifo_calcbuffered(struct fifo_s *fifo)
 
 int em8300_fifo_isempty(struct fifo_s *fifo)
 {
-	return !(readl(fifo->writeptr) - readl(fifo->readptr));
+	return (readl(fifo->writeptr) == readl(fifo->readptr));
 }

@@ -2,5 +2,4 @@
 ## Process this file with automake to produce Makefile.in
 ##
 
-#SUBDIRS = pipe dxr2 mgadvd
-SUBDIRS = dxr3
+SUBDIRS = input decaps nav codec output decode

@@ -12,24 +12,30 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "ac3.h"
-#include "ac3_internal.h"
-#include "parse.h"
-#include "crc.h"
+#include <unistd.h>
+#include <string.h>
+#include <inttypes.h>
+
+#include "libac3/ac3.h"
+#include "libac3/ac3_internal.h"
+#include "libac3/parse.h"
+#include "libac3/crc.h"
+
+void swab(const void*, void*, size_t);
 
 #define BLOCK_SIZE 6144
 
 static char buf[BLOCK_SIZE];
-static uint_32 sbuffer_size = 0;
+static uint32_t sbuffer_size = 0;
 static syncinfo_t syncinfo;
 static char *sbuffer = &buf[10];
 
-uint_32
-buffer_syncframe(syncinfo_t *syncinfo, uint_8 **start, uint_8 *end)
+uint32_t
+buffer_syncframe(syncinfo_t *syncinfo, uint8_t **start, uint8_t *end)
 {
-  uint_8 *cur = *start;
-  uint_16 syncword = syncinfo->syncword;
-  uint_32 ret = 0;
+  uint8_t *cur = *start;
+  uint16_t syncword = syncinfo->syncword;
+  uint32_t ret = 0;
  
   //
   // Find an ac3 sync frame.
@@ -88,10 +94,11 @@ buffer_syncframe(syncinfo_t *syncinfo, uint_8 **start, uint_8 *end)
   return ret;
 }                                                                                  
 
-void
-output_spdif(uint_8 *data_start, uint_8 *data_end, int fd)
+int
+output_spdif(uint8_t *data_start, uint8_t *data_end, int fd)
 {
   unsigned short *sbuf = (unsigned short *)buf;
+  int ret= 0;
   
   while(buffer_syncframe(&syncinfo, &data_start, data_end))
     {
@@ -103,8 +110,9 @@ output_spdif(uint_8 *data_start, uint_8 *data_end, int fd)
       
       // extract_ac3 seems to write swabbed data
       swab(&buf[10], &buf[10], syncinfo.frame_size * 2 - 2);
-      write(fd,buf, BLOCK_SIZE);
+      ret |= write(fd,buf, BLOCK_SIZE);
       bzero(buf,BLOCK_SIZE);
     }
+  return ret;
 }
 

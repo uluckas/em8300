@@ -1,0 +1,15 @@
+get oms and omi
+cp -a dxr3/ oms/src/plugin/decode
+cp Makefile.am.plugin oms/src/plugin/Makefile.am
+cp Makefile.am oms/src/plugin/decode
+cd oms
+./bootstrap
+./configure && make
+make install
+
+edit your ~/.oms/config such that:
+
+output_audio_plugin=dxr3
+output_audio_device=/dev/em8300_sp
+output_video_plugin=dxr3
+output_video_device=/dev/em8300_mv

@@ -2,7 +2,7 @@
 #define __DXR3_API
 
 #include <sys/ioctl.h>
-#include <linux/em8300.h>
+#include "em8300.h"
 
 #define DXR3_STATUS_CLOSED 0
 #define DXR3_STATUS_OPENED 1
@@ -16,8 +16,14 @@
 #define DXR3_TVMODE_PAL60 EM8300_VIDEOMODE_PAL60
 #define DXR3_TVMODE_NTSC EM8300_VIDEOMODE_NTSC
 
+#define DXR3_OVERLAY_MODE_OFF EM8300_OVERLAY_MODE_OFF
+#define DXR3_OVERLAY_MODE_RECTANGLE EM8300_OVERLAY_MODE_RECTANGLE
+#define DXR3_OVERLAY_MODE_OVERLAY EM8300_OVERLAY_MODE_OVERLAY
+
 #define DXR3_ASPECTRATIO_3_2 EM8300_ASPECTRATIO_3_2
 #define DXR3_ASPECTRATIO_16_9 EM8300_ASPECTRATIO_16_9
+#define DXR3_ASPECTRATIO_235_1 EM8300_ASPECTRATIO_235_1
+#define DXR3_ASPECTRATIO_LAST EM8300_ASPECTRATIO_LAST
 
 #define DXR3_PLAYMODE_STOPPED         0
 #define DXR3_PLAYMODE_PAUSED          1
@@ -30,14 +36,18 @@
 
 typedef struct
 {
-    int fd_control;
-    int fd_video;
-    int fd_audio;
-    int fd_spu;
+	int fd_control;
+	int fd_video;
+	int fd_audio;
+	int fd_spu;
+	
+	int open;
+	int audiomode;
 
-    int open;
-    int ucode;
-    int audiomode;
+	em8300_bcs_t bcs;
+	em8300_bcs_t orig_bcs;
+	em8300_bcs_t min_bcs;
+	em8300_bcs_t max_bcs;
 } dxr3_state_t;
 
 // Driver Init and close functions
@@ -49,9 +59,9 @@ extern int dxr3_install_microcode(em8300_microcode_t *uCode);
 extern int dxr3_get_status();
 
 // Data IO functions
-extern int dxr3_video_write(char *buf, int n);
-extern int dxr3_audio_write(char *buf, int n);
-extern int dxr3_subpicture_write(char *buf, int n);
+extern int dxr3_video_write(const char *buf, int n);
+extern int dxr3_audio_write(const char *buf, int n);
+extern int dxr3_subpic_write(const char *buf, int n);
 
 // Timestamp related functions
 extern int dxr3_video_set_pts(long);
@@ -60,20 +70,24 @@ extern int dxr3_subpic_set_pts(long);
 
 // Audio related functions
 extern int dxr3_audio_set_mode(int);
+extern int dxr3_audio_get_mode(void);
 extern int dxr3_audio_set_stereo(int);
 extern int dxr3_audio_set_rate(int);
 extern int dxr3_audio_set_samplesize(int);
+extern int dxr3_audio_sync(void);
 
 // Video related functions
-extern int dxr3_video_enabletvout(int);
-extern int dxr3_video_enableoverlay(int);
+extern int dxr3_video_set_overlaymode(int);
 extern int dxr3_video_set_tvmode(int);
 extern int dxr3_video_set_aspectratio(int);
+extern int dxr3_video_set_bcs(em8300_bcs_t *bcs);
+extern int dxr3_video_get_bcs(em8300_bcs_t *bcs);
+
+// Subpic related functions
+int dxr3_subpic_set_palette(char *palette);
 
 // Play control functions
 extern int dxr3_set_playmode(int);
-
-int dxr3_subpic_setpalette(char *palette);
 
 #endif
 

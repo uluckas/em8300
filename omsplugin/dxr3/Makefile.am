@@ -2,39 +2,14 @@
 ## Process this file with automake to produce Makefile.in
 ##
 
-## Set this variable to either ANALOG or DIGITAL for the required audio output.
-
-DXR3_AUDIO_OUTPUT = ANALOG
-
-AUTOMAKE_OPTIONS = no-dependencies foreign
-
-##
-DEFS = -fPIC $(CFLAGS) $(GLIB_CFLAGS) @DEFS@ -D$(DXR3_AUDIO_OUTPUT)
-INCLUDES = -I$(top_builddir)/include
-
-libdir = $(OMS_PLUGINDIR)
+INCLUDES = -I../../codec/ac3dec
+libdir = $(PLUGIN_DIR)
 
 ## Lib
 lib_LTLIBRARIES = codec_dxr3.la
-codec_dxr3_la_SOURCES = codec.c dxr3-api.c audio_out_dxr3.c ac3spdif.c crc.c parse.c
-#codec_dxr3_la_DEPENDENCIES = libsdeps
-codec_dxr3_la_LDFLAGS = -avoid-version -module -Wl,-soname,codec_dxr3.so\
-	-lac3
-#	-L$(top_builddir)/src/plugin/codec/mpeg2dec/.libs -lmpeg2\
-#	-L$(top_builddir)/src/plugin/codec/spudec/.libs -lspu\
-#	-L$(top_builddir)/src/plugin/codec/mpg123/.libs -lmp3
+codec_dxr3_la_SOURCES = dxr3-api.c ac3spdif.c \
+        dxr3_mpeg2.c dxr3_spu.c dxr3_ac3.c audio_dxr3.c video_dxr3.c plugin.c
+codec_dxr3_la_LDFLAGS = -avoid-version -module -Wl,-soname,codec_dxr3
+codec_dxr3_la_LIBADD = ../../codec/ac3dec/libac3/libac3.la
 
-
-#libsdeps:
-#	@cd $(top_builddir)/src/plugin/codec/spudec; $(MAKE) libspu.la
-#	@cd $(top_builddir)/src/plugin/codec/mpeg2dec; $(MAKE) libmpeg2.la
-
-
-mostlyclean-generic:
-	-rm -f *~ \#* .*~ .\#*
-
-
-maintainer-clean-generic:
-	-@echo "This command is intended for maintainers to use;"
-	-@echo "it deletes files that may require special tools to rebuild."
-	-rm -f Makefile.in
+noinst_HEADERS = em8300.h dxr3-api.h

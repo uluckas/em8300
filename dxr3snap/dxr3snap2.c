@@ -84,6 +84,15 @@ char dxr3_copy_yuv_data( int pos, int *dst, int length )
 		*dst++ = sub_readregister( 0x11800 );
 	}
 	
+	//result = sub_readregister( 0x11800 ); /* Reads 4 bytes at a time into 
+	//					 result. */
+	//result = sub_readregister( 0x11000 ); /* Reads 3 bytes at a time into 
+	//					 result. This will be useful for DVD snapshots */
+	//result = sub_readregister( 0x10800 ); /* Reads 2 bytes at a time into 
+	//					 result */
+	//result = sub_readregister( 0x10000 ); /* Reads 1 byte at a time into 
+	//					 result. */
+	
 	switch( length % 4 ) {
 	    case 3:
 		*dst++ = sub_readregister( 0x11000 );

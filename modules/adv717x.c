@@ -283,7 +283,12 @@ static unsigned char NTSC_config_7175[19] = {
 
 static int adv717x_update(struct i2c_client *client)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
 	struct adv717x_data_s *data = client->data ;
+#else
+	struct adv717x_data_s *data = i2c_get_clientdata(client);
+#endif
+
 	char tmpconfig[32];
 	int n, i;
 
@@ -320,7 +325,12 @@ static int adv717x_update(struct i2c_client *client)
 }
 
 static int adv717x_setmode(int mode, struct i2c_client *client) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
 	struct adv717x_data_s *data = client->data ;
+#else
+	struct adv717x_data_s *data = i2c_get_clientdata(client);
+#endif
+
 	unsigned char *config = NULL;
 
 	pr_debug("adv717x_setmode(%d,%p)\n", mode, client);
@@ -420,8 +430,13 @@ static int adv717x_setmode(int mode, struct i2c_client *client) {
 
 static int adv717x_setup(struct i2c_client *client)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
 	struct adv717x_data_s *data = client->data ;
 	struct em8300_s *em = client->adapter->data;
+#else
+	struct adv717x_data_s *data = i2c_get_clientdata(client);
+	struct em8300_s *em = i2c_get_adapdata(client->adapter);
+#endif
 
 	memset(data->config, 0, sizeof(data->config));
 
@@ -473,10 +488,15 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 	memset(new_client, 0, sizeof(struct i2c_client) + sizeof(struct adv717x_data_s));
 	data = (struct adv717x_data_s *) (((struct i2c_client *) new_client) + 1);
 	new_client->addr = address;
-	new_client->data = data;
 	new_client->adapter = adapter;
 	new_client->driver = &adv717x_driver;
 	new_client->flags = 0;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
+	new_client->data = data;
+#else
+	i2c_set_clientdata(new_client, data);
+#endif
 
 	i2c_smbus_write_byte_data(new_client, ADV7175_REG_MR1, 0x55);
 	mr1=i2c_smbus_read_byte_data(new_client, ADV7175_REG_MR1);
@@ -543,7 +563,11 @@ int adv717x_detach_client(struct i2c_client *client)
 
 int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
 	struct adv717x_data_s *data = client->data;
+#else
+	struct adv717x_data_s *data = i2c_get_clientdata(client);
+#endif
 
 	switch (cmd) {
 	case ENCODER_CMD_SETMODE:

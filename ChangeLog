@@ -12,6 +12,12 @@
 	kmalloc for an i2c_client structure. Thanks again to Håkon
 	Skjelten.
 
+	* modules/adv717x.c,
+	  modules/bt865.c,
+	  modules/em8300_i2c.c:
+	Since kernel 2.5.67, the i2c_client and i2c_adapter structs have
+	no data field; once more, thanks to Håkon Skjelten for his patch.
+
 2004-03-14  Nicolas Boullis  <nboullis@debian.org>
 	* modules/Makefile:
 	When building modules, if $(I2C_LOCATION) is set, ensure that 

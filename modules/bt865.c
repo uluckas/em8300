@@ -756,7 +756,12 @@ static unsigned char PALNC_CONFIG_BT865[ 48 ] = {
 
 static int bt865_update( struct i2c_client *client )
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
 	struct bt865_data_s *data = client->data ;
+#else
+	struct bt865_data_s *data = i2c_get_clientdata(client);
+#endif
+
 	char tmpconfig[48];
 	int i;
 
@@ -786,7 +791,12 @@ static int bt865_update( struct i2c_client *client )
 
 static int bt865_setmode(int mode, struct i2c_client *client)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
 	struct bt865_data_s *data = client->data ;
+#else
+	struct bt865_data_s *data = i2c_get_clientdata(client);
+#endif
+
 	unsigned char *config = NULL;
 
 	pr_debug("bt865_setmode( %d, %p )\n", mode, client);
@@ -840,8 +850,13 @@ static int bt865_setmode(int mode, struct i2c_client *client)
 
 static int bt865_setup(struct i2c_client *client)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
 	struct bt865_data_s *data = client->data ;
 	struct em8300_s *em = client->adapter->data;
+#else
+	struct bt865_data_s *data = i2c_get_clientdata(client);
+	struct em8300_s *em = i2c_get_adapdata(client->adapter);
+#endif
 
 	if (memset(data->config, 0, sizeof(data->config)) != data->config) {
 		printk(KERN_NOTICE "bt865_setup: memset error\n");
@@ -895,10 +910,15 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
 	memset(new_client, 0, sizeof(struct i2c_client) + sizeof(struct bt865_data_s));
 	data = (struct bt865_data_s *) (((struct i2c_client *) new_client) + 1);
 	new_client->addr = address;
-	new_client->data = data;
 	new_client->adapter = adapter;
 	new_client->driver = &bt865_driver;
 	new_client->flags = 0;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
+	new_client->data = data;
+#else
+	i2c_set_clientdata(new_client, data);
+#endif
 
 //	i2c_smbus_write_byte_data(new_client,0xa6, 0x80/*b1*/);
 //	the write is not needed
@@ -959,7 +979,11 @@ int bt865_detach_client(struct i2c_client *client)
 
 int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
 	struct bt865_data_s *data = client->data ;
+#else
+	struct bt865_data_s *data = i2c_get_clientdata(client);
+#endif
 
 	switch(cmd) {
 	case ENCODER_CMD_SETMODE:

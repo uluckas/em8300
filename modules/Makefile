@@ -72,7 +72,7 @@ install : $(MODULES)
 	@echo Installing modules for $(KERNVER) into $(RKERNVER)
 	install -d /lib/modules/$(RKERNVER)/$(RMODINST)
 	install $^ /lib/modules/$(RKERNVER)/$(RMODINST)
-	@depmod -a
+	@/sbin/depmod -a
 	install -D ../include/linux/em8300.h \
 		/usr/include/linux/em8300.h
 	install -d /usr/share/misc/
@@ -85,7 +85,7 @@ uninstall :
 	do \
 	rm -f $$module $(prefix)/lib/modules/$(RKERNVER)/$(RMODINST)/$$module ;\
 	done
-	@depmod -a
+	@/sbin/depmod -a
 	@echo em8300.h
 	@rm -f /usr/include/linux/em8300.h
 	@echo Uninstall successfull

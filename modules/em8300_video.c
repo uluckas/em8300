@@ -264,6 +264,7 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
 	    pts = em->video_pts;
     }
 
+#if 0
     /* pts has gone backwards, but not far enough to be a rollover */
     if (pts < em->video_lastpts) {
 	    if ((em->video_lastpts - pts) < 90000) {
@@ -272,6 +273,7 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
 		    return 0;
 	    }
     }
+#endif
 
     if(em->video_ptsvalid) {
 	int ptsfifoptr=0;

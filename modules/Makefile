@@ -131,10 +131,10 @@ install-newkern : $(MODULES)
 	do \
 	install -D $$module $(prefix)/lib/modules/$(KERNVER)/kernel/drivers/video/$$module ;\
 	echo $$module ;\
+	done
 	@echo em8300.h
 	@install -D ../include/linux/em8300.h \
 		$(KERNEL_LOCATION)/include/linux/em8300.h
-	done
 	@echo Installed to kernel version of header files
 
 clean :

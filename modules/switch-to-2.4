@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Change this to reflect your kernel sources path.
+KERNEL_LOCATION=/usr/src/linux
+
+# Change this to your em8300/modules path if running this script from outside
+# the em8300/modules directory.
+EM_LOCATION=`pwd`
+
+pushd .
+cd ${EM_LOCATION}
+# Swap the makefiles.
+if [ -f Makefile.2.4 ]; then
+	mv Makefile Makefile.2.2
+	mv Makefile.2.4 Makefile
+fi
+# Generate the correct patch.
+if [ ! -f kernel-makefile-patch2 ]; then
+	cat kernel-makefile-patch | sed s?EM8300_LOC?${EM_LOCATION}?g > \
+					${EM_LOCATION}/kernel-makefile-patch2
+fi
+cd ${KERNEL_LOCATION}
+# Patch the main kernel makefile.
+patch -p0 < ${EM_LOCATION}/kernel-makefile-patch2
+popd
+
+echo .
+echo Kernel and modules have been prepared. Now change to ${KERNEL_LOCATION}
+echo directory and run: make modules
+echo You will then find the compiled modules in ${EM_LOCATION}
+echo .
+echo You obviously need to have configured your kernel and run a make dep
+echo followed by a make bzImage (or equivalent) beforehand.
+echo .
+

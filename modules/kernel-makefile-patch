@@ -1,0 +1,20 @@
+--- Makefile.old	Sat Jan 20 00:32:58 2001
++++ Makefile	Sat Jan 20 00:33:00 2001
+@@ -125,7 +125,7 @@
+ 		 drivers/net/net.o \
+ 		 drivers/media/media.o
+ LIBS		=$(TOPDIR)/lib/lib.a
+-SUBDIRS		=kernel drivers mm fs net ipc lib
++SUBDIRS		=kernel drivers mm fs net ipc lib EM8300_LOC
+ 
+ DRIVERS-n :=
+ DRIVERS-y :=
+@@ -325,7 +325,7 @@
+ init/main.o: init/main.c include/config/MARKER
+ 	$(CC) $(CFLAGS) $(CFLAGS_KERNEL) $(PROFILING) -c -o $*.o $<
+ 
+-fs lib mm ipc kernel drivers net: dummy
++fs lib mm ipc kernel drivers net EM8300_LOC: dummy
+ 	$(MAKE) CFLAGS="$(CFLAGS) $(CFLAGS_KERNEL)" $(subst $@, _dir_$@, $@)
+ 
+ TAGS: dummy

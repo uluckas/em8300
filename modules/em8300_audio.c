@@ -110,6 +110,7 @@ static void preprocess_analog(struct em8300_s *em, unsigned char *outbuf, const 
 	if (em->audio.format == AFMT_S16_LE ||
 	    em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3) {
 #endif
+		/* Software emulation code, should be removed before sending a patch to linus */
 		if (em->audio.channels == 2) {
 			for (i = 0; i < inlength; i += 4) {
 				get_user(outbuf[i + 3], inbuf_user++);
@@ -125,6 +126,7 @@ static void preprocess_analog(struct em8300_s *em, unsigned char *outbuf, const 
 				outbuf[2 * i + 2] = outbuf[2 * i];
 			}
 		}
+		/* End software emulation */
 	} else {
 		for (i = 0; i < inlength / 2; i++) {
 			outbuf[2 * i] = inbuf_user[i];
@@ -147,9 +149,19 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
         if (em->audio.format == AFMT_S16_LE ||
 	    em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3) {
 #endif
-		for(i = 0; i < inlength; i += 2) {
-			get_user(em->mafifo->preprocess_buffer[i + 1], inbuf_user++);
-			get_user(em->mafifo->preprocess_buffer[i], inbuf_user++);
+		if (em->audio.channels == 2) {
+			for(i = 0; i < inlength; i += 2) {
+				get_user(em->mafifo->preprocess_buffer[i + 1], inbuf_user++);				
+				get_user(em->mafifo->preprocess_buffer[i], inbuf_user++);
+			}
+		} else {
+			for(i = 0; i < inlength; i += 2) {
+				get_user(em->mafifo->preprocess_buffer[2 * i + 1], inbuf_user++);				
+				get_user(em->mafifo->preprocess_buffer[2 * i], inbuf_user++);
+				em->mafifo->preprocess_buffer[2 * i + 3] = em->mafifo->preprocess_buffer[2 * i + 1];
+				em->mafifo->preprocess_buffer[2 * i + 2] = em->mafifo->preprocess_buffer[2 * i];
+			}
+			inlength *= 2; /* ensure correct size for sub_prepare_SPDIF */
 		}
 	} else {
 		copy_from_user(em->mafifo->preprocess_buffer, inbuf_user, inlength);
@@ -164,7 +176,7 @@ static void setup_mafifo(struct em8300_s *em)
 		em->mafifo->preprocess_ratio = ((em->audio.channels == 2) ? 1 : 2);
 		em->mafifo->preprocess_cb = &preprocess_analog;
 	} else {
-		em->mafifo->preprocess_ratio = 2;
+		em->mafifo->preprocess_ratio = ((em->audio.channels == 2) ? 2 : 4);
 		em->mafifo->preprocess_cb = &preprocess_digital;
 	}
 }
@@ -299,8 +311,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	case SNDCTL_DSP_RESET: /* reset device */
 		pr_debug("em8300_audio.o: SNDCTL_DSP_RESET\n");
 		em8300_audio_flush(em);
-		val = 0;
-		break;
+		return 0;
 
 	case SNDCTL_DSP_SYNC:  /* wait until last byte is played and reset device */
 		pr_debug("em8300_audio.o: SNDCTL_DSP_SYNC\n");

@@ -298,7 +298,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	switch (cmd) { 
 	case SNDCTL_DSP_RESET: /* reset device */
 		pr_debug("em8300_audio.o: SNDCTL_DSP_RESET\n");
-		em8300_fifo_sync(em->mafifo);
+		em8300_audio_flush(em);
 		val = 0;
 		break;
 
@@ -468,17 +468,11 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 
 int em8300_audio_flush(struct em8300_s *em)
 {
-	int audiobuf, audiobufsize;
-
-	mpegaudio_command(em, MACOMMAND_STOP);
-
-	/* Zero audio buffer */
-	audiobuf = read_ucregister(MA_BuffStart_Lo) | (read_ucregister(MA_BuffStart_Hi) << 16);
-	audiobufsize = read_ucregister(MA_BuffSize) | (read_ucregister(MA_BuffSize_Hi) << 16);
-
-	mpegaudio_command(em, MACOMMAND_PAUSE);
-	
-	return em8300_setregblock(em, audiobuf, 0, audiobufsize);
+	int pcirdptr = read_ucregister(MA_PCIRdPtr);
+	write_ucregister(MA_PCIWrPtr, pcirdptr);
+	*em->mafifo->writeptr = *em->mafifo->readptr;
+	em->mafifo->waiting = 0;
+	return 0;
 }
 
 int em8300_audio_open(struct em8300_s *em)

@@ -11,6 +11,14 @@ General fixes:
                           do use_bt865=0,1 if you have two cards and the
                           second uses a bt865.
 
+ bt865:
+   rgb_mode            -- set to 1 to enable RGB output
+                          (requires hacking DXR3 hardware)
+
+   color_bars          -- set to 1 to enable color bars
+                          (only used to test the chip)
+
+
 If your red and blue colors channels are switched:
 
  adv717x:

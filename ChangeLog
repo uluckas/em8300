@@ -1,3 +1,9 @@
+2003-01-08  David Holm  <david@realityrift.com>
+	* modules/README-modoptions,
+	  modules/bt865.c:
+	Added patch from Luis.F.Correia" <Luis.F.Correia@seg-social.pt> which adds
+	support for RGB-mode with bt865.
+
 2002-11-29  David Holm  <david@realityrift.com>
 	* modules/em8300_audio.c:
 	Changed two pr_infos to pr_debugs.

@@ -3,7 +3,10 @@
 
    Henrik Johannson <henrikjo@post.utfors.se>
    As modified by Chris C. Hoover <cchoover@home.com>
-   
+  
+   Modified by Luis Correia <lfcorreia@users.sourceforge.net>
+   added rgb_mode (requires hacking DXR3 hardware)
+ 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
@@ -53,6 +56,10 @@ MODULE_SUPPORTED_DEVICE("bt865");
 static int color_bars = 0;
 MODULE_PARM(color_bars, "i");
 MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be displayed on your screen (used for testing if the chip is working). Defaults to 0.");
+
+static int rgb_mode = 0;
+MODULE_PARM(rgb_mode, "i");
+MODULE_PARM_DESC(rgb_mode, "If you set this to 1, RGB output is enabled. You will need to hack the DXR3 hardware. Defaults to 0.");
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
 MODULE_LICENSE("GPL");
@@ -990,6 +997,13 @@ int __init bt865_init(void)
 		bars = 0x00;
         }
 	
+        if (rgb_mode) {
+
+	bars = bars | 0x40;
+	pr_debug("bt865.o: rgb_mode: %d\n", rgb_mode);
+
+	}
+
 	pr_debug("bt865.o: color_bars: %d\n", color_bars);
 	
 	NTSC_CONFIG_BT865[23] = (NTSC_CONFIG_BT865[23] & ~0x10) | bars;

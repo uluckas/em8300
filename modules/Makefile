@@ -59,7 +59,7 @@ em8300.o : $(EM8300_OBJS)
 install : $(MODULES)
 	@for module in $^ ;\
 	do \
-	install -D $$module /lib/modules/`uname -r`/kernel/drivers/video/$$module ;\
+	install -D $$module $(prefix)/lib/modules/`uname -r`/kernel/drivers/video/$$module ;\
 	echo $$module ;\
 	done
 	@depmod -a

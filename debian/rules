@@ -87,7 +87,7 @@ binary-lib:	checkroot build
 	install -m644 debian/copyright \
 	  debian/tmp/usr/share/doc/$(package)/copyright
 	install -d debian/tmp/usr/share/man/man1
-	install -m644 debian/man/* debian/tmp/usr/share/man/man1
+	install -m644 debian/man/*.1 debian/tmp/usr/share/man/man1/
 	gzip -9v debian/tmp/usr/share/man/man1/*
 	dpkg-shlibdeps `ls 2>/dev/null dhc/dhc overlay/autocal overlay/dxr3view libdxr3/.libs/libdxr3.so.0.0.0`
 	dpkg-gencontrol -pem8300

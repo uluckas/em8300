@@ -28,3 +28,13 @@ clean:
 	-rm -f $(O_OBJS) $(M_OBJS) $(MX_OBJS) .depend .*.o.flags *~
 
 include $(KERNEL_LOCATION)/Rules.make
+
+install: $(M_OBJS)
+	 @for module in $^ ;\
+	 do \
+	 install -D $$module $(prefix)/lib/modules/`uname -r`/misc/$$module ;\
+	 echo $$module ;\
+	 done
+	 @depmod -a
+	 @echo Installed to running kernel
+	

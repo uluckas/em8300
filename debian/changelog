@@ -1,3 +1,10 @@
+em8300 (0.8-3) unstable; urgency=high
+
+  * Includes patch from Eduard to change var_video_value to 3375.
+    For the new sync-code to work later on.
+    
+ -- Jonas Birme <jonas@birme.se>  Wed, 09 Aug 2001 00:34:32 +0100
+ 
 em8300 (0.8-2) unstable; urgency=low
 
   * Fixed some lintian-complains.

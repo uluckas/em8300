@@ -1,5 +1,16 @@
 2001-08-08  Rick Haines  <rick@kuroyi.net>
 
+	* debian/changelog,
+	  debian/rules,
+	  modules/Makefile,
+	  modules/Makefile.2.2:
+	more updates from Jonas
+
+	* modules/Makefile.2.4:
+	update
+	
+2001-08-08  Rick Haines  <rick@kuroyi.net>
+
 	* debian/*:
 	Debian packaging stuff from Jonas Birme
 

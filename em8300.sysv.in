@@ -71,7 +71,7 @@ UCDIR=/etc/dxr3.ux
 #
 # List of modules to install"
 #
-modlist="adv717x_eeprom bt865 adv717x em8300"
+modlist="bt865 adv717x em8300"
 
 #
 # Is this kernel 2.4

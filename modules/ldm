@@ -2,7 +2,6 @@
 
 modprobe i2c-algo-bit
 
-insmod adv717x_eeprom.o
 insmod adv717x.o
 # pixelport_16bit=1 pixelport_other_pal=0 swap_redblue_pal=0 color_bars=1
 insmod bt865.o

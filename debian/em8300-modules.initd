@@ -7,8 +7,6 @@ do_start()
 {
 	echo -n "Loading em8300 modules: "
 	modprobe i2c-algo-bit
-	modprobe adv717x_eeprom
-	echo -n "adv717x_eeprom "
 	modprobe adv717x $PARM_ADV717X
 	echo -n "adv717x "
 	modprobe bt865
@@ -33,8 +31,6 @@ do_stop()
 	[ -f /dev/em8300_ma ] && fuser -k /dev/em8300_ma
 	[ -f /dev/em8300_sp ] && fuser -k /dev/em8300_sp
 
-	[ -n "`/sbin/lsmod | grep '^adv717x_eeprom'`" ] && rmmod adv717x_eeprom && \
-		echo -n "adv717x_eeprom "
 	[ -n "`/sbin/lsmod | grep '^em8300'`" ] && rmmod em8300 && \
 		echo -n "em8300 "
 	[ -n "`/sbin/lsmod | grep '^adv717x'`" ] && rmmod adv717x && \

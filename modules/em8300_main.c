@@ -683,7 +683,6 @@ int em8300_init(void)
 		em->irqmask = 0;
 		
 		em->encoder = NULL;
-		em->eeprom = NULL;
 		
 		em->linecounter=0;
 		

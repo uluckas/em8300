@@ -13,10 +13,14 @@ I2C_LOCATION?=
 
 ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/arm/ -e s/sa110/arm/)
 
+ARCH_CFLAGS =
+
 ifeq "$(ARCH)" "alpha"
 ARCH_CFLAGS = -mno-fp-regs -ffixed-8
-else
-ARCH_CFLAGS =
+endif
+
+ifeq "$(ARCH)" "ppc"
+ARCH_CFLAGS = -fsigned-char -msoft-float -pipe -ffixed-r2 -mmultiple -mstring
 endif
 
 EXTRA_CFLAGS = -g -I ../include -I $(KERNEL_LOCATION)/include/ \

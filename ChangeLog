@@ -1,3 +1,13 @@
+2002-02-19  David Holm  <dholm@iname.com>
+	* modules/em8300_main.c:
+	Fixed compilation on 2.5 kernels
+
+2002-02-15  David Holm  <dholm@iname.com>
+	* modules/em8300_main.c:
+	Changed behaviour of procfs entry. It now shows up as
+	/proc/em8300/<devicenum> instead of /proc/em8300/em8300-<devnum>
+	I hate repeating myself ;)
+
 2002-02-13  Jonas Birme  <jonas@birme.se>
    * scripts/microcode_upload.pl
 	Fixed the ugly hardcoded path in the script.

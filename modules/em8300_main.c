@@ -63,8 +63,13 @@
 /* It seems devfs will implement a new scheme of enumerating minor numbers.
  * Currently it seems broken. But that is why we added these macros.
  */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
 #define EM8300_MINOR(inode) ((inode)->i_rdev % 4)
 #define EM8300_CARD(inode) ((inode)->i_rdev / 4)
+#else
+#define EM8300_MINOR(inode) (minor(inode->i_rdev) % 4)
+#define EM8300_CARD(inode) (minor(inode->i_rdev) / 4)
+#endif
 
 #if !defined(CONFIG_I2C_ALGOBIT) && !defined(CONFIG_I2C_ALGOBIT_MODULE)
 #error "This needs the I2C Bit Banging Interface in your Kernel"
@@ -398,7 +403,11 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 			return -EINVAL;
 		}
 	
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
 		remap_page_range(vma->vm_start, em->adr, vma->vm_end - vma->vm_start, vma->vm_page_prot);
+#else
+		remap_page_range(vma, vma->vm_start, em->adr, vma->vm_end - vma->vm_start, vma->vm_page_prot);
+#endif
 		vma->vm_file = file;
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,4,0)
@@ -496,7 +505,11 @@ static int em8300_dsp_ioctl(struct inode* inode, struct file* filp, unsigned int
 
 static int em8300_dsp_open(struct inode* inode, struct file* filp) 
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
 	int dsp_num = ((MINOR(inode->i_rdev) >> 4) & 0x0f);
+#else
+	int dsp_num = ((minor(inode->i_rdev) >> 4) & 0x0f);
+#endif
 	int card = dsp_num_table[dsp_num] - 1;
 	int err = 0;
 
@@ -743,7 +756,7 @@ int em8300_init(void)
 		init_em8300(em);
 
 #ifdef CONFIG_PROC_FS
-		sprintf(devname, "%s-%d", EM8300_LOGNAME, card );
+		sprintf(devname, "%d", card );
 		proc = create_proc_entry(devname, S_IFREG | S_IRUGO, em8300_proc);
 		proc->data = (void *) em;
 		proc->read_proc = em8300_proc_read;

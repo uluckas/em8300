@@ -347,40 +347,13 @@ int em8300_io_release(struct inode* inode, struct file* filp)
     return(0);
 }
    
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
 static struct file_operations em8300_fops = {
-  NULL,
-  NULL,
-  em8300_io_write,
-  NULL,
-  NULL,
-  em8300_io_ioctl,
-  em8300_io_mmap,
-  em8300_io_open,
-  NULL,
-  em8300_io_release,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL };
-#else
-static struct file_operations em8300_fops = {
-  NULL,
-  NULL,
-  em8300_io_write,
-  NULL,
-  NULL,
-  em8300_io_ioctl,
-  em8300_io_mmap,
-  em8300_io_open,
-  NULL,
-  em8300_io_release,
-  NULL,
-  NULL,
-  NULL };
-#endif
+  write: em8300_io_write,
+  ioctl: em8300_io_ioctl,
+  mmap: em8300_io_mmap,
+  open: em8300_io_open,
+  release: em8300_io_release,
+};
 
 void cleanup_module(void) {
     release_em8300(em8300_cards);

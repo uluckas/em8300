@@ -136,10 +136,10 @@ static unsigned char PAL_config_7170[27] = {
 
 static unsigned char NTSC_config_7170[27] = {
     0x10,       // Mode Register 0
-    0x07,       // Mode Register 1
+    0x06,       // Mode Register 1
     0x08,       // Mode Register 2
     0x00,       // Mode Register 3
-    0x10,       // Mode Register 4
+    0x00,       // Mode Register 4
     0x00,       // Reserved
     0x00,       // Reserved
     0x0d,       // Timing Register 0

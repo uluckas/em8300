@@ -1,3 +1,15 @@
+2001-03-13  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_main.c,
+	  modules/adv717x.c:
+	merge patches from Paul Laufer.  Fixes missing
+	symbol 'remap', turns on interlaced and turns
+	off pedestal for ADV7170 in NTSC mode.
+
+	* scripts/msexpand.pl:
+	add this to help people extract their microcode
+	thanks to Paul Laufer.
+	
 2001-03-11  Rick Haines  <rick@kuroyi.net>
 
 	* include/libdxr3/api.h,

@@ -50,7 +50,9 @@
 
 MODULE_AUTHOR("Henrik Johansson <henrikjo@post.utfors.se>");
 MODULE_DESCRIPTION("EM8300 MPEG-2 decoder");
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
 MODULE_PARM(remap,"1-" __MODULE_STRING(EM8300_MAX) "i");
+#endif
 
 /*
  * Module params by Jonas Birmé (birme@jpl.nu)

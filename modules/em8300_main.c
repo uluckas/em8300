@@ -240,6 +240,7 @@ static int find_em8300(void)
 #endif	
 		em->memsize = 1024 * 1024;
 
+		pci_enable_device(dev);
 		pci_read_config_byte(dev, PCI_CLASS_REVISION, &revision);
 		em->pci_revision = revision;
 		pr_info("em8300: EM8300 %x (rev %d) ", dev->device, revision);

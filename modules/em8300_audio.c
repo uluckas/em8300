@@ -335,14 +335,17 @@ int em8300_audio_setup(struct em8300_s *em) {
     case EM8300_AUDIOMODE_ANALOG:
 	write_register(0x1fb0,0x62);
 	em8300_setregblock(em, 2*ucregister(Mute_Pattern), 0, 0x600);
+	printk("em8300_audio.o: Analog audio enabled\n");
 	break;
     case EM8300_AUDIOMODE_DIGITALPCM:
 	write_register(0x1fb0,0x3a0);
 	em8300_writeregblock(em, 2*ucregister(Mute_Pattern), digitalpcm_mute_pattern, 0x600);
+	printk("em8300_audio.o: Digital PCM audio enabled\n");
 	break;
     case EM8300_AUDIOMODE_DIGITALAC3:
 	write_register(0x1fb0,0x3a0);
 	em8300_writeregblock(em, 2*ucregister(Mute_Pattern), digitalac3_mute_pattern, 0x600);
+	printk("em8300_audio.o: Digital AC3 audio enabled\n");
 	break;
     }    
     return 0;

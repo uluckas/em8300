@@ -120,7 +120,6 @@ static struct em8300_s em8300[EM8300_MAX];
 static int dsp_num_table[16];
 #endif
 #ifdef CONFIG_DEVFS_FS
-static int em8300_major;
 devfs_handle_t em8300_handle[EM8300_MAX*4];
 #endif
 #ifdef CONFIG_PROC_FS
@@ -634,11 +633,9 @@ void em8300_exit(void)
 #endif
 #ifdef CONFIG_DEVFS_FS
 	sprintf(devname, "%s", EM8300_LOGNAME);
-	devfs_unregister_chrdev(em8300_major, devname);
-	devfs_dealloc_major(DEVFS_SPECIAL_CHR, em8300_major);
-#else
-	unregister_chrdev(EM8300_MAJOR, EM8300_LOGNAME);
+	devfs_unregister_chrdev(EM8300_MAJOR, devname);
 #endif
+	unregister_chrdev(EM8300_MAJOR, EM8300_LOGNAME);
 	release_em8300(em8300_cards);
 }
 
@@ -658,9 +655,8 @@ int em8300_init(void)
 #endif
 
 #ifdef CONFIG_DEVFS_FS
-	em8300_major = devfs_alloc_major(DEVFS_SPECIAL_CHR);
 	sprintf(devname, "%s", EM8300_LOGNAME);
-	devfs_register_chrdev(em8300_major, devname, &em8300_fops);
+	devfs_register_chrdev(EM8300_MAJOR, devname, &em8300_fops);
 #endif
 #ifdef CONFIG_PROC_FS
 	sprintf(devname, "%s", EM8300_LOGNAME);
@@ -699,16 +695,16 @@ int em8300_init(void)
 #endif
 #ifdef CONFIG_DEVFS_FS
 		sprintf(devname, "%s-%d", EM8300_LOGNAME, card );
-		em8300_handle[(card * 4)] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major, 
+		em8300_handle[(card * 4)] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR, 
 				(card * 4), S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 		sprintf(devname, "%s_mv-%d", EM8300_LOGNAME, card );
-		em8300_handle[(card * 4) + 1] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major, 
+		em8300_handle[(card * 4) + 1] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR, 
 				(card * 4)+1, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 		sprintf(devname, "%s_ma-%d", EM8300_LOGNAME, card );
-		em8300_handle[(card * 4) + 2] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major,
+		em8300_handle[(card * 4) + 2] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
 				(card * 4) + 2, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 		sprintf(devname, "%s_sp-%d", EM8300_LOGNAME, card );
-		em8300_handle[(card * 4) + 3] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major,
+		em8300_handle[(card * 4) + 3] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
 				(card * 4) + 3, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 #endif
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
@@ -721,12 +717,10 @@ int em8300_init(void)
 #endif
 	}
 
-#ifndef CONFIG_DEVFS_FS
 	if (register_chrdev(EM8300_MAJOR, EM8300_LOGNAME, &em8300_fops)) {
 		printk(KERN_ERR "em8300: unable to get major %d\n", EM8300_MAJOR);
 		goto err_chrdev;
 	}
-#endif
 	return 0;
 
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
@@ -746,8 +740,7 @@ int em8300_init(void)
 	}
 #ifdef CONFIG_DEVFS_FS
 	sprintf(devname, "%s", EM8300_LOGNAME);
-	devfs_unregister_chrdev(em8300_major, devname);
-	devfs_dealloc_major(DEVFS_SPECIAL_CHR, em8300_major);
+	devfs_unregister_chrdev(EM8300_MAJOR, devname);
 #endif
 	release_em8300(em8300_cards);
 	return -ENODEV;

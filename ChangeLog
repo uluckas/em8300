@@ -1,14 +1,15 @@
 2002-01-08  Rick Haines  <rick@kuroyi.net>
-
 	* configure.in,
 	  Makefile.am,
 	  modules/Makefile:
 	update version, add acconfig.h to EXTRA_DIST
 
 2002-01-20  David Holm  <dholm@iname.com>
-	* modules/adv717x_eeprom.c:
+	* modules/adv717x_eeprom.c,
+	  modules/em8300_main.c:
 	Removed, all affected files have been updated (including files in debian subdir)
 	Changed so that uninplemented SNDCTL calls return -ENOSYS (uninplemented) instead of -EINVAL (invalid argument)
+	Fix case when users compile with devfs support but don't mount it at boot
 
 2002-01-19  David Holm  <dholm@iname.com>
 	* modules/em8300_video.c:

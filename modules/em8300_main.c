@@ -80,9 +80,6 @@ MODULE_PARM(bt865_ucode_timeout, "i");
 int activate_loopback = 0;
 MODULE_PARM(activate_loopback, "i");
 
-int overlay_tv_switching = 0;
-MODULE_PARM(overlay_tv_switching, "i");
-
 static int em8300_cards,clients;
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)

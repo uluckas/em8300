@@ -1,3 +1,17 @@
+2001-08-17  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_ioctl.c,
+	  modules/em9010.c,
+	  overlay/allblackbut.c,
+	  overlay/dxr3view.c,
+	  overlay/overlay.c:
+	Daniel fixes autocal again
+
+	* modules/em8300_ioctl.c,
+	  modules/em8300_main.c,
+	  modules/ldm:
+	remove overlay_tv_switching option
+	
 2001-08-13  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_spu.c,

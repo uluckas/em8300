@@ -8,4 +8,4 @@ insmod adv717x.o
 insmod bt865.o
 # color_bars=1
 insmod em8300.o
-# use_bt865=0 bt865_ucode_timeout=1 dicom_fix=0 dicom_control=0 dicom_other_pal=0 overlay_tv_switching=0
+# use_bt865=0 bt865_ucode_timeout=1 dicom_fix=0 dicom_control=0 dicom_other_pal=0

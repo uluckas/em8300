@@ -155,6 +155,7 @@ void AllBlackButPattern(int my_color,int x,int y,int width,int height)
 	XSetForeground(dpy,gc,pixel[my_color]);
 	XFillRectangle(dpy,win,gc,x,y,width,height);
 	XFlush(dpy);
+	XSync(dpy, False);
 }
 
 void AllBlackButPatternRGB(int rgb_color,int x,int y,int width,int height)
@@ -171,6 +172,7 @@ void AllBlackButPatternRGB(int rgb_color,int x,int y,int width,int height)
 	XSetForeground(dpy,gc,color);
 	XFillRectangle(dpy,win,gc,x,y,width,height);
 	XFlush(dpy);
+	XSync(dpy, False);
 }
 
 void AllDrawRectangle(int fg, int bg, int x,int y,int width,int height)
@@ -190,4 +192,5 @@ void AllDrawRectangle(int fg, int bg, int x,int y,int width,int height)
 	XSetForeground(dpy,gc,fgcolor);
 	XFillRectangle(dpy,win,gc,x,y,width,height);
 	XFlush(dpy);
+	XSync(dpy, False);
 }

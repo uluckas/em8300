@@ -15,8 +15,6 @@
 
 #include "overlay.h"
 
-#define MATLAB_OUTPUT
-
 static int update_parameters(overlay_t *o)
 {
     overlay_set_attribute(o, EM9010_ATTRIBUTE_XOFFSET, o->xoffset);
@@ -403,10 +401,10 @@ int overlay_autocalibrate(overlay_t *o, pattern_drawer_cb pd, void *arg)
     printf("Xcorrection: %d\n",cal.result);
     o->xcorr = cal.result;
 
-    win.xpos = 2;
-    win.ypos = 0;
-    win.width = o->xres;
-    win.height = o->yres;
+    win.xpos = 10;
+    win.ypos = 10;
+    win.width = o->xres-20;
+    win.height = o->yres-20;
     if (ioctl(o->dev, EM8300_IOCTL_OVERLAY_SETWINDOW, &win)==-1) {	
 	perror("Failed resizing window");
 	exit(1);

@@ -1,3 +1,9 @@
+2001-08-02  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_audio.c:
+	Fix SNDCTL_DSP_GETOPTR and SNDCTL_DSP_GETODELAY
+	ioctl's so they work with mono audio
+	
 2001-08-01  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_ioctl.c:

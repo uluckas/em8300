@@ -233,7 +233,7 @@ static int set_channels(struct em8300_s *em, int val) {
 	if (val > 2) val = 2;
 	em->audio.channels = val;
 	setup_mafifo(em);
-	
+
 	return val;
 }
 
@@ -433,19 +433,15 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	case SNDCTL_DSP_GETOPTR:
 	{
 		count_info ci;
-		int calc;
-		calc = em8300_fifo_calcbuffered(em->mafifo);
-		ci.bytes = em->mafifo->bytes - calc;
-#if 0
-		pr_info("audio bytes = %i   buffered = %i\n", em->mafifo->bytes, calc);
-#endif
+		ci.bytes = em->mafifo->bytes - (em8300_audio_calcbuffered(em) / em->mafifo->preprocess_ratio);
+		if (ci.bytes < 0) ci.bytes = 0;
 		ci.blocks = 0;
 		ci.ptr = 0;
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETOPTR %i\n", ci.bytes);
 		return copy_to_user((void *)arg, &ci, sizeof(count_info));
 	}
 	case SNDCTL_DSP_GETODELAY:
-		val = em8300_audio_calcbuffered(em);
+		val = em8300_audio_calcbuffered(em) / em->mafifo->preprocess_ratio;
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETODELAY %i\n", val);
 		break;
 #if 0
@@ -608,9 +604,7 @@ int em8300_audio_calcbuffered(struct em8300_s *em)
 	bufsize = read_ucregister(MA_BuffSize) | (read_ucregister(MA_BuffSize_Hi) << 16);
 
 	n = (bufsize+writeptr-readptr) % bufsize;
-#if 0
-	pr_info("n = %i   fifo = %i\n", n, em8300_fifo_calcbuffered(em->mafifo));
-#endif
+
 	return em8300_fifo_calcbuffered(em->mafifo) + n;
 }
 

@@ -2,10 +2,8 @@
 
 if [ "$1" = "purge" -a -e /usr/share/debconf/confmodule ]; then
   . /usr/share/debconf/confmodule
-  
-  update-rc.d em8300 remove > /dev/null
-
-  rm -f /dev/em8300*
+  [ -x /usr/sbin/update-devfsd ] && /usr/sbin/update-devfsd >&2  
+  [ -x /usr/sbin/update-rc.d ] && /usr/sbin/update-rc.d em8300 remove >&2
 
   db_purge
 fi

@@ -1,5 +1,4 @@
 #!/bin/sh -e
 
-if test -x /etc/init.d/em8300; then 
-  /etc/init.d/em8300 stop
-fi
+[ -x /etc/init.d/em8300 ] && /etc/init.d/em8300 stop
+

@@ -1,0 +1,34 @@
+Template: em8300-source/install_note
+Type: text
+Description: em8300-source installed.
+ The source for the em8300 modules has been installed, but you have to
+ compile the modules. Untar /usr/src/em8300.tar.gz in /usr/src.
+ Then go to your kernel source and run make-kpkg modules_image, and when
+ finished just dpkg -i ../em8300-modules-<kvers>_<em8300vers>.deb and the
+ modules will be installed.
+
+Template: em8300-source/build_modules
+Type: boolean
+Default: false
+Description: Build modules automatically? 
+ I can try to build and install your em8300 kernel modules, as long as
+ your current kernel's source (and gcc) are present on your computer.
+ .
+ The modules will be built and compiled into a debian package, that you
+ have to manually install.
+
+Template: em8300-source/kernel-source
+Type: string
+Default: /usr/src/linux/
+Description: Where is your kernel source?
+ To build em8300 kernel modules, I need the sources od the kernel you plan to
+ use them with.
+
+Template: em8300-source/kernel-source-not-found
+Type: note
+Description: ${ksrc} is not a valid kernel source tree.
+
+Template: em8300-source/text_compiling
+Type: text
+Description: Compiling modules...
+

@@ -3,34 +3,19 @@
 # source debconf library
 . /usr/share/debconf/confmodule
 
-# movedoc - function to make the transition /usr/doc -> /usr/share/doc
-
-movedoc()
-{
-  PKG=em8300
-  OLD=/usr/doc/$PKG
-  NEW=/usr/share/doc/$PKG
-  if test -d $OLD -a ! -h $OLD -a ! $OLD -ef $NEW; then
-      rm -f $OLD/.dhelp
-      if test -e $OLD && ! rmdir $OLD 2>/dev/null; then
-          VERSION_CONTROL=t \
-	  cp -ab $OLD $NEW/..
-	  rm -rf $OLD
-      fi
-  fi
-  if test -d /usr/doc -a ! -e $OLD -a -d $NEW; then
-      ln -s $NEW $OLD
-  fi
-}
-
-add_msg() { db_fset $2 seen false || true; db_input $1 $2 || true; }
-
-show_msg() { add_msg $1 $2; db_go; }
-
-if [ "$1" = configure ]; then
-    movedoc
-
-  if [ "$DEBIAN_FRONTEND" != "Noninteractive" ]; then
-    show_msg critical em8300/install_note
-  fi
+if [ "$1" = "configure" ]; then
+	db_get em8300-source/build_modules
+	if [ "$RET" = "true" ]; then
+		db_get em8300-source/kernel-source
+		tar -xzf /usr/src/em8300.tar.gz -C /usr/src/
+		BUILD_OUTPUT=`mktemp /tmp/em8300-kernel-soure.XXXXXX`
+		echo "Building kernel modules... (output -> $BUILD_OUTPUT)"
+		cd "$RET" && make-kpkg modules_image > $BUILD_OUTPUT 2>&1			
+		rm -f $BUILD_OUTPUT
+		echo "Your em8300-modules package has been built, resides in $RET/../"
+	fi
 fi
+
+db_stop
+
+#DEBHELPER#

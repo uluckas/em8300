@@ -97,6 +97,9 @@ binary-modules: build-modules
 	cd ..
 	install -d "debian/$(pkgmod)/etc/init.d"
 	install -m755 debian/em8300-modules.initd debian/$(pkgmod)/etc/init.d/em8300
+	install -d debian/$(pkgmod)/etc/devfs/conf.d/
+	install -o root -g root -m 644 debian/em8300-modules.devfs.conf \
+		debian/$(pkgmod)/etc/devfs/conf.d/em8300
 	dh_installdocs -p$(pkgmod)
 	dh_installchangelogs -p$(pkgmod)
 	dh_installdeb -p$(pkgmod_novers) -Pdebian/$(pkgmod)

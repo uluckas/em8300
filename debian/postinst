@@ -3,63 +3,27 @@
 # source debconf library
 . /usr/share/debconf/confmodule
 
-# movedoc - function to make the transition /usr/doc -> /usr/share/doc
-movedoc()
-{
-  PKG=em8300
-  OLD=/usr/doc/$PKG
-  NEW=/usr/share/doc/$PKG
-  if test -d $OLD -a ! -h $OLD -a ! $OLD -ef $NEW; then
-      rm -f $OLD/.dhelp
-      if test -e $OLD && ! rmdir $OLD 2>/dev/null; then
-          VERSION_CONTROL=t \
-	  cp -ab $OLD $NEW/..
-	  rm -rf $OLD
-      fi
-  fi
-  if test -d /usr/doc -a ! -e $OLD -a -d $NEW; then
-      ln -s $NEW $OLD
-  fi
-}
-
-add_msg() { db_fset $2 seen false || true; db_input $1 $2 || true; }
-
-show_msg() { add_msg $1 $2; db_go; }
-
 if [ "$1" = "configure" ]; then
-    movedoc    
+	if [ ! -f /usr/lib/em8300/microcode0.bin ]; then
+		db_get em8300/have_vxd
+		VXDSRC="$RET"
+		if [ -f "$VXDSRC" ]; then 
+			if [ -n "`echo $VXDSRC | /bin/grep '_$'`" ]; then
+				[ -x /usr/share/em8300/msexpand.pl ] && \ 
+					/usr/share/em8300/msexpand.pl "$VXDSRC"
+				VXDSRC="`echo $VXDSRC | sed 's/.vx_$/.vxd/'`"
+			fi
 
-    if [ ! -f /usr/lib/em8300/microcode0.bin ]; then
-    
-	cd /tmp/
+			[ -x /usr/share/em8300/microcode_extract.pl ] && \
+				/usr/share/em8300/microcode_extract.pl "$VXDSRC" /usr/lib/em8300
 
-        if [ -f /tmp/enc2dev.vx_ ]; then
-            /usr/share/em8300/msexpand.pl /tmp/enc2dev.vx_ ;
-        elif [ -f /tmp/rmquasar.vx: ]; then
-            /usr/share/em8300/msexpand.pl /tmp/rmquasar.vx_ ;
-        fi
-
-        if [ -f /tmp/enc2dev.vxd ]; then
-            /usr/share/em8300/microcode_extract.pl /tmp/enc2dev.vxd ;
-        elif [ -f /tmp/rmquasar.vxd ]; then
-            /usr/share/em8300/microcode_extract.pl /tmp/rmquasar.vxd ;
-        fi
-
-        if [ -f microcode0.bin ]; then
-            install -d /usr/lib/em8300
-            install -m644 microcode0.bin /usr/lib/em8300/
-	    rm -f microcode0.bin
-	fi
-	if [ -f microcode1.bin ]; then
-	    install -d /usr/lib/em8300
-	    install -m644 microcode1.bin /usr/lib/em8300/
-	fi
-    
-        ln -sf /usr/lib/em8300/microcode0.bin /etc/dxr3.ux
-
-    fi
-    
-#    show_msg critical em8300/install_note
-    ldconfig
+			if [ -f /usr/lib/em8300/microcode0.bin ]; then
+				ln -sf /usr/lib/em8300/microcode0.bin /etc/dxr3.ux
+			fi
+		fi
+   	fi
+ 
+	[ -x /sbin/ldconfig ] && /sbin/ldconfig
 fi
+
 db_stop

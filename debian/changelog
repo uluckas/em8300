@@ -1,3 +1,27 @@
+em8300 (0.10.1cvs20020115-3) unstable; urgency=high
+
+  * more debconf features
+
+ -- Jonas Birme <jonas@birme.se>  Wed, 16 Jan 2001 09:25:10 +0100
+
+em8300 (0.10.1cvs20020115-2) unstable; urgency=high
+
+  * devfs supported on installation
+
+  * a minor cleanup and fixed some possible bugs in install scripts
+
+  * complete debconf fix
+
+ -- Jonas Birme <jonas@birme.se>  Tue, 15 Jan 2001 22:21:37 +0100
+
+em8300 (0.10.1cvs20020115-1) unstable; urgency=high
+
+  * removed quotes from params to modprobe in init.d script
+  
+  * fix of black screen problem
+ 
+ -- Jonas Birme <jonas@birme.se>  Tue, 15 Jan 2002 07:42:46 +0100
+ 
 em8300 (0.10.1-1) unstable; urgency=high
 
   * devfs (and non-devfs) bugfixes

@@ -2,27 +2,4 @@
 
 . /usr/share/debconf/confmodule
 
-add_msg() { db_fset $2 seen false || true; db_input $1 $2 || true; }
-
-show_msg() { add_msg $1 $2; db_go; }
-
-ask_question() { show_msg critical $1; db_get $1; }
-
 if [ "$1" = "abort-upgrade" ]; then exit 0; fi
-
-if [ ! -f /usr/lib/em8300/microcode0.bin ]; then
-    ask_question em8300/have_vxd
-    if [ "$RET" = "false" ]; then
-       exit 0
-    fi
-fi
-
-if [ "$1" = "upgrade" ]; then
-
-    if [ ! -f /usr/lib/em8300/microcode0.bin ]; then
-        ask_question em8300/have_vxd
-	if [ "$RET" = "false" ]; then
-	   exit 0
-	fi
-    fi
-fi

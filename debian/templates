@@ -1,22 +1,14 @@
-Template: em8300/install_note
-Type: text
-Description: em8300-source installed.
- The source for the em8300 modules has been installed, but you have to
- compile the modules. Untar /usr/src/em8300.tar.gz in /usr/src.
- Then go to your kernel source and run make-kpkg modules_image, and when
- finished just dpkg -i ../em8300-modules-<kvers>_<em8300vers>.deb and the
- modules will be installed.
-
 Template: em8300/have_vxd
-Type: boolean
-Default: true
+Type: string
+Default: /tmp/enc2dev.vxd
 Description: Ready to extract microcode?
- Do you have the file enc2dev.vx_ or rmquasar.vx_ in /tmp/ ?
+ Specify the location of the enc2dev.vx_ or the rmquasar.vx_, for microcode 
+ extraction.
  .
  NOTE: These files should be shipped with your card. Check your installation-
  CDs or disks.
 
-Template: em8300/upgrade_note
-Type: text
-Description: Upgrade em8300.
- Remember to recompile the modules after upgrade!
+Template: em8300/vxd-not-found
+Type: note
+Description: ${vxdsrc} does not exist! The microcode will not be installed.
+

@@ -1,25 +1,33 @@
 #!/bin/sh -e
 
-. /usr/share/debconf/confmodule
-
+make_devices()
+{
   if [ ! -r /dev/em8300 ]; then
-    mknod /dev/em8300 c 121 0;
+    mknod /dev/em8300 c 121 0
+    chown root.video /dev/em8300
+    chmod 660 /dev/em8300
   fi
   if [ ! -r /dev/em8300_mv ]; then
     mknod /dev/em8300_mv c 121 1;
+    chown root.video /dev/em8300_mv
+    chmod 660 /dev/em8300_mv
   fi
   if [ ! -r /dev/em8300_ma ]; then
     mknod /dev/em8300_ma c 121 2;
+    chown root.video /dev/em8300_mv
+    chmod 660 /dev/em8300_mv
   fi
   if [ ! -r /dev/em8300_sp ]; then
     mknod /dev/em8300_sp c 121 3;
+    chown root.video /dev/em8300_mv
+    chmod 660 /dev/em8300_mv
   fi
+}
 
-  chown root.video /dev/em8300*
-  chmod 664 /dev/em8300*
-
-  update-rc.d em8300 defaults > /dev/null
-  depmod -a
-  /etc/init.d/em8300 start 
-
-db_stop
+if [ "$1" = "configure" ]; then
+  [ -x /usr/sbin/update-devfsd ] && /usr/sbin/update-devfsd >&2
+  make_devices
+  [ -x /usr/sbin/update-rc.d ] && /usr/sbin/update-rc.d em8300 defaults >&2
+  [ -x /sbin/depmod ] && /sbin/depmod -a >&2  
+  [ -x /etc/init.d/em8300 ] && /etc/init.d/em8300 start 
+fi

@@ -1,8 +1,14 @@
 2003-01-08  David Holm  <david@realityrift.com>
 	* modules/README-modoptions,
-	  modules/bt865.c:
+	  modules/bt865.c,
+	  modules/adv717x.c,
+	  modules/em8300_main.c:
 	Added patch from Luis.F.Correia" <Luis.F.Correia@seg-social.pt> which adds
 	support for RGB-mode with bt865.
+	Added patch from Soeren Sonnenburg <dxr3@nn7.de> which fixes problems with
+	swap_redblue in the adv717x.
+	Added patch from Michael Roitzsch <mroi@users.sourceforge.net> which fixes
+	problem with SPU device hanging the em8300.
 
 2002-11-29  David Holm  <david@realityrift.com>
 	* modules/em8300_audio.c:

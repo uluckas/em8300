@@ -74,13 +74,14 @@ int pixelport_other_pal = 0;
 MODULE_PARM(pixelport_other_pal, "i");
 MODULE_PARM_DESC(pixelport_other_pal, "If this is set to 1, then the pixelport setting is swapped for PAL from the setting given with pixelport_16bit. Defaults to 1.");
 
-#ifdef CONFIG_ADV717X_SWAP
-int swap_redblue_pal = 1;
-#else
-int swap_redblue_pal = 0;
-#endif
-MODULE_PARM(swap_redblue_pal, "i");
-MODULE_PARM_DESC(swap_redblue_pal, "If your red and blue colours are swapped, set this to 1. Defaults to 0.");
+int pixeldata_adjust_ntsc = 1;
+MODULE_PARM(pixeldata_adjust_ntsc, "i");
+MODULE_PARM_DESC(pixeldata_adjust_ntsc, "If your red and blue colours are swapped in NTSC, try setting this to 0,1,2 or 3. Defaults to 1.");
+
+int pixeldata_adjust_pal = 1;
+MODULE_PARM(pixeldata_adjust_pal, "i");
+MODULE_PARM_DESC(pixeldata_adjust_pal, "If your red and blue colours are swapped in PAL, try setting this to 0,1,2 or 3. Defaults to 1.");
+
 
 static int color_bars = 0;
 MODULE_PARM(color_bars, "i");
@@ -188,7 +189,7 @@ static unsigned char NTSC_config_7170[27] = {
 	0x00	// TeleText Control Register
 };
 
-static unsigned char PAL_M_config_7175[16] = {   //These need to be tested
+static unsigned char PAL_M_config_7175[19] = {   //These need to be tested
 	0x06,   // Mode Register 0
 	0x00,   // Mode Register 1
 	0xa3,   // Subcarrier Frequency Register 0
@@ -201,13 +202,16 @@ static unsigned char PAL_M_config_7175[16] = {   //These need to be tested
 	0x00,   // Closed Captioning Ext Register 1
 	0x00,   // Closed Captioning Register 0
 	0x00,   // Closed Captioning Register 1
-	0xc0, 	// Timing Register 1
+	0x70, 	// Timing Register 1
 	0x73,  	// Mode Register 2
 	0x00,   // Pedestal Control Register 0
 	0x00,   // Pedestal Control Register 1
+	0x00,   // Pedestal Control Register 2
+	0x00,   // Pedestal Control Register 3
+	0x42,   // Mode Register 3
 };
 
-static unsigned char PAL_config_7175[17] = {
+static unsigned char PAL_config_7175[19] = {
 	0x01,   // Mode Register 0
 	0x06,   // Mode Register 1
 	0xcb,   // Subcarrier Frequency Register 0
@@ -224,10 +228,12 @@ static unsigned char PAL_config_7175[17] = {
 	0x08,   // Mode Register 2
 	0x00,   // Pedestal Control Register 0
 	0x00,   // Pedestal Control Register 1
-	0x00,   // Mode Register 3
+	0x00,   // Pedestal Control Register 2
+	0x00,   // Pedestal Control Register 3
+	0x42,   // Mode Register 3
 };
 
-static unsigned char PAL60_config_7175[16] = {
+static unsigned char PAL60_config_7175[19] = {
 	0x12,   // Mode Register 0
 	0x0,	// Mode Register 1
 	0xcb,   // Subcarrier Frequency Register 0
@@ -244,9 +250,12 @@ static unsigned char PAL60_config_7175[16] = {
 	0x08,   // Mode Register 2
 	0x00,   // Pedestal Control Register 0
 	0x00,   // Pedestal Control Register 1
+	0x00,   // Pedestal Control Register 2
+	0x00,   // Pedestal Control Register 3
+	0x42,   // Mode Register 3
 };
 
-static unsigned char NTSC_config_7175[16] = {
+static unsigned char NTSC_config_7175[19] = {
 	0x04,   // Mode Register 0
 	0x00,   // Mode Register 1
 	0x16,   // Subcarrier Frequency Register 0
@@ -263,6 +272,9 @@ static unsigned char NTSC_config_7175[16] = {
 	0x00, 	// Mode Register 2
 	0x00,   // Pedestal Control Register 0
 	0x00,   // Pedestal Control Register 1
+	0x00,   // Pedestal Control Register 2
+	0x00,   // Pedestal Control Register 3
+	0x42,   // Mode Register 3
 };
 
 static int adv717x_update(struct i2c_client *client)
@@ -520,7 +532,8 @@ int __init adv717x_init(void)
 {
 	int pp_ntsc;
 	int pp_pal;
-	int rb_pal;
+	int pd_adj_ntsc;
+	int pd_adj_pal;
 	int bars;
 
 	if (pixelport_16bit) {
@@ -535,11 +548,11 @@ int __init adv717x_init(void)
 		}
 	}
 
-	if (swap_redblue_pal) {
-		rb_pal = 0xA0;
-	} else {
-		rb_pal = 0x70;
-	}
+	pd_adj_ntsc = (0x03 & pixeldata_adjust_ntsc ) << 6;
+	pd_adj_pal = (0x03 & pixeldata_adjust_pal ) << 6;
+
+
+	//	rb_pal = 0xA0;
 
 	if (color_bars) {
 		bars = 0x80;
@@ -549,6 +562,8 @@ int __init adv717x_init(void)
 
 	pr_debug("adv717x.o: pixelport_16bit: %d\n", pixelport_16bit);
 	pr_debug("adv717x.o: pixelport_other_pal: %d\n", pixelport_other_pal);
+	pr_debug("adv717x.o: pixeldata_adjust_pal: %d\n", pixeldata_adjust_pal);
+	pr_debug("adv717x.o: pixeldata_adjust_ntsc: %d\n", pixeldata_adjust_ntsc);
 	pr_debug("adv717x.o: color_bars: %d\n", color_bars);
 
 	PAL_config_7170[7] = (PAL_config_7170[7] & ~0x40) | pp_pal;
@@ -557,10 +572,13 @@ int __init adv717x_init(void)
 	PAL_config_7175[7] = (PAL_config_7175[7] & ~0x40) | pp_pal;
 	PAL60_config_7175[7] = (PAL60_config_7175[7] & ~0x40) | pp_pal;
 	NTSC_config_7175[7] = (NTSC_config_7175[7] & ~0x40) | pp_ntsc;
-
-	PAL_config_7175[12] = (PAL_config_7175[12] & ~0xF0) | rb_pal;
-	PAL60_config_7175[12] = (PAL60_config_7175[12] & ~0xF0) | rb_pal;
-	NTSC_config_7175[12] = (NTSC_config_7175[12] & ~0xF0) | rb_pal;
+	
+	PAL_config_7170[12] = (PAL_config_7170[12] & ~0xC0) | pd_adj_pal;
+	NTSC_config_7170[12] = (NTSC_config_7170[12] & ~0xC0) | pd_adj_ntsc;
+	PAL_M_config_7175[12] = (PAL_M_config_7175[12] & ~0xC0) | pd_adj_pal;
+	PAL_config_7175[12] = (PAL_config_7175[12] & ~0xC0) | pd_adj_pal;
+	PAL60_config_7175[12] = (PAL60_config_7175[12] & ~0xC0) | pd_adj_pal;
+	NTSC_config_7175[12] = (NTSC_config_7175[12] & ~0xC0) | pd_adj_ntsc;
 
 	PAL_config_7170[1] = (PAL_config_7170[1] & ~0x80) | bars;
 	NTSC_config_7170[1] = (NTSC_config_7170[1] & ~0x80) | bars;
@@ -580,4 +598,3 @@ void __exit adv717x_cleanup(void)
 
 module_init(adv717x_init);
 module_exit(adv717x_cleanup);
-

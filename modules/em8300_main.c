@@ -449,7 +449,11 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 		vma->vm_flags |=VM_LOCKED;
 
 		/* remap the memory to user space */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,3)
 		if (remap_page_range(vma->vm_start, virt_to_phys((void *)mem), size, vma->vm_page_prot)) {
+#else
+		if (remap_page_range(vma, vma->vm_start, virt_to_phys((void *)mem), size, vma->vm_page_prot)) {
+#endif
 			kfree(mem);
 			return -EAGAIN;
 		}
@@ -475,7 +479,7 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 			return -EINVAL;
 		}
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,3)
 		remap_page_range(vma->vm_start, em->adr, vma->vm_end - vma->vm_start, vma->vm_page_prot);
 #else
 		remap_page_range(vma, vma->vm_start, em->adr, vma->vm_end - vma->vm_start, vma->vm_page_prot);

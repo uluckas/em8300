@@ -40,6 +40,10 @@
 	(em8300_irq) must return an irqreturn_t value. Thanks again to
 	Håkon Skjelten.
 
+	* modules/em8300_main.c:
+	Since kernel 2.5.3, the interface of the remap_page_range function
+	changed. Thanks again to Håkon Skjelten.
+
 2004-03-14  Nicolas Boullis  <nboullis@debian.org>
 	* modules/Makefile:
 	When building modules, if $(I2C_LOCATION) is set, ensure that 

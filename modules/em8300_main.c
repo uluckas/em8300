@@ -42,7 +42,9 @@
 #include <asm/page.h>
 #include <linux/sched.h>
 #include <asm/segment.h>
+#ifdef CONFIG_MTRR
 #include <asm/mtrr.h>
+#endif
 
 #include <linux/interrupt.h>
 #include <asm/uaccess.h>

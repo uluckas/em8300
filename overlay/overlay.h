@@ -47,6 +47,7 @@ int overlay_set_mode(overlay_t *o, int mode);
 int overlay_set_attribute(overlay_t *o, int attribute, int val);
 int overlay_set_keycolor(overlay_t *o, int color);
 int overlay_set_window(overlay_t *o, int xpos,int ypos,int width,int height);
+int overlay_set_bcs(overlay_t *o, int brightness, int contrast, int saturation);
 
 int overlay_autocalibrate(overlay_t *o, pattern_drawer_cb pd, void *arg);
 void overlay_update_params(overlay_t *o);

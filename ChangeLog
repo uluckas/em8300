@@ -1,3 +1,21 @@
+2001-08-09  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_dicom.c,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_misc.c,
+	  modules/em8300_video.c,
+	  modules/em9010.c,
+	  overlay/overlay.c,
+	  overlay/overlay.h:
+	Patch from Daniel Chassot
+	"The folowing patch fixes the autocalibration process,
+	updates em8300_DICOM_setBCS, add overlay_set_bcs to
+	overlay.c and enhance em8300_ioctl_overlay_setwindow."
+	You rock dude.
+
+	* configure.in:
+	update version
+	
 2001-08-08  Rick Haines  <rick@kuroyi.net>
 
 	* debian/changelog,

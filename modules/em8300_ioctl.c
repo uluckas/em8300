@@ -85,10 +85,7 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 	case _IOC_NR(EM8300_IOCTL_GETBCS):
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
 			copy_from_user(&bcs, (void *)arg, sizeof(em8300_bcs_t));
-			em->dicom_brightness = bcs.brightness;
-			em->dicom_contrast = bcs.contrast;
-			em->dicom_saturation = bcs.saturation;
-			em8300_dicom_update(em);
+			em8300_dicom_setBCS(em, bcs.brightness, bcs.contrast, bcs.saturation);
 		}
 
 		if (_IOC_DIR(cmd) & _IOC_READ) {
@@ -467,7 +464,12 @@ int em8300_ioctl_overlay_setwindow(struct em8300_s *em, em8300_overlay_window_t 
 	em->overlay_frame_ypos = w->ypos;
 	em->overlay_frame_width = w->width;
 	em->overlay_frame_height = w->height;
-	em8300_dicom_update(em);
+
+	if (em->overlay_enabled) {
+		sub_4288c(em, em->overlay_frame_xpos, em->overlay_frame_ypos, em->overlay_frame_width, em->overlay_frame_height, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET], em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
+	} else {
+		em8300_dicom_update(em);
+	}
 
 	return 1;
 }

@@ -272,6 +272,21 @@ int overlay_set_window(overlay_t *o, int xpos,int ypos,int width,int height)
     return 0;
 }
 
+int overlay_set_bcs(overlay_t *o, int brightness, int contrast, int saturation)
+{
+    em8300_bcs_t bcs;
+    bcs.brightness = brightness;
+    bcs.contrast = contrast;
+    bcs.saturation = saturation;
+
+    if (ioctl(o->dev, EM8300_IOCTL_GETBCS, &bcs)==-1)
+        {
+            perror("Failed setting bcs");
+            return -1;
+        }
+    return 0;
+}
+
 static int col_interp(float x, struct coeff c)
 {
     float y;
@@ -388,7 +403,7 @@ int overlay_autocalibrate(overlay_t *o, pattern_drawer_cb pd, void *arg)
     printf("Xcorrection: %d\n",cal.result);
     o->xcorr = cal.result;
 
-    win.xpos = 0;
+    win.xpos = 2;
     win.ypos = 0;
     win.width = o->xres;
     win.height = o->yres;

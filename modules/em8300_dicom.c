@@ -134,7 +134,14 @@ void em8300_dicom_setBCS(struct em8300_s *em, int brightness, int contrast, int 
 	em->dicom_contrast = contrast;
 	em->dicom_saturation = saturation;
 
-	em8300_dicom_update(em);
+	if (read_ucregister(DICOM_UpdateFlag) == 1) {
+		write_ucregister(DICOM_UpdateFlag, 0);
+		udelay(1);
+	}
+
+	sub_40137(em); // Update brightness/contrast/saturation
+
+	write_ucregister(DICOM_UpdateFlag, 1);
 }
 
 int em8300_dicom_update(struct em8300_s *em) 
@@ -149,8 +156,6 @@ int em8300_dicom_update(struct em8300_s *em)
 	if ((ret=em8300_waitfor(em, ucregister(DICOM_UpdateFlag), 0, 1))) {
 		return ret;
 	}
-
-	sub_40137(em); // Update brightness/contrast/saturation
 
 	if (em->overlay_enabled) {
 		sub_4288c(em, em->overlay_frame_xpos, em->overlay_frame_ypos, em->overlay_frame_width, em->overlay_frame_height, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET], em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);

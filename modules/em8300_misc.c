@@ -73,7 +73,7 @@ int em8300_setregblock(struct em8300_s *em, int offset, int val, int len)
 	em->mem[0x1c16] = 1;
 	em->mem[0x1c17] = 1;
 	em->mem[0x1c18] = offset & 0xffff;
-	em->mem[0x1c19] = (offset >> 16) & 0xffff;
+	em->mem[0x1c19] = 0;
 
 	em->mem[0x1c1a] = 1;
 

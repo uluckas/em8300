@@ -26,7 +26,7 @@ extern int bt865_ucode_timeout;
 
 static int mpegvideo_command(struct em8300_s *em, int cmd)
 {
-	if (read_ucregister(MV_Command) != 0xffff) {
+	if (em8300_waitfor(em,ucregister(MV_Command), 0xffff, 0xffff)) {
 		return -1;
 	}
 
@@ -43,7 +43,6 @@ int em8300_video_setplaymode(struct em8300_s *em, int mode)
 {
 	if (mode == EM8300_PLAYMODE_FRAMEBUF) {
 		mpegvideo_command(em, MVCOMMAND_DISPLAYBUFINFO);
-		em8300_dicom_get_dbufinfo(em);
 		em->video_playmode=mode;
 		return 0;
 	}
@@ -254,7 +253,7 @@ int em8300_video_setup(struct em8300_s *em)
 		printk(KERN_ERR "em8300: DICOM Update failed\n");
 		return -ETIME;
 	}
-    
+
 	em->video_playmode = -1;
 	em8300_video_setplaymode(em, EM8300_PLAYMODE_STOPPED);
 

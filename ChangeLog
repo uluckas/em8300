@@ -1,3 +1,14 @@
+2002-01-13 (post 0.10.1)  David Holm  <dholm@iname.com>
+	* include/linux/em8300.h,
+	  modules/adv717x.c,
+	  modules/bt865.c,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_main.c:
+	Fixed em8300.h having 3 signalling modes and encoder.h having 7. All 7 are now defined
+	in em8300.h only.
+	Fixed devfs bug which would cause the driver not to find an em8300 if you unload the
+	module after loading a microcode and then trying to load it again.
+
 2002-01-13  David Holm  <dholm@iname.com>
 	* include/linux/em8300.h,
 	  modules/em8300_main.c,

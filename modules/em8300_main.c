@@ -76,7 +76,7 @@ MODULE_DESCRIPTION("EM8300 MPEG-2 decoder");
 MODULE_SUPPORTED_DEVICE("em8300");
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0)
-MODULE_PARM(remap,"1-" __MODULE_STRING(EM8300_MAX) "i");
+MODULE_PARM(remap, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #endif
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,9)
@@ -553,7 +553,8 @@ int em8300_proc_read(char *page, char **start, off_t off, int count, int *eof, v
 }
 #endif
 
-int init_em8300(struct em8300_s *em) {
+int init_em8300(struct em8300_s *em)
+{
 	/* Setup parameters */
 	static unsigned int *bt = use_bt865; 
     
@@ -659,8 +660,7 @@ int __init em8300_init(void)
 #ifdef CONFIG_DEVFS_FS
 	em8300_major = devfs_alloc_major(DEVFS_SPECIAL_CHR);
 	sprintf(devname, "%s", EM8300_LOGNAME);
-	if (devfs_register_chrdev(em8300_major, devname, &em8300_fops) < 0)
-		goto err_chrdev;
+	devfs_register_chrdev(em8300_major, devname, &em8300_fops);
 #endif
 #ifdef CONFIG_PROC_FS
 	sprintf(devname, "%s", EM8300_LOGNAME);

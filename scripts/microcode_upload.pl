@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-my @devs = ("/dev/em8300","/dev/em8300-1","/dev/em8300-2","/dev/em8300-3");
+my @devs = ("/dev/em8300","/dev/em8300-0","/dev/em8300-1","/dev/em8300-2","/dev/em8300-3");
 $_IOC_NRBITS    =  8;
 $_IOC_TYPEBITS  =  8;
 $_IOC_SIZEBITS  = 14;

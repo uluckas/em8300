@@ -296,7 +296,7 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	switch(cmd) { 
 	case SNDCTL_DSP_RESET: /* reset device */
 		pr_debug("em8300_audio.o: SNDCTL_DSP_RESET\n");
-/*		em8300_fifo_sync(em->mafifo);*/
+		em8300_fifo_sync(em->mafifo);
 		return 0;
 		break;
 

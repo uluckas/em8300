@@ -1,3 +1,7 @@
+2005-03-30  Nicolas Boullis  <nboullis@debian.org>
+	* .cvsignore:
+	Add autom4te.cache to .cvsignore, as suggested by Ville Skyttä.
+
 2005-03-24  Nicolas Boullis  <nboullis@debian.org>
 	* modules/Makefile,
 	  modules/adv717x.c,

@@ -72,11 +72,14 @@ em8300.o : $(VERSION_HEADER) $(EM8300_OBJS)
 
 install : $(MODULES)
 	@echo Installing modules for $(KERNVER) into $(RKERNVER)
-	install -d $(prefix)/lib/modules/$(RKERNVER)/$(RMODINST)
-	install $^ $(prefix)/lib/modules/$(RKERNVER)/$(RMODINST)
+	install -d /lib/modules/$(RKERNVER)/$(RMODINST)
+	install $^ /lib/modules/$(RKERNVER)/$(RMODINST)
 	@depmod -a
 	install -D ../include/linux/em8300.h \
 		/usr/include/linux/em8300.h
+	install -d /usr/share/em8300/
+	install em8300.uc /usr/share/em8300
+	install ../scripts/microcode_upload.pl /usr/bin/em8300init
 	@echo Installed to running kernel
 
 uninstall :

@@ -1,3 +1,8 @@
+2002-02-23  Jonas Birme  <jonas@birme.se>
+	* modules/Makefile
+	Removed the installation of em8300.h in install-newkern.
+	It's included when installing em8300 (not the modules).
+	
 2002-02-19  David Holm  <dholm@iname.com>
 	* dhc/dhc_main.c,
 	  overlay/autocal.c,

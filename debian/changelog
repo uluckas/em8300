@@ -1,3 +1,11 @@
+em8300 (0.12.0-1) unstable; urgency=high
+
+  * new release
+
+  * debconf fixes, and possibility to download em8300.uc
+  
+ -- Jonas Birme <jonas@birme.se>  Sat, 23 Feb 2002 10:58:38 +0100
+ 
 em8300 (0.11.0-3) unstable; urgency=high
 
   * added KERNVER=$(KVERS) to the building of the module package

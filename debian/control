@@ -6,7 +6,7 @@ Standards-Version: 3.1.0
 
 Package: em8300
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, wget
 Pre-Depends: debconf (>= 0.5.00)
 Description: H+ / DXR3 device driver for Linux.
  For further information, visit the webpage at http://dxr3.sourceforge.net/

@@ -2,25 +2,29 @@
 
 make_devices()
 {
-  if [ ! -r /dev/em8300 ]; then
-    mknod /dev/em8300 c 121 0
-    chown root.video /dev/em8300
-    chmod 660 /dev/em8300
+  if [ ! -r /dev/em8300-0 ]; then
+    mknod /dev/em8300-0 c 121 0
+    chown root.video /dev/em8300-0
+    chmod 660 /dev/em8300-0
+    ln -sf /dev/em8300-0 /dev/em8300
   fi
-  if [ ! -r /dev/em8300_mv ]; then
-    mknod /dev/em8300_mv c 121 1;
-    chown root.video /dev/em8300_mv
-    chmod 660 /dev/em8300_mv
+  if [ ! -r /dev/em8300_mv-0 ]; then
+    mknod /dev/em8300_mv-0 c 121 1;
+    chown root.video /dev/em8300_mv-0
+    chmod 660 /dev/em8300_mv-0
+    ln -sf /dev/em8300_mv-0 /dev/em8300_mv
   fi
-  if [ ! -r /dev/em8300_ma ]; then
-    mknod /dev/em8300_ma c 121 2;
-    chown root.video /dev/em8300_mv
-    chmod 660 /dev/em8300_mv
+  if [ ! -r /dev/em8300_ma-0 ]; then
+    mknod /dev/em8300_ma-0 c 121 2;
+    chown root.video /dev/em8300_ma-0
+    chmod 660 /dev/em8300_ma-0
+    ln -sf /dev/em8300_ma-0 /dev/em8300_ma
   fi
-  if [ ! -r /dev/em8300_sp ]; then
-    mknod /dev/em8300_sp c 121 3;
-    chown root.video /dev/em8300_mv
-    chmod 660 /dev/em8300_mv
+  if [ ! -r /dev/em8300_sp-0 ]; then
+    mknod /dev/em8300_sp-0 c 121 3;
+    chown root.video /dev/em8300_sp-0
+    chmod 660 /dev/em8300_sp-0
+    ln -sf /dev/em8300_sp-0 /dev/em8300_sp
   fi
 }
 

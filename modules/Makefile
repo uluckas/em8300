@@ -96,8 +96,6 @@ uninstall :
 install-newkern : $(MODULES)
 	install -d $(prefix)/lib/modules/$(KERNVER)/$(SMODINST)
 	install $^ $(prefix)/lib/modules/$(KERNVER)/$(SMODINST)
-	install -D ../include/linux/em8300.h \
-	   $(prefix)/usr/include/linux/em8300.h
 	@echo Installed to kernel version of header files
 
 devices :

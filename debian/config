@@ -1,0 +1,32 @@
+#!/bin/sh -e
+
+# Source debconf library
+. /usr/share/debconf/confmodule
+
+if [ "$1" = "configure" ]; then
+   if [ ! -f /usr/lib/em8300/em8300.uc ] && [ ! -f /usr/lib/em8300/microcode0.bin ]; then
+      db_input high em8300/download_microcode || true
+      db_go
+      
+      db_get em8300/download_microcode
+      DO_DOWNLOAD=$RET
+      
+      if [ "$DO_DOWNLOAD" = "false" ]; then
+      	 db_input high em8300/have_vxd || true
+	 db_go
+	 db_get em8300/have_vxd || true
+	 VXDSRC="$RET"
+	 
+	 if [ -f "$VXDSRC" ]; then
+	    break
+	 fi
+	 
+	 # VXDSRC not valid
+	 db_fset em8300/vxd-not-found seen false
+	 db_subst em8300/vxd-not-found vxdsrc "$VXDSRC"
+	 db_input medium em8300/vxd-not-found || true	 
+      fi
+   fi
+fi
+
+db_stop

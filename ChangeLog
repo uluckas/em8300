@@ -1,3 +1,10 @@
+2004-03-14  Nicolas Boullis  <nboullis@debian.org>
+	* modules/Makefile:
+	When building modules, if $(I2C_LOCATION) is set, ensure that 
+	the i2c headers from $(I2C_LOCATION) are prioritized over those 
+	from the kernel source, thanks to Janne Kujanp‰‰ for pointing 
+	the problem.
+
 2004-02-26  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_fifo.c,
 	  modules/em8300_fifo.h:

@@ -33,7 +33,7 @@ struct dicom_tvmode {
 struct dicom_tvmode tvmodematrix[EM8300_VIDEOMODE_LAST+1] = {
 	{576, 720, 46, 130},     // PAL 4:3
 	{480, 720, 46, 138},     // PAL60 4:3
-	{482, 711, 34, 138},     // NTSC 4:3
+	{480, 720, 31, 138},     // NTSC 4:3
 };
 
 /* C decompilation of the chromaluma code
@@ -199,16 +199,18 @@ int em8300_dicom_update(struct em8300_s *em)
 		if (em->encoder_type == ENCODER_BT865) {
 			write_register(0x1f47, 0x0);
 			if (em->video_mode == EM8300_VIDEOMODE_NTSC) {
-				write_register(EM8300_HSYNC_LO, 0x8a);	// 138
-				write_register(EM8300_HSYNC_HI, 0x2c7);	// 711
+				write_register(EM8300_HSYNC_LO, 134);
+				write_register(EM8300_HSYNC_HI, 720);
 			} else {
-				write_register(EM8300_HSYNC_LO, 0x8c);
-				write_register(EM8300_HSYNC_HI, 0x2d0);
+				write_register(EM8300_HSYNC_LO, 140);
+				write_register(EM8300_HSYNC_HI, 720);
 			}
 			if (vmode_ntsc) {
-				write_register(EM8300_VSYNC_HI, 0x104);	// 260 ??
+				write_register(EM8300_VSYNC_HI, 260);
+			        write_register(0x1f5e, 0xfefe);
 			} else {
-				write_register(EM8300_VSYNC_HI, 0x136);	 
+				write_register(EM8300_VSYNC_HI, 310);	 
+			        write_register(0x1f5e, 0x9cfe);
 			}
 
 			write_ucregister(DICOM_VSyncLo1, 0x1); 
@@ -217,9 +219,8 @@ int em8300_dicom_update(struct em8300_s *em)
 			write_ucregister(DICOM_VSyncDelay2, 0x00);  
 
 			write_register(0x1f46, 0x00);
-			write_register(0x1f47, 0x1c);
+			write_register(0x1f47, 0x1f);
 
-			write_register(0x1f5e, 0x9efe);
 			write_ucregister(DICOM_Control, 0x9efe);		
 		} else { /* ADV7170 or ADV7175A */
 			write_register(0x1f47, 0x18);

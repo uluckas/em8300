@@ -115,8 +115,8 @@ int adv717x_id = 0;
 
 static unsigned char PAL_config_7170[27] = {
 	0x05,   // Mode Register 0
-	0x07,   // Mode Register 1
-	0x48,   // Mode Register 2
+	0x00,   // Mode Register 1 (was: 0x07)
+	0x02,   // Mode Register 2 (was: 0x02)
 	0x00,   // Mode Register 3
 	0x00,   // Mode Register 4
 	0x00,   // Reserved

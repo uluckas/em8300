@@ -1,3 +1,14 @@
+2001-12-18  Rick Haines  <rick@kuroyi.net>
+
+	* modules/adv717x.c:
+	ADV7170 PAL mode register mods from Vidar Hoel
+
+	* modules/em8300_dicom.c:
+	NTSC mode tweaks from Serguei Miridonov
+
+	* AUTHORS:
+	update Chris Hoovers email address
+
 2001-11-29  Jonas Birme  <jonas@birme.se>
 
  	* modules/em8300_audio.c	

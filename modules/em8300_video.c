@@ -100,7 +100,7 @@ int em8300_video_sync(struct em8300_s *em)
 			return -EINTR;
 		}
 
-	} while (rdptr != wrptr);
+	} while (rdptr != wrptr && synctimeout < 20);
 	
 	return 0;
 }

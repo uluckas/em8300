@@ -1,5 +1,13 @@
 2001-03-13  Rick Haines  <rick@kuroyi.net>
 
+	merge patch from Andrew Meredith; fixes make dist
+	for the headers, adds make dist-rpm, adds boot
+	self-build scripts.  I'm a bit iffy about a couple
+	things (/etc/rc.d/init.d/ doesn't exist on all systems)
+	but I'll leave it for now.
+		
+2001-03-13  Rick Haines  <rick@kuroyi.net>
+
 	* modules/em8300_main.c,
 	  modules/adv717x.c:
 	merge patches from Paul Laufer.  Fixes missing

@@ -1,0 +1,192 @@
+#!/bin/bash
+#
+# em8300        This shell script takes care of inserting the em8300
+#               modules. If the modules are not set up for the running
+#               kernel, they are rebuilt.
+#
+# Copyright (c) by Andrew Meredith <andrew@anvil.org>
+#
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+#
+# chkconfig: 2345 89 10
+# description: EM8300 modules
+#
+
+#
+# Including functions
+#
+initdir=/etc/rc.d/init.d
+funcfile=${initdir}/functions
+
+if [ ! -f ${funcfile} ]
+then
+  echo "Error: $0 needs a functions script"
+  exit 1
+fi
+
+. ${funcfile}
+
+#
+# A few directories
+#
+BUILDDIR=/tmp/em8300.$$
+MODDIR="/lib/modules/`uname -r`/video"
+
+#
+# List of modules to install"
+#
+modlist="adv717x bt865 eeprom em8300"
+
+#
+# Location of tarfile
+#
+module_tar=/usr/lib/em8300/modules.tar.gz
+
+#
+# Is this kernel 2.4
+#
+KV=`uname -r`
+MINV=` expr $KV : '2.\(.\).' `
+case $MINV in
+  3) K24=Y ;;
+  4) K24=Y ;;
+  *) K24=N ;;
+esac
+
+if [ "$K24" = "N" ]
+then
+  echo -n "em8300: Needs kernel version 2.4.0 or higher"
+  echo_failure;echo
+  exit 1
+fi
+
+modload()
+{
+  for module in $modlist
+  do
+    echo -n " loading module $module"
+
+    if [ ! -f ${MODDIR}/${module}.o ]
+    then
+      echo_failure;echo
+      return 1
+    fi
+
+    modprobe $module >/dev/null 2>&1
+
+    if [ $? = 0 ]
+    then
+      echo_success;echo
+    else
+      echo_failure;echo
+      return 1
+    fi
+  done
+
+  return 0
+}
+
+modbuild()
+{
+  [ ! -d $MODDIR ] && mkdir -p $MODDIR
+  mkdir $BUILDDIR
+  cd $BUILDDIR
+
+  echo
+  echo "  That didn't work. Rebuilding modules"
+  echo
+  action "  Extracting modules source" tar xzf ${module_tar}
+  cd modules
+  
+  echo -n "  Building modules (see /tmp/em8300.build.log)"
+  if [ "$K24" = "Y" ]
+  then
+    if ./make-modules-2.4 sysv >> /tmp/em8300.build.log 2>&1
+    then
+    	echo_success;echo
+    else
+    	echo_failure;echo
+    fi
+  else >> /tmp/em8300.build.log 2>&1
+    if make >/dev/null 2>&1
+    then
+    	echo_success;echo
+    else
+    	echo_failure;echo
+    fi
+  fi
+
+  echo "  Installing"
+  for file in $modlist
+  do
+    action "    $file" cp ${file}.o $MODDIR
+  done
+
+  action "  Finding module deps" depmod -aq 
+
+  rm -rf $BUILDDIR
+}
+
+function start() {
+  #
+  # Try installing each module in turn
+  # if one fails, call the rebuild routine
+  #
+  ALL_OK=Y
+
+  echo "Starting em8300: "
+  
+  if ! modload
+  then
+    if modbuild
+    then
+      echo "Restarting em8300: "
+      modload
+    fi
+  fi
+}
+
+function stop() {
+  #
+  # Unload each module in turn
+  #
+  echo "Stopping em8300: "
+
+  for module in $modlist
+  do
+    action " unloading module $module" rmmod $module
+  done
+}
+
+# See how we were called.
+case "$1" in
+  start)
+	start
+        ;;
+  stop)
+	stop
+        ;;
+  restart)
+	$0 stop
+	$0 start
+	;;
+  *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit 0

@@ -22,4 +22,7 @@ Contributions
   Jeffrey H. Ingber <jhingber@ix.netcom.com>
     rev1 overlay patches
 
+  Andrew Meredith <andrew@anvil.org>
+    rpm packaging and module build-on-boot
+
 If you aren't here and should be, send us a diff.

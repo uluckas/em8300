@@ -62,4 +62,8 @@ AC_OUTPUT([
 	libdxr3/libac3/Makefile
 	overlay/Makefile
 	include/Makefile
+	include/linux/Makefile
+	include/libdxr3/Makefile
+	em8300.spec
+	em8300.sysv
 ])

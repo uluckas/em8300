@@ -1,5 +1,7 @@
 #!/bin/bash
 
+[ "$1" = sysv ] && SYSV=Y
+
 # Change this to reflect your kernel sources path.
 KERNEL_LOCATION=/usr/src/linux
 
@@ -16,21 +18,27 @@ if [ ! -f .have_run ]; then
 		mv Makefile Makefile.2.2
 		mv Makefile.2.4 Makefile
 	fi
-	echo
-	echo "Running script for the first time..."
-	echo
-	echo "This script will build the em8300 modules on a 2.4.0 kernel."
-	echo
-	echo "You obviously need to have configured your kernel and have run " \
-	     "a make dep"
-	echo "before running this script. (If not, this script will fail.)"
-	echo
-	echo "Press return to continue or ctrl+c to abort."
-	read
+	if [ "$SYSV" != Y ]
+	then
+	  echo
+	  echo "Running script for the first time..."
+	  echo
+	  echo "This script will build the em8300 modules on a 2.4.0 kernel."
+	  echo
+	  echo "You obviously need to have configured your kernel and have run " \
+	       "a make dep"
+	  echo "before running this script. (If not, this script will fail.)"
+	  echo
+	  echo "Press return to continue or ctrl+c to abort."
+	  read
+	fi
 else
-	echo
-	echo "Compiling em8300 modules..."
-	echo
+	if [ "$SYSV" != Y ]
+	then
+	  echo
+	  echo "Compiling em8300 modules..."
+	  echo
+	fi
 fi
 # We need a temporary fifo as "patch" refuses to output patches to stdout. Grrr.
 if [ ! -f tempfifo ]; then
@@ -61,6 +69,7 @@ cat <<KERNEL_MAKEFILE_PATCH | patch --ignore-whitespace -p0 -o ${EM_LOCATION}/te
  
  TAGS: dummy
 KERNEL_MAKEFILE_PATCH
+RETVAL=$?
 popd
 rm tempfifo
-
+exit $RETVAL

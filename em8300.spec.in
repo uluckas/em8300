@@ -1,0 +1,117 @@
+%define name		@PACKAGE@
+%define name_devel	@PACKAGE@-devel
+%define name_modules	@PACKAGE@-modules
+%define version	@VERSION@
+%define release	1
+%define builddir	$RPM_BUILD_DIR/%{name}-%{version}
+
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}
+Vendor:	http://dxr3.sourceforge.net/
+Packager:	Andrew Meredith <andrew@anvil.org>
+URL:		http://www.anvil.org/%{name}
+Source:	%{name}-%{version}.tar.gz
+Group:		Development/Libraries
+Copyright:	GPL
+BuildRoot:	%{_tmppath}/%{name}-%{version}
+Prefix:		%{_prefix}
+Summary:	Library for Hollywood plus / DXR3 device driver for Linux
+
+%description
+This contains shared objects that can be used by packages
+developed for use with the Hollywood plus or DXR3 MPEG
+decoder cards.
+
+For futher info. see http://dxr3.sourceforge.net/
+
+%package devel
+Summary: Development Libraries & includes for Hollywood plus / DXR3 device driver for Linux
+Group: Development/Libraries
+
+%description devel
+This contains the development libraries used when
+building an application that will make use of the
+shared objects in the em8300 package.
+
+%package modules
+Summary: Modules and boot self build for Hollywood plus / DXR3 device driver for Linux
+Group: Development/Libraries
+
+%description modules
+This contains the source code for the modules that drive
+the Hollywood plus and DXR3 devices. it also contains
+a System V initialisation script that modprobes the
+drivers on boot. If the modprobe fails, it will try and
+rebuild the drivers on the fly.
+
+%prep
+%setup -n %{name}-%{version}
+
+%build
+CFLAGS="${RPM_OPT_FLAGS}" LDFLAGS=-s
+
+%configure
+make
+
+%install
+if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
+mkdir -p $RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT
+make modules_install DESTDIR=$RPM_BUILD_ROOT
+
+%pre
+
+%post
+/sbin/ldconfig
+
+%postun
+/sbin/ldconfig
+
+%post modules
+/sbin/chkconfig --add em8300
+/etc/rc.d/init.d/em8300 restart >&2
+
+%preun modules
+if [ "$1" = 0 ] ; then
+	/etc/rc.d/init.d/em8300 stop >&2
+	/sbin/chkconfig --del em8300
+fi
+
+rm -f /lib/modules/`uname -r`/video/adv717x.o
+rm -f /lib/modules/`uname -r`/video/bt865.o
+rm -f /lib/modules/`uname -r`/video/eeprom.o
+rm -f /lib/modules/`uname -r`/video/em8300.o
+
+%clean
+rm -rf ${RPM_BUILD_ROOT}
+
+%files
+%defattr(-,root,root)
+/usr/bin/*
+/usr/lib/*so*
+%doc README NEWS AUTHORS COPYING ChangeLog INSTALL
+
+%files devel
+%defattr(-,root,root)
+/usr/bin/*
+/usr/include/*/*.h
+/usr/lib/*.a
+/usr/lib/*.la
+%doc README NEWS AUTHORS COPYING ChangeLog INSTALL
+
+%files modules
+%defattr(-,root,root)
+/etc/rc.d/init.d/*
+/usr/lib/em8300/
+/dev/*
+%doc README NEWS AUTHORS COPYING ChangeLog INSTALL
+
+%changelog
+* Tue Mar 13 2001 Andrew Meredith <andrew@anvil.org>
+- Added em8300-modules package
+
+* Mon Mar 12 2001 Andrew Meredith <andrew@anvil.org>
+- First draft of rpm package for em8300 including
+  both main em8300 and em8300-devel.
+

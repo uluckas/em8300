@@ -12,6 +12,7 @@ I2C_LOCATION=
 # when compiling module(s)
 
 EXTRA_CFLAGS = -g -I ../include -I $(KERNEL_LOCATION)/include/ \
+		-O2 -fomit-frame-pointer -Wall \
 		-DEM8300_VIDEOMODE_DEFAULT=EM8300_VIDEOMODE_PAL \
 		-DEM8300_AUDIOMODE_DEFAULT=EM8300_AUDIOMODE_ANALOG
 

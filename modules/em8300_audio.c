@@ -250,14 +250,13 @@ static int set_format(struct em8300_s *em, int fmt)
 #endif
 		case AFMT_S16_BE:
 		case AFMT_S16_LE:
-		  /* we do want to be able to use DIGITALPCM somehow eventually */
-			if (em->audio_mode != EM8300_AUDIOMODE_ANALOG)
-				set_audiomode(em, EM8300_AUDIOMODE_ANALOG);
+			if (em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3)
+				set_audiomode(em, em->pcm_mode);
 			em->audio.format = fmt;
 			break;
 		default:
-			if (em->audio_mode != EM8300_AUDIOMODE_ANALOG)
-				set_audiomode(em, EM8300_AUDIOMODE_ANALOG);
+			if (em->audio_mode == EM8300_AUDIOMODE_DIGITALAC3)
+				set_audiomode(em, em->pcm_mode);
 			fmt = AFMT_S16_BE;
 			break;
 		}
@@ -536,11 +535,15 @@ static int set_audiomode(struct em8300_s *em, int mode)
 	 
 	switch (em->audio_mode) {
 	case EM8300_AUDIOMODE_ANALOG:
+		em->pcm_mode = EM8300_AUDIOMODE_ANALOG;
+
 		write_register(EM8300_AUDIO_RATE, 0x62);
 		em8300_setregblock(em, 2*ucregister(Mute_Pattern), 0, 0x600);
 		printk(KERN_NOTICE "em8300_audio.o: Analog audio enabled\n");
 		break;
 	case EM8300_AUDIOMODE_DIGITALPCM:
+		em->pcm_mode = EM8300_AUDIOMODE_DIGITALPCM;
+
 		write_register(EM8300_AUDIO_RATE, 0x3a0);
 
 		em->byte_D90[0]=0x0;

@@ -22,6 +22,10 @@
 
 #include <linux/soundcard.h>
 
+__inline__ int my_abs(int v) {
+	return v < 0 ? -v : v;
+}
+
 /* C decompilation of sub_prepare_SPDIF by 
 *  Anton Altaparmakov <antona@bigfoot.com>
 *
@@ -474,7 +478,7 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 	
 	diff = vpts - master_vpts;
 	
-	if (abs(diff)>3600) {
+	if (my_abs(diff)>3600) {
 	        pr_info("em8300_audio.o: resyncing\n");
 		pr_debug("em8300_audio.o: master clock adjust time %d -> %d\n", master_vpts, vpts); 
 		write_ucregister(MV_SCRlo, vpts & 0xffff);

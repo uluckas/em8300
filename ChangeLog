@@ -1,6 +1,11 @@
 2001-04-18  Rick Haines  <rick@kuroyi.net>
 
-	* em8300_main.c:
+	* modules/em8300_audio.c:
+	add my_abs() to fix missing abs() with gcc 2.96
+	
+2001-04-18  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_main.c:
 	patch from Eg to make use_bt865 work with multiple cards.
 	we'll want to do this with all the options.
 	

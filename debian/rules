@@ -2,126 +2,133 @@
 # Made with the aid of debmake, by Christoph Lameter,
 # based on the sample debian/rules file for GNU hello by Ian Jackson.
 
-package=em8300
+package=`dh_listpackages -a`
+pkgsrc=`dh_listpackages -i`
+pkgmod=em8300-modules-`uname -r`
 kvers=`uname -r`
 KSRC?=/usr/src/linux
 MOD_DIR?='.'
+KMOD_DIR?=/usr/src/modules
 
+export DH_VERBOSE=1
+export DH_COMPAT=3
+
+.prereq:
+	$(RM) *.tar.gz
+	
 build:
-	$(checkdir)
+	dh_testdir
 	./configure --prefix=/usr
 	$(MAKE)
 	touch build
 
 build-modules:
-	$(checkdir)
+	dh_testdir
 	cd modules ;\
 	$(MAKE) KERNEL_LOCATION=$(KSRC) ;\
 	cd ..
 	touch build-modules
-	
-clean:
-	$(checkdir)
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+	$(MAKE) install DESTDIR=`pwd`/debian/$(package)
+	 
+clean: .prereq
+	dh_testdir
+	dh_testroot
 	-rm -f build
 	-$(MAKE) clean
-	-rm -f `find . -name "*~"`
-	-rm -rf debian/tmp debian/files* core debian/substvars
-	-rm -rf debian/em8300-source
-
+	dh_clean
+	
 clean-modules:
-	$(checkdir)
+	dh_testdir
+	dh_testroot
 	-rm -f build-modules
-	-rm -rf debian/tmp-modules
+	-rm -rf debian/$(pkgmod)
+	-rm -f debian/control.tmp
 	-cd modules ;\
 	$(MAKE) clean ;\
 	cd ..
+	dh_clean
 	
 binary-indep: binary-source
-	$(checkdir)
+	dh_testdir
 
-binary-arch: checkroot build
-	$(checkdir)
-	-rm -rf debian/tmp
-	install -d debian/tmp
-	cd debian/tmp && install -d `cat ../dirs`
-	$(MAKE) install DESTDIR=`pwd`/debian/tmp
-# Must have debmake installed for this to work. Otherwise please copy
-# /usr/bin/debstd into the debian directory and change debstd to debian/debstd
-	debstd ChangeLog NEWS README 
-	install debian/templates debian/tmp/DEBIAN/templates
-	dpkg-gencontrol -pem8300 -isp
-	chown -R root.root debian/tmp
-	chmod -R go=rX debian/tmp
-	dpkg --build debian/tmp ..
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installdirs -a
+	dh_installdocs -a
+	dh_installchangelogs -a
+	dh_installman debian/man/*.1 -a
+	dh_installdebconf -a
+	dh_undocumented -a
+	dh_link -a
+	dh_strip -a
+	dh_compress -a
+	dh_fixperms -a
+	dh_installdeb -a
+	dh_shlibdeps -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
 
-binary-modules: checkroot build-modules
-	$(checkdir)
-	-rm -rf debian/tmp-modules
-	install -d debian/tmp-modules debian/tmp-modules/DEBIAN
-	install -d "debian/tmp-modules/usr/share/doc/em8300-modules-$(kvers)"
-	install debian/em8300-modules.postinst debian/tmp-modules/DEBIAN/postinst
-	install debian/em8300-modules.prerm debian/tmp-modules/DEBIAN/prerm
-	install debian/em8300-modules.postrm debian/tmp-modules/DEBIAN/postrm
-	install debian/templates debian/tmp-modules/DEBIAN/templates
+binary-modules: build-modules
+	dh_testdir
+	dh_testroot
+	dh_installdirs -p$(pkgmod)
+	install -d "debian/$(pkgmod)/usr/share/doc/$(pkgmod)-$(kvers)"
+	dh_installdebconf -p$(pkgmod)
 	cd modules ;\
-	$(MAKE) prefix=`pwd`/../debian/tmp-modules/ install ;\
+	$(MAKE) prefix=`pwd`/../debian/$(pkgmod)/ install ;\
 	cd ..
-	install -d debian/tmp-modules/etc/init.d
-	install -m755 debian/em8300-modules.initd debian/tmp-modules/etc/init.d/em8300
-	sh -v debian/setvers.sh
-	chown -R root.root debian/tmp-modules
-	chmod -R go=rX debian/tmp-modules
-	dpkg --build debian/tmp-modules $(MOD_DIR)/..
+	dh_installinit -p$(pkgmod)
+	dh_installdocs -p$(pkgmod)
+	dh_installchangelogs -p$(pkgmod)
+	dh_fixperms -p$(pkgmod)
+	PKGMOD=$(pkgmod) sh -v debian/setvers.sh
+	dh_md5sums -p$(pkgmod)
+	dh_builddeb -p$(pkgmod) --destdir $(MOD_DIR)/..
 
-binary-source: checkroot
-	$(checkdir)
-	-rm -rf debian/em8300-source
-	install -d debian/em8300-source debian/em8300-source/DEBIAN
-	install debian/em8300-source.postinst debian/em8300-source/DEBIAN/postinst
-	install debian/em8300-source.prerm debian/em8300-source/DEBIAN/prerm
-	install -d debian/em8300-source/usr/src/modules/$(package)
-	install -d debian/em8300-source/usr/share/doc/em8300-source
+binary-source:
+	dh_testdir
+	dh_testroot
+	dh_installdirs -i
+	dh_installdebconf -i
+	install -d debian/$(pkgsrc)/$(KMOD_DIR)/$(package)
+	install -d debian/$(pkgsrc)/usr/share/doc/$(pkgsrc)
 	
-	find ./modules ./debian ./include ./AUTHORS ./COPYING ./INSTALL ./NEWS ./README \( -path ./debian/em8300-source -o -name 'tmp*' \) -prune -o -print | \
-	  cpio -admp debian/em8300-source/usr/src/modules/$(package)
-	cd debian/em8300-source/usr/src/modules/$(package) && \
+	find ./modules ./debian ./include ./AUTHORS ./COPYING ./INSTALL ./NEWS ./README \( -path ./debian/$(pkgsrc) -o -name 'tmp*' \) -prune -o -print | \
+	  cpio -admp debian/$(pkgsrc)/usr/src/modules/$(package)
+	cd debian/$(pkgsrc)/usr/src/modules/$(package) && \
 	  $(MAKE) -f debian/rules clean-modules
-	chown -R root.root debian/em8300-source
-	find debian/em8300-source -type d | xargs chmod 755
-	find debian/em8300-source -type f -perm -100 | xargs chmod 755
-	find debian/em8300-source -type f -not -perm -100 | xargs chmod 644
-	cd debian/em8300-source/usr/src && \
-	  tar cf $(package).tar modules && \
-	  $(RM) -r modules/$(package)
-	gzip -9 debian/em8300-source/usr/src/$(package).tar
-	chmod 644 debian/em8300-source/usr/src/$(package).tar.gz
+	chown -R root.root debian/$(pkgsrc)
+	find debian/$(pkgsrc) -type d | xargs chmod 755
+	find debian/$(pkgsrc) -type f -perm -100 | xargs chmod 755
+	find debian/$(pkgsrc) -type f -not -perm -100 | xargs chmod 644
+	cd debian/$(pkgsrc)/$(KMOD_DIR)/../ && \
+	  tar cf em8300.tar modules
+	$(RM) -r debian/$(pkgsrc)/$(KMOD_DIR)/$(package)
+	gzip -9 debian/$(pkgsrc)/usr/src/$(package).tar
+	chmod 644 debian/$(pkgsrc)/usr/src/$(package).tar.gz
 	
-	install -m 644 ChangeLog \
-	  debian/em8300-source/usr/share/doc/em8300-source/changelog
-	install -m 644 debian/README.debian \
-	  debian/em8300-source/usr/share/doc/em8300-source/README.debian
-	install -m 644 debian/changelog \
-	  debian/em8300-source/usr/share/doc/em8300-source/changelog.Debian
-	gzip -9v debian/em8300-source/usr/share/doc/em8300-source/*
-	install -m 644 debian/copyright \
-	  debian/em8300-source/usr/share/doc/em8300-source/copyright
-	  
-	dpkg-gencontrol -pem8300-source -Pdebian/em8300-source
-	dpkg-deb --build debian/em8300-source ..
+	dh_installdocs -i
+	dh_installchangelogs -i
+	dh_installdeb -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
 
-kdist_image: checkroot
-	$(checkdir)
+kdist_image:
+	dh_testdir
+	dh_testroot
 	$(MAKE) -f debian/rules MOD_DIR=$(KSRC) clean-modules binary-modules
-
-define checkdir
-	test -f debian/rules
-endef
 
 binary: binary-indep binary-arch
 
-checkroot:
-	$(checkdir)
-	test root = "`whoami`"
-
 .PHONY: binary binary-arch binary-indep clean checkroot \
-	binary-modules clean-modules kdist_image
+	binary-modules clean-modules kdist_image .prereq \
+	install

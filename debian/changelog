@@ -1,8 +1,16 @@
+em8300 (0.8.1-6) unstable; urgency=high
+
+  * Using debhelper a lot more
+  
+  * Fixed wrong copyright-referal
+ 
+ -- Jonas Birme <jonas@birme.se>  Mon, 3 sep 2001 07:42:19 +0200
+ 
 em8300 (0.8.1-5) unstable; urgency=high
 
   * Some fixes reported by Ard van Breemen
   
- -- Jonas Birme <jonas@birme.se>  Sun, 3 Sep 2001 00:54:05 +0200
+ -- Jonas Birme <jonas@birme.se>  Mon, 3 Sep 2001 00:54:05 +0200
  
 em8300 (0.8.1-4) unstable; urgency=high
 

@@ -1,3 +1,11 @@
+2001-09-03  Jonas Birme  <jonas@birme.se>
+	
+	* debian/chagelog,
+	  debian/copyright,
+	  debian/rules,
+	  debian/setvers.sh:
+        converted to use debhelper as much as possible
+	
 2001-09-02  Rick Haines  <rick@kuroyi.net>
 
 	* debian/*

@@ -1,4 +1,4 @@
-EXTRA_DIST = autotools/ m4/ modules/ scripts/ shinit.sh bootstrap acconfig.h
+EXTRA_DIST = autotools/* m4/* modules/* scripts/* shinit.sh bootstrap acconfig.h
 
 pkgdata_DATA = modules.tar.gz
 pkgdata_SCRIPTS = em8300.sysv

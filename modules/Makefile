@@ -1,4 +1,4 @@
-MODULE_VERSION="0.13.0.cvs"
+MODULE_VERSION="0.15.0.cvs"
 # where the kernel sources are located
 KERNEL_LOCATION?=/lib/modules/$(shell uname -r)/build
 

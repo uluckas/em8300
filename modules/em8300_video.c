@@ -106,16 +106,12 @@ int em8300_video_sync(struct em8300_s *em)
 
 int em8300_video_flush(struct em8300_s *em)
 {
-	int rdptrlo, rdptrhi;
 	spin_lock(&em->mvfifo->lock);
-	rdptrlo = read_ucregister(MV_RdPtr_Lo);
-	rdptrhi = read_ucregister(MV_RdPtr_Hi);
-	write_ucregister(MV_Wrptr_Lo, rdptrlo);
-	write_ucregister(MV_Wrptr_Hi, rdptrhi);
 	*em->mvfifo->writeptr = *em->mvfifo->readptr;
 	em->mvfifo->waiting = 0;
 	em->video_ptsvalid = 0;
 	em8300_video_sync(em);
+	em8300_fifo_sync(em->mvfifo);
 	spin_unlock(&em->mvfifo->lock);
 	return 0;
 }

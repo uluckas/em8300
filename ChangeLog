@@ -1,3 +1,18 @@
+2001-03-28  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_i2c.c (em8300_i2c_reg):
+	printk and return -ENODEV if we don't
+	recognize the device id.
+
+	* include/linux/em8300.h
+	add ENCODER_UNKNOWN
+	
+2001-03-27  Rick Haines  <rick@kuroyi.net>
+
+	* xine/xine-0.4.01_dxr3.patch.gz:
+	add modified xine patch from Paul Laufer
+	that applies to xine-0.4.01
+	
 2001-03-25  Rick Haines  <rick@kuroyi.net>
 
 	* modules/README-greenscreen,

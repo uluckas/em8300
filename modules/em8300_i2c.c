@@ -96,6 +96,9 @@ static int em8300_i2c_reg(struct i2c_client *client)
         em->encoder_type = ENCODER_BT865;
         em->encoder = client;
         break;
+    default:
+        printk("em8300_i2c: unknown client id\n");
+	return -ENODEV;
     }
     return 0;
 }

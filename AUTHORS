@@ -3,7 +3,7 @@ original reverse engineering, project
   Henrik Johansson <lhj@users.sourceforge.net>
   Ze'ev Maor <zeev@users.sourceforge.net>
 
-maintaining, updating oms plugin, xine patch, autoconfing
+maintaining, updating oms plugin, xine patch, autoconfiging
 
   Rick Haines <rick@kuroyi.net>
 
@@ -24,5 +24,8 @@ Contributions
 
   Andrew Meredith <andrew@anvil.org>
     rpm packaging and module build-on-boot
+
+  Paul Laufer <segv@users.sourceforge.net>
+    new web site, msexpand.pl, various patches
 
 If you aren't here and should be, send us a diff.

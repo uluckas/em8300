@@ -153,6 +153,7 @@ typedef struct {
 #define IRQSTATUS_VIDEO_FIFO 0x2
 #define IRQSTATUS_AUDIO_FIFO 0x8
 
+#define ENCODER_UNKNOWN 0
 #define ENCODER_ADV7175 1 
 #define ENCODER_ADV7170 2
 #define ENCODER_BT865   3

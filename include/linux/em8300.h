@@ -240,6 +240,7 @@ struct em8300_s
 	int pci_revision;
 	
 	int inuse[4];
+	int nonblock[4];
 	int ucodeloaded;
 	
 	struct pci_dev *dev;

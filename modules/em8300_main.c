@@ -314,11 +314,23 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_CONTROL:
+		if (filp->f_flags == O_NONBLOCK)
+			em8300[card].nonblock[0] = 1;
+		else
+			em8300[card].nonblock[0] = 0;
 		break;
 	case EM8300_SUBDEVICE_AUDIO:
+		if (filp->f_flags == O_NONBLOCK)
+			em8300[card].nonblock[1] = 1;
+		else
+			em8300[card].nonblock[1] = 0;
 		err = em8300_audio_open(em);
 		break;
 	case EM8300_SUBDEVICE_VIDEO:
+		if (filp->f_flags == O_NONBLOCK)
+			em8300[card].nonblock[2] = 1;
+		else
+			em8300[card].nonblock[2] = 0;
 		if (!em->ucodeloaded) {
 			return -ENODEV;
 		}
@@ -329,6 +341,10 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 		em8300_video_setplaymode(em, EM8300_PLAYMODE_PLAY);
 		break;
 	case EM8300_SUBDEVICE_SUBPICTURE:
+		if (filp->f_flags == O_NONBLOCK)
+			em8300[card].nonblock[3] = 1;
+		else
+			em8300[card].nonblock[3] = 0;
 		if (!em->ucodeloaded) {
 			return -ENODEV;
 		}
@@ -376,7 +392,7 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 {
 	struct em8300_s *em = file->private_data;
 	unsigned long size = vma->vm_end - vma->vm_start;
-	int subdevice = EM8300_MINOR(file->f_dentry->d_inode)%4;
+	int subdevice = EM8300_MINOR(file->f_dentry->d_inode) % 4;
 
 	if (subdevice != EM8300_SUBDEVICE_CONTROL) {
 		return -EPERM;

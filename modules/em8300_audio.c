@@ -602,7 +602,10 @@ int em8300_audio_calcbuffered(struct em8300_s *em)
 
 int em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
 {
-	return em8300_fifo_writeblocking(em->mafifo, count, buf, 0);
+	if (em->nonblock[1])
+		return em8300_fifo_write(em->mafifo, count, buf, 0);
+	else
+		return em8300_fifo_writeblocking(em->mafifo, count, buf, 0);
 }
 
 /* 18-09-2000 - Ze'ev Maor - added these two ioctls to set and get audio mode. */

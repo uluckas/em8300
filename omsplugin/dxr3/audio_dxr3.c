@@ -44,8 +44,7 @@
 
 #include <oms/oms.h>
 #include <oms/plugin/output_audio.h>
-
-#include "dxr3-api.h"
+#include <libdxr3/api.h>
 
 static int _dxr3_init(char *devname, char *ucodefile);
 
@@ -83,7 +82,7 @@ static int _dxr3_init(char *devname, char *ucodefile)
 
 static int _audio_dxr3_open (void *plugin, void *name)
 {
-  if(_dxr3_init("/dev/em8300","/etc/dxr3.ux")) {
+  if(_dxr3_init("/dev/em8300", DXR3_MICROCODE_LOCATION)) {
     LOG(LOG_ERROR, "Can't open dxr3 driver");
     return -1;
   }

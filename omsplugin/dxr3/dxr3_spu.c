@@ -45,8 +45,7 @@
 #include <oms/oms.h>
 #include <oms/plugin/codec.h>
 #include <oms/plugin/output_video.h>
-
-#include "dxr3-api.h"
+#include <libdxr3/api.h>
 
 static int _dxr3_spu_open (void *this, void *name);
 static int _dxr3_spu_close(void *this);
@@ -73,7 +72,7 @@ static int _dxr3_spu_open (void *this, void *name)
   }
 #endif
   if (dxr3_get_status() == DXR3_STATUS_CLOSED) {
-    dxr3_open("/dev/em8300", "/etc/dxr3.ux");
+    dxr3_open("/dev/em8300", DXR3_MICROCODE_LOCATION);
   }
   LOG(LOG_INFO, "dxr3_spu_open");
   return 0;

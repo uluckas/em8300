@@ -45,7 +45,7 @@
 #include <oms/oms.h>
 #include <oms/plugin/codec.h>
 
-#include "dxr3-api.h"
+#include <libdxr3/api.h>
 
 static int _dxr3_init(char *devname, char *ucodefile);
 
@@ -73,18 +73,17 @@ static int _dxr3_init(char *devname, char *ucodefile)
   LOG(LOG_INFO, "_dxr3_init(devname=%s)", devname);
 
   if (dxr3_get_status() == DXR3_STATUS_CLOSED) {
-    dxr3_open("/dev/em8300", "/etc/dxr3.ux");
+    dxr3_open("/dev/em8300", DXR3_MICROCODE_LOCATION);
   }
   return 0;
 }
 
 static int _dxr3_video_open (void *this, void *name)
 {
-  if(_dxr3_init("/dev/em8300","/etc/dxr3.ux")) {
+  if(_dxr3_init("/dev/em8300", DXR3_MICROCODE_LOCATION)) {
     LOG(LOG_ERROR, "Can't open dxr3 driver");
     return -1;
   }
-  LOG(LOG_INFO, "dxr3_mpeg2");
 #if 0
   // open video device
   if ((dxr3_video = open("/dev/em8300_mv", O_WRONLY)) < 0) {
@@ -174,23 +173,23 @@ static int _dxr3_video_set_attributes (void *this, u_int id, void *att)
     if(attr->aspect_output != -1) {
         switch(attr->aspect_output) {
 	case 0:
-	    dxr3_video_set_aspectratio(EM8300_ASPECTRATIO_4_3);
+	    dxr3_video_set_aspectratio(DXR3_ASPECTRATIO_4_3);
 	    break;
 	case 3:
-	    dxr3_video_set_aspectratio(EM8300_ASPECTRATIO_16_9);
+	    dxr3_video_set_aspectratio(DXR3_ASPECTRATIO_16_9);
 	    break;
 	}
     }
     if(attr->tv_system != -1) {
         switch(attr->tv_system) {
 	case 0:
-	    dxr3_video_set_tvmode(EM8300_VIDEOMODE_NTSC);
+	    dxr3_video_set_tvmode(DXR3_TVMODE_NTSC);
 	    break;
 	case 2:
-	    dxr3_video_set_tvmode(EM8300_VIDEOMODE_PAL);
+	    dxr3_video_set_tvmode(DXR3_TVMODE_PAL);
 	    break;
 	case 7:
-	    dxr3_video_set_tvmode(EM8300_VIDEOMODE_PAL60);
+	    dxr3_video_set_tvmode(DXR3_TVMODE_PAL60);
 	    break;
 	}
     }

@@ -1,4 +1,14 @@
-2001-03-13  Rick Haines  <rick@kuroyi.net>
+2001-03-14  Rick Haines  <rick@kuroyi.net>
+
+	* omsplugin/README,
+	  omsplugin/plugin-install.sh,
+	  omsplugin/dxr3/*:
+	update from James Farwell to let omsplugin use libdxr3.
+	The next step is to make it build outside the oms source
+	tree.  That'll require some way to remove the libac3
+	dependency.
+	
+2001-03-14  Rick Haines  <rick@kuroyi.net>
 
 	another patch from Andrew to clean up a few things
 	from the last one.

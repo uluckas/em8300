@@ -1,9 +1,15 @@
 get oms and omi
+
+plugin-install.sh <oms base directory> (eg. /usr/src/livid/oms)
+
+OR
+
 cp -a dxr3/ oms/src/plugin/decode
 cp Makefile.am.plugin oms/src/plugin/Makefile.am
 cp Makefile.am oms/src/plugin/decode
+cp bootstrap oms/
+
 cd oms
-edit bootstrap to remove 'grep -v src/plugin/decode | \'
 ./bootstrap
 ./configure && make
 make install
@@ -11,6 +17,6 @@ make install
 edit your ~/.oms/config such that:
 
 output_audio_plugin=dxr3
-output_audio_device=/dev/em8300_sp
+output_audio_device=/dev/em8300
 output_video_plugin=dxr3
-output_video_device=/dev/em8300_mv
+output_video_device=/dev/em8300

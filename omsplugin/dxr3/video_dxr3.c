@@ -1,6 +1,7 @@
 #include <sys/types.h>
 #include <oms/oms.h>
 #include <oms/plugin/output_video.h>
+#include <libdxr3/api.h>
 
 static int _video_dxr3_open(void *plugin, void *name);
 static int _video_dxr3_close(void *plugin);

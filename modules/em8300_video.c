@@ -105,11 +105,13 @@ int em8300_video_setup(struct em8300_s *em) {
     if (em->encoder_type == ENCODER_BT865) {
        write_register(0x1f42,0x8c);
        write_register(0x1f43,0x2d0);
-       write_register(0x1f45,0x136);    
+       write_register(0x1f45,0x136);
+
        write_ucregister(DICOM_VSyncLo1,0x1); 
        write_ucregister(DICOM_VSyncLo2,0x0);
        write_ucregister(DICOM_VSyncDelay1,0xd2); 
-       write_ucregister(DICOM_VSyncDelay2,0x0);  
+       write_ucregister(DICOM_VSyncDelay2,0x0);
+
        write_register(0x1f46,0x0); 
        write_register(0x1f47,0x1c); 
        write_register(0x1f5e,0x9efe);
@@ -137,27 +139,15 @@ int em8300_video_setup(struct em8300_s *em) {
 
     write_ucregister(DICOM_UpdateFlag,0x0);
 
-    if (em->encoder_type == ENCODER_BT865) {
-      write_ucregister(DICOM_VisibleLeft,0x82);
-      write_ucregister(DICOM_VisibleTop,0x28);
-      write_ucregister(DICOM_VisibleRight,0x351);
-      write_ucregister(DICOM_VisibleBottom,0x207);
-      write_ucregister(DICOM_FrameLeft,0x82);
-      write_ucregister(DICOM_FrameTop,0x28);
-      write_ucregister(DICOM_FrameRight,0x351);
-      write_ucregister(DICOM_FrameBottom,0x207);
-      write_ucregister(DICOM_TvOut,0x4001); 
-    } else {
-      write_ucregister(DICOM_VisibleLeft,0x168);
-      write_ucregister(DICOM_VisibleTop,0x2e);
-      write_ucregister(DICOM_VisibleRight,0x36b);
-      write_ucregister(DICOM_VisibleBottom,0x11e);
-      write_ucregister(DICOM_FrameLeft,0x168);
-      write_ucregister(DICOM_FrameTop,0x2e);
-      write_ucregister(DICOM_FrameRight,0x36b);
-      write_ucregister(DICOM_FrameBottom,0x11e);
-      write_ucregister(DICOM_TvOut,0x4000);
-    }
+    write_ucregister(DICOM_VisibleLeft,0x168);
+    write_ucregister(DICOM_VisibleTop,0x2e);
+    write_ucregister(DICOM_VisibleRight,0x36b);
+    write_ucregister(DICOM_VisibleBottom,0x11e);
+    write_ucregister(DICOM_FrameLeft,0x168);
+    write_ucregister(DICOM_FrameTop,0x2e);
+    write_ucregister(DICOM_FrameRight,0x36b);
+    write_ucregister(DICOM_FrameBottom,0x11e);
+    write_ucregister(DICOM_TvOut,0x4000);
 
     em9010_write16(em,0x8,0xff);
     em9010_write16(em,0x10,0xff);
@@ -260,6 +250,23 @@ int em8300_video_setup(struct em8300_s *em) {
     
     em->video_playmode = -1;
     em8300_video_setplaymode(em,EM8300_PLAYMODE_STOPPED);
+
+    if(em->encoder_type == ENCODER_BT865) {
+	write_register(0x1f47,0x0);
+	write_register(0x1f42,0x8c);
+	write_register(0x1f43,0x2d0);
+	write_register(0x1f45,0x136);	 
+	write_ucregister(DICOM_VSyncLo1,0x1); 
+	write_ucregister(DICOM_VSyncLo2,0x0);
+	write_ucregister(DICOM_VSyncDelay1,0xd2); 
+	write_ucregister(DICOM_VSyncDelay2,0x0);  
+	write_register(0x1f46,0x0); 
+	write_register(0x1f47,0x1c); 
+	write_register(0x1f5e,0x9efe);
+	write_ucregister(DICOM_Control,0x9efe);
+	write_ucregister(DICOM_UpdateFlag,0x0);		
+	write_ucregister(DICOM_UpdateFlag,0x1);
+    }
 
     return 0;
 }

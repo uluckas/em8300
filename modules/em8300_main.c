@@ -519,6 +519,17 @@ int em8300_init(struct em8300_s *em) {
 	em8300_i2c_init(em);
 
 	bt++;
+
+	if (activate_loopback==0) {
+		em->clockgen_tvmode=CLOCKGEN_TVMODE_1;
+		em->clockgen_overlaymode=CLOCKGEN_OVERLAYMODE_1;
+	} else {
+		em->clockgen_tvmode=CLOCKGEN_TVMODE_2;
+		em->clockgen_overlaymode=CLOCKGEN_OVERLAYMODE_2;
+	}
+
+	pr_debug("em8300_main.o: activate_loopback: %d\n", activate_loopback);
+
 	return 0;
 }
 

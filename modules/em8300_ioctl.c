@@ -407,7 +407,7 @@ int em8300_ioctl_overlay_setmode(struct em8300_s *em, int val) {
 	switch (val) {
 	case EM8300_OVERLAY_MODE_OFF:
 		if (em->overlay_enabled) {
-		        em->clockgen = (em->clockgen & ~CLOCKGEN_MODEMASK) | CLOCKGEN_TVMODE;
+		        em->clockgen = (em->clockgen & ~CLOCKGEN_MODEMASK) | em->clockgen_tvmode;
 			em8300_clockgen_write(em, em->clockgen);
 			em->overlay_enabled=0;
 			em->overlay_mode=val;
@@ -418,7 +418,7 @@ int em8300_ioctl_overlay_setmode(struct em8300_s *em, int val) {
 	case EM8300_OVERLAY_MODE_RECTANGLE:
 	case EM8300_OVERLAY_MODE_OVERLAY:
 		if (!em->overlay_enabled) {
-		        em->clockgen = (em->clockgen & ~CLOCKGEN_MODEMASK) | CLOCKGEN_OVERLAYMODE;
+		        em->clockgen = (em->clockgen & ~CLOCKGEN_MODEMASK) | em->clockgen_overlaymode;
 			em8300_clockgen_write(em, em->clockgen);
 			em->overlay_enabled=1;
 			em->overlay_mode=val;

@@ -22,7 +22,6 @@
 extern int dicom_other_pal;
 extern int dicom_fix;
 extern int dicom_control;
-extern int activate_loopback;
 
 struct dicom_tvmode {
 	int vertsize;
@@ -286,11 +285,6 @@ void em8300_dicom_enable(struct em8300_s *em)
 	}
 
 	write_ucregister(DICOM_TvOut, em->dicom_tvout);
-
-	if (activate_loopback) {
-		em9010_write(em, 0x9, 0x4);
-	}
-	pr_debug("em8300_main.o: activate_loopback: %d\n", activate_loopback);
 }
 
 int em8300_dicom_get_dbufinfo(struct em8300_s *em)

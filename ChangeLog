@@ -1,3 +1,30 @@
+2001-09-02  Rick Haines  <rick@kuroyi.net>
+
+	* include/linux/em8300.h,
+	  modules/em8300_audio.c,
+	  modules/em8300_dicom.c,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_main.c:
+	Patch from Daniel to fix the clockgen setting for
+	another kind of board.
+
+	* .cvsingore,
+	  autotools/.cvsignore,
+	  dhc/.cvsignore,
+	  include/.cvsignore,
+	  include/libdxr3/.cvsignore,
+	  include/linux/.cvsignore,
+	  libdxr3/.cvsignore,
+	  libdxr3/libac3/.cvsignore,
+	  overlay/.cvsignore,
+	  scripts/.cvsignore:
+	Patch to add .cvsingore files from Michael Moerz
+	
+2001-08-19  Rick Haines  <rick@kuroyi.net>
+
+	* configure.in:
+	update version
+	
 2001-08-18  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_ioctl.c (em8300_ioctl_setvideomode):

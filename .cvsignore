@@ -1,0 +1,10 @@
+Makefile.in
+Makefile
+configure
+INSTALL
+config.*
+aclocal.m4
+libtool
+em8300.spec
+em8300.sysv
+*.tar.gz

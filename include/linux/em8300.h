@@ -160,11 +160,11 @@ typedef struct {
 #define CLOCKGEN_DIGITALOUT 0x10
 #define CLOCKGEN_ANALOGOUT 0x20
 
-#define CLOCKGEN_MODEMASK 0x0e
-#define CLOCKGEN_OVERLAYMODE 0x06
-#define CLOCKGEN_TVMODE 0x0a
-
-#define CLOCKGEN_UNKNOWN 0x01
+#define CLOCKGEN_MODEMASK 0x0f
+#define CLOCKGEN_OVERLAYMODE_1 0x07
+#define CLOCKGEN_TVMODE_1 0x0b
+#define CLOCKGEN_OVERLAYMODE_2 0x04
+#define CLOCKGEN_TVMODE_2 0x02
 
 #define MVCOMMAND_STOP 0x0
 #define MVCOMMAND_DISPLAYBUFINFO 0x11
@@ -293,6 +293,8 @@ struct em8300_s
 	
 	/* Clockgenerator */
 	int clockgen;
+	int clockgen_overlaymode;
+	int clockgen_tvmode;
 	
 	/* Timing measurement */
 	struct timeval tv,last_status_time;

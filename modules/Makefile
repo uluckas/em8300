@@ -5,7 +5,7 @@ KERNEL_LOCATION?=/lib/modules/$(shell uname -r)/build
 # If your I2C stuff is builtin to kernel leave this blank
 # otherwise change to the location of the I2C headers
 #I2C_LOCATION=/usr/local/include
-I2C_LOCATION=
+I2C_LOCATION?=
 
 #################################################
 # some magic for using linux kernel settings
@@ -51,9 +51,9 @@ endif
 ifeq "$(IS22)" "YES"
 	SMODINST="misc"
 	ifeq "$(I2C_LOCATION)" ""
-		CFLAGS+=-DI2C_BITBANGING
+		CFLAGS+=-DCONFIG_I2C_ALGOBIT
 	else
-		CFLAGS+=-I$(I2C_LOCATION) -DI2C_BITBANGING
+		CFLAGS+=-I$(I2C_LOCATION) -DCONFIG_I2C_ALGOBIT
 	endif
 else
 	SMODINST="kernel/drivers/video"

@@ -34,10 +34,10 @@ static void em8300_devfs_register_card(struct em8300_s *em)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,70)
 	char devname[64];
 	sprintf(devname, "%s-%d", EM8300_LOGNAME, em->card_nr );
-	em8300_handle[em->card_nr * 4] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
+	em8300_handle[em->card_nr * 4] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, major,
 							em->card_nr * 4, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 #else
-	devfs_mk_cdev(MKDEV(EM8300_MAJOR, em->card_nr * 4),
+	devfs_mk_cdev(MKDEV(major, em->card_nr * 4),
 		      S_IFCHR | S_IRUGO | S_IWUGO,
 		      "%s-%d", EM8300_LOGNAME, em->card_nr);
 #endif
@@ -48,22 +48,22 @@ static void em8300_devfs_enable_card(struct em8300_s *em)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,70)
 	char devname[64];
 	sprintf(devname, "%s_mv-%d", EM8300_LOGNAME, em->card_nr );
-	em8300_handle[(em->card_nr * 4) + 1] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
+	em8300_handle[(em->card_nr * 4) + 1] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, major,
 							      (em->card_nr * 4) + 1, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 	sprintf(devname, "%s_ma-%d", EM8300_LOGNAME, em->card_nr );
-	em8300_handle[(em->card_nr * 4) + 2] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
+	em8300_handle[(em->card_nr * 4) + 2] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, major,
 							      (em->card_nr * 4) + 2, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 	sprintf(devname, "%s_sp-%d", EM8300_LOGNAME, em->card_nr );
-	em8300_handle[(em->card_nr * 4) + 3] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
+	em8300_handle[(em->card_nr * 4) + 3] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, major,
 							      (em->card_nr * 4) + 3, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 #else
-	devfs_mk_cdev(MKDEV(EM8300_MAJOR, (em->card_nr * 4) + 1),
+	devfs_mk_cdev(MKDEV(major, (em->card_nr * 4) + 1),
 		      S_IFCHR | S_IRUGO | S_IWUGO,
 		      "%s_mv-%d", EM8300_LOGNAME, em->card_nr);
-	devfs_mk_cdev(MKDEV(EM8300_MAJOR, (em->card_nr * 4) + 2),
+	devfs_mk_cdev(MKDEV(major, (em->card_nr * 4) + 2),
 		      S_IFCHR | S_IRUGO | S_IWUGO,
 		      "%s_ma-%d", EM8300_LOGNAME, em->card_nr);
-	devfs_mk_cdev(MKDEV(EM8300_MAJOR, (em->card_nr * 4) + 3),
+	devfs_mk_cdev(MKDEV(major, (em->card_nr * 4) + 3),
 		      S_IFCHR | S_IRUGO | S_IWUGO,
 		      "%s_sp-%d", EM8300_LOGNAME, em->card_nr);
 #endif

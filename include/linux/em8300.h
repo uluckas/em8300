@@ -196,6 +196,7 @@ typedef struct {
 
 #define EM8300_MAJOR 121
 #define EM8300_LOGNAME "em8300"
+extern int major;
 
 struct dicom_s {
 	int luma;

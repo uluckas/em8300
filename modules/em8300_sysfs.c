@@ -54,22 +54,22 @@ static ssize_t show_devnum(struct class_device *cd, char *buf)
 	struct em8300_s *em = container_of(cd, struct em8300_s, classdev);
 	sprintf(name, "%s-%d", EM8300_LOGNAME, em->card_nr);
 	if(!strcmp(cd->class_id, name)) {
-		dev_t dev = MKDEV(EM8300_MAJOR, em->card_nr * 4 + 0);
+		dev_t dev = MKDEV(major, em->card_nr * 4 + 0);
 		return print_dev_t(buf, dev);
 	}
 	sprintf(name, "%s_mv-%d", EM8300_LOGNAME, em->card_nr);
 	if(!strcmp(cd->class_id, name)) {
-		dev_t dev = MKDEV(EM8300_MAJOR, em->card_nr * 4 + 1);
+		dev_t dev = MKDEV(major, em->card_nr * 4 + 1);
 		return print_dev_t(buf, dev);
 	}
 	sprintf(name, "%s_ma-%d", EM8300_LOGNAME, em->card_nr);
 	if(!strcmp(cd->class_id, name)) {
-		dev_t dev = MKDEV(EM8300_MAJOR, em->card_nr * 4 + 2);
+		dev_t dev = MKDEV(major, em->card_nr * 4 + 2);
 		return print_dev_t(buf, dev);
 	}
 	sprintf(name, "%s_sp-%d", EM8300_LOGNAME, em->card_nr);
 	if(!strcmp(cd->class_id, name)) {
-		dev_t dev = MKDEV(EM8300_MAJOR, em->card_nr * 4 + 3);
+		dev_t dev = MKDEV(major, em->card_nr * 4 + 3);
 		return print_dev_t(buf, dev);
 	}
 	return -ENODEV;

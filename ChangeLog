@@ -1,3 +1,10 @@
+2004-10-27  Nicolas Boullis  <nboullis@debian.org>
+	* include/linux/em8300.h,
+	  modules/em8300_devfs.c,
+	  modules/em8300_main.c,
+	  modules/em8300_sysfs.c:
+	Enable (automatic) dynamic assignment of major number.
+
 2004-09-05  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_audio.c:
 	Fix the SNDCTL_DSP_SYNC audio ioctl, as suggested by Aaron

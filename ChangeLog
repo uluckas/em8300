@@ -1,3 +1,15 @@
+2001-03-03  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300.h,
+	  modules/em8300_audio.c,
+	  modules/em8300_video.c,
+	  modules/em8300_main.c:
+	integrate new sync code.  It's messier than I'd like
+	but works well for me.
+
+	* modules/README-greenscreen:
+	add info about swap_redblue_pal
+
 2001-02-28  Rick Haines  <rick@kuroyi.net>
 
 	* modules/make-install-2.4

@@ -4,6 +4,11 @@ If you have a bt865 you will need:
    use_bt865  -- set to 1 if you have a bt865.  Modifies some
                  initialization values.
 
+If your red and blue colors channels are switched:
+
+ adv717x:
+   swap_redblue_pal    -- swaps the red and blue channels for pal modes
+
 Greenscreen fixes:
 
  adv717x:

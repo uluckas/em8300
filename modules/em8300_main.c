@@ -387,9 +387,10 @@ void cleanup_module(void) {
 
 int em8300_init(struct em8300_s *em) {
     /* Setup parameters */
+#if 0
     em->videodelay = 0x3000 / 2;
     em->max_videodelay = 90000*4;    
-    em->audio_autosync = 0;
+#endif
     
     write_register(0x30000, read_register(0x30000));
 

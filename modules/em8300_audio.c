@@ -148,6 +148,11 @@ static void setup_mafifo(struct em8300_s *em) {
 int mpegaudio_command(struct em8300_s *em, int cmd) {
     em8300_waitfor(em,ucregister(MA_Command), 0xffff, 0xffff);
 
+    if (cmd == 2) {
+	    em->audio_lag = 0;
+	    em->audio_lastpts = 0;
+    }
+
     printk("MA_Command: %d\n",cmd);
     write_ucregister(MA_Command,cmd);
 
@@ -262,14 +267,6 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	em->audio_ptsvalid=1;
 	val=0;
 	break;
-    case EM8300_IOCTL_AUDIO_SYNC:
-	if (get_user(em->audio_pts, (int *)arg)) 
-	    return -EFAULT;
-	em->audio_pts >>= 1;
-	em->audio_ptsvalid=1;
-	em->audio_sync=AUDIO_SYNC_REQUESTED;
-	val=0;
-	break;
     default:
 	return -EINVAL;
     }
@@ -297,7 +294,11 @@ int em8300_audio_open(struct em8300_s *em)
     if(!em->ucodeloaded)
 	return -ENODEV;
     em->swapbytes = 1;
-    em->audio_first=1;
+
+    em->audio_lastpts = 0;
+    em->audio_lag = 0;
+    em->last_calcbuf = 0;
+
     return audio_start(em);
 }
 
@@ -406,62 +407,87 @@ int em8300_audio_calcbuffered(struct em8300_s *em) {
 int em8300_audio_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos)
 {
-    int newscr;
-    
-    if( !em->audio_autosync && ((em->audio_sync == AUDIO_SYNC_REQUESTED) || em->audio_first) && (em->audio_ptsvalid)) {
-	int ret;
+	int32_t diff;
+	uint32_t vpts, master_vpts;
+	uint32_t calcbuf;
+	static int rollover = 0;
+	static uint32_t basepts = 0;
+	static uint32_t rollover_pts = 0;
+	static uint32_t rollover_lastpts = 0;
+	static uint32_t rollover_startpts = 0;
+	static uint32_t lastpts_count = 0;
 
+	if(em->audio_ptsvalid) {
+		em->audio_ptsvalid=0;
+		if (em->audio_lastpts == 0) {
+			em->audio_lastpts = em->audio_pts;
+		}
 
-	if(!em->audio_first) {
-	    em8300_fifo_sync(em->mafifo);
-	    em8300_audio_flush(em);
+		if (rollover) {
+			rollover_lastpts += (em->audio_pts - em->audio_lastpts);
+			em->audio_lag -= (em->audio_pts - em->audio_lastpts);
+			em->audio_lastpts = em->audio_pts;
+		}
+
+		/* backwards by more than a sec probably means rollover */
+		if ((int)(em->audio_lastpts - em->audio_pts) > 90000) {
+			printk("em8300_audio.o: ROLLOVER DETECTED! lastpts: %u pts: %u\n", em->audio_lastpts, em->audio_pts);
+			rollover = 1;
+			rollover_pts = 0;
+			rollover_startpts = em->audio_pts;
+			rollover_lastpts = em->audio_lastpts + lastpts_count;
+			em->audio_lastpts = em->audio_pts;
+			em->audio_lag -= lastpts_count;
+		} else {
+			em->audio_lag -= (em->audio_pts - em->audio_lastpts);
+			em->audio_lastpts = em->audio_pts;
+		}
+		lastpts_count = 0;
 	}
 
-	ret = em8300_fifo_writeblocking(em->mafifo, count, buf,0);
-
-	newscr = em->audio_pts;
-	
-	write_ucregister(MV_SCRlo, newscr & 0xffff);
-	write_ucregister(MV_SCRhi, newscr >> 16);
-
-	mpegaudio_command(em,MACOMMAND_PLAY);
-
-	printk("MA Setting SCR: %d\n",newscr);
-
-	em->audio_sync = AUDIO_SYNC_INACTIVE;
-	em->audio_ptsvalid = 0;
-	em->audio_first=0;
-	return ret;
-    } 
-
-    if(em->audio_ptsvalid) {
-	long scr;
-	
-	scr = (read_ucregister(MV_SCRhi) << 16) | read_ucregister(MV_SCRlo);
-	
-	if(em->audio_rate) {
-	    em->audio_lag = scr - (em->audio_pts -
-		45000/4 * em8300_audio_calcbuffered(em)
-		/ (em->audio_rate)) - em->videodelay;
-
-	    if(em->audio_autosync) {
-		newscr = ((read_ucregister(MV_SCRhi) << 16) | read_ucregister(MV_SCRlo)) - em->audio_lag;
-		write_ucregister(MV_SCRlo, newscr & 0xffff);
-		write_ucregister(MV_SCRhi, newscr >> 16);
-	    } else {
-		if(em->audio_sync == AUDIO_SYNC_INACTIVE &&
-		   ((em->audio_lag > AUDIO_LAG_LIMIT) || (em->audio_lag < -AUDIO_LAG_LIMIT)) ) 
-		    {
-			em->audio_sync = AUDIO_SYNC_REQUESTED;
-			DEBUG(printk("em8300_audio.o: Audio out of sync (%d). Resyncing.\n",				em->audio_lag	));
-		    }
-	    }
+	if (!rollover) {
+		basepts = em->audio_pts;
+	} else {
+		basepts = rollover_lastpts;
 	}
-	em->audio_ptsvalid=0;
-    } 
 
-    
-    return em8300_fifo_writeblocking(em->mafifo, count, buf,0);
+	calcbuf = em8300_audio_calcbuffered(em);
+#ifdef DEBUG_SYNC
+	printk("em8300_audio.o: calcbuf: %u since_last_pts: %i\n", calcbuf, em->audio_lag);
+#endif
+	
+	vpts = basepts + em->audio_lag - (calcbuf * 45000/4 / em->audio_rate);
+	master_vpts = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);
+
+	if (rollover && (rollover_pts == 0)) {
+	  /* I'm not sure if there's any significance to this 45000/4 */
+	  /* I had to add some pts, so I just picked it       -RH     */
+		rollover_pts = basepts + em->audio_lag + 45000/4;
+	}
+	if (rollover && (vpts > rollover_pts)) {
+		rollover = 0;
+		vpts -= rollover_startpts;
+	}
+
+#ifdef DEBUG_SYNC
+	printk("em8300_audio.o: pts: %u vpts: %u scr: %u bpts: %u\n", em->audio_pts, vpts, master_vpts, basepts);
+#endif
+	
+	diff = vpts - master_vpts;
+	
+	if (abs(diff)>3600) {
+		printk ("em8300_audio.o: master clock adjust time %d -> %d\n", master_vpts, vpts); 
+		write_ucregister(MV_SCRlo, vpts & 0xffff);
+		write_ucregister(MV_SCRhi, (vpts >> 16) & 0xffff);
+		printk("Setting SCR: %d\n", vpts);
+	}
+
+	em->audio_lag += (count * 45000/4 / em->audio_rate);
+	em->last_calcbuf = calcbuf + count;
+	lastpts_count += (count * 45000/4 / em->audio_rate);
+
+	return em8300_fifo_writeblocking(em->mafifo, count, buf,0);
+	return 0;
 }
 
 /* 18-09-2000 - Ze'ev Maor - added these two ioctls to set and get audio mode. */

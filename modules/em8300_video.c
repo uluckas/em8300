@@ -51,9 +51,10 @@ int em8300_video_setplaymode(struct em8300_s *em, int mode)
 	    em->video_ptsfifo_ptr = 0;
 	    em->video_offset = 0;
 	    mpegvideo_command(em,MVCOMMAND_STOP);
-
 	    break;
 	case EM8300_PLAYMODE_PLAY:
+	    em->video_pts = 0;
+	    em->video_lastpts = 0;
 	    if(em->video_playmode == EM8300_PLAYMODE_STOPPED) {
 		write_ucregister(MV_FrameEventLo,0xffff);
 		write_ucregister(MV_FrameEventHi,0x7fff);
@@ -258,37 +259,25 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos)
 {
     unsigned flags=0;
-    long scrptsdiff,scr;
-    int savedplaymode;
-    //    em->video_ptsvalid=0;
+    static uint32_t pts;
+
+    if (em->video_ptsvalid) {
+	    pts = em->video_pts;
+    }
+
+    /* pts has gone backwards, but not far enough to be a rollover */
+    if (pts < em->video_lastpts) {
+	    if ((em->video_lastpts - pts) < 90000) {
+		    printk("em8300_video.o: dropping data, pts: %u lastpts: %u\n",
+			   pts, em->video_lastpts);
+		    return 0;
+	    }
+    }
+
     if(em->video_ptsvalid) {
 	int ptsfifoptr=0;
-	em->video_pts>>=1;
-	//	printk("em8300_video.o: video_write %x,%x %x\n",count,em->video_pts,em->video_offset);
-	scr = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);
-	scrptsdiff = em->video_pts + em->videodelay - scr;
-	if((scrptsdiff > 90000) || (scrptsdiff < -90000)) {
-	    unsigned startpts;
-
-	    /* Do coarse sync to video timestamp just to avoid pauses in the playback
-	       until next timestamp arrives to the audio device.
-	    */
-	    
-	    printk("em8300_video.o: Video out of sync. Resyncing\n");
-
-	    savedplaymode = em->video_playmode;
-	    em8300_video_setplaymode(em,EM8300_PLAYMODE_STOPPED);
-
-	    startpts = em->video_pts + em->videodelay;
-	    write_ucregister(MV_SCRlo, startpts & 0xffff);
-	    write_ucregister(MV_SCRhi, (startpts >> 16) & 0xffff);
-	    printk("MV Setting SCR: %d\n",startpts);
-
-	    em8300_video_setplaymode(em,savedplaymode);
-
-	    /* Force resync to audio timestamp */
-	    em->audio_sync = AUDIO_SYNC_REQUESTED;
-	} 
+	em->video_lastpts = em->video_pts;
+	em->video_pts >>= 1;
 
 	flags = 0x40000000;
 	ptsfifoptr = ucregister(MV_PTSFifo) + 4*em->video_ptsfifo_ptr;
@@ -300,7 +289,11 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
 	    if(signal_pending(current)) 
 		return -EINTR;
 	}	
-	
+
+#ifdef DEBUG_SYNC
+	printk("em8300_video.o: pts: %u\n", pts>>1);
+#endif
+
 	write_register(ptsfifoptr, em->video_offset >> 16);
 	write_register(ptsfifoptr+1, em->video_offset & 0xffff);
 	write_register(ptsfifoptr+2, em->video_pts >> 16);

@@ -2,12 +2,18 @@
         * modules/Makefile,
 	  modules/em8300_audio.c,
 	  modules/em8300_main.c,
-	  modules/adv717x.c:
+	  modules/adv717x.c,
+	  em8300setup/em8300setup.c,
+	  em8300setup/Makefile.am,
+	  configure.in
+	  Makefile.am:
 	Fixed kernel 2.5 support.
 	You can now set the default module configs in the Makefile. (The
 	real reason for this is to add config support to the kernel patch).
 	Lots of fixes to make it more kernel friendly.
-	
+	Added Malcolm Lashley's em8300setup util and deprecated em8300init
+	as it doesn't work with perl 5.8. em8300setup has many more features
+	anyway.
 
 2002-10-20  David Holm  <david@realityrift.com>
 	* modules/em8300_ioctl.c:

@@ -49,11 +49,13 @@ Contributions (in semi-random order)
   James Farwell <sodorp@hotmail.com>
     additional reverse engineering
 
-  David Holm <dholm@iname.com>
+  David Holm <david@realityrift.com>
     devfs fs support
     proc fs support
     some missing ioctl's
-    cc sanity check
+    Kernel 2.5 support
+    many bugfixes
+    fixed oss support
 
   Graeme G. Gregory <daemonprince@lordpain.uklinux.net>
     dodgy simple Makefile for 2.4.x
@@ -61,5 +63,8 @@ Contributions (in semi-random order)
   Steven Brookes <stevenjb@mda.co.uk>
     fixes for GETOSPACE, GETODELAY
     fixes for broken digital audio code
+
+  Malcolm Lashley <?>
+    em8300setup
 
 If you aren't here and should be, send us a diff.

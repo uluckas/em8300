@@ -4,9 +4,9 @@ pkgdata_DATA = modules.tar.gz
 pkgdata_SCRIPTS = em8300.sysv
 
 if HAVE_GTK
-SUBDIRS = libdxr3 overlay dhc include scripts
+SUBDIRS = libdxr3 overlay dhc include scripts em8300setup
 else
-SUBDIRS = libdxr3 include scripts
+SUBDIRS = libdxr3 include scripts em8300setup
 endif
 
 debug:

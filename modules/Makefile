@@ -77,7 +77,6 @@ install : $(MODULES)
 		/usr/include/linux/em8300.h
 	install -d /usr/share/misc/
 	install em8300.uc /usr/share/misc
-	install ../scripts/microcode_upload.pl /usr/bin/em8300init
 	@echo Installed to running kernel
 
 uninstall :

@@ -1,5 +1,15 @@
 2001-08-01  Rick Haines  <rick@kuroyi.net>
 
+	* modules/em8300_ioctl.c:
+	revert overlay to tv mode switching patch
+	since it squishes the overlay mode for me
+	
+	* overlay/configs/*,
+	  overlay/Makefile.am:
+	add sample autocal config files
+	
+2001-08-01  Rick Haines  <rick@kuroyi.net>
+
 	* modules/em8300_audio.c:
 	only use AFMT_AC3 if it's defined
 	

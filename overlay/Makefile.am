@@ -1,3 +1,5 @@
+EXTRA_DIST = configs/
+
 CFLAGS = @GLOBAL_CFLAGS@ $(GTK_CFLAGS)
 INCLUDES = -I@srcdir@/include -I/usr/local/include
 LDFLAGS = $(GTK_LIBS)

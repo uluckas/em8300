@@ -308,8 +308,11 @@ int em8300_ioctl_setvideomode(struct em8300_s *em, int mode)
 	em->video_mode = mode;
 
 	em8300_dicom_disable(em);
+
+#if 0 /* this does reenables tv mode but squishes overlay mode for me - RH */
         em9010_write(em, 7, 0x80);
         em9010_write(em, 9, 0);
+#endif
 
 	if (em->encoder) {
 		em->encoder->driver->command(em->encoder, ENCODER_CMD_SETMODE, (void *)encoder);

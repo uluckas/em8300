@@ -1,0 +1,9 @@
+xoffset 0
+yoffset 0
+xcorr 1000
+jitter 0
+stability 0
+keycolor 000000
+colcal_upper 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 
+colcal_lower 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 
+color_interval 10.000000

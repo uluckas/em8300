@@ -1,0 +1,9 @@
+xoffset 210
+yoffset 38
+xcorr 1351
+jitter 0
+stability 0
+keycolor 000000
+colcal_upper 0.867852 -19.829363 0.878345 -15.104289 0.853922 -15.370234 
+colcal_lower 0.843887 -13.182368 0.872205 -14.000183 0.843658 -13.795088 
+color_interval 10.000000

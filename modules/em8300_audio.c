@@ -24,6 +24,7 @@
 
 #ifndef AFMT_AC3
 #define AFMT_AC3 0x00000400
+#endif
 
 #include <endian.h>
 

@@ -1,3 +1,14 @@
+2001-09-19  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_audio.c:
+	define AFMT_AC3 if it's not already
+
+2001-09-10  Rick Haines  <rick@kuroyi.net>
+
+	* modules/em8300_audio.c,
+	  include/linux/em8300.h:
+	maybe fix digital output modes
+	
 2001-09-10  Rick Haines  <rick@kuroyi.net>
 
 	* debian/changelog,

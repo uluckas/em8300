@@ -22,6 +22,9 @@
 
 #include <linux/soundcard.h>
 
+#ifndef AFMT_AC3
+#define AFMT_AC3 0x00000400
+
 #include <endian.h>
 
 __inline__ uint32_t my_abs(int32_t v) {

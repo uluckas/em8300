@@ -33,6 +33,8 @@ static int set_audiomode(struct em8300_s *em, int mode);
 /* C decompilation of sub_prepare_SPDIF by 
 *  Anton Altaparmakov <antona@bigfoot.com>
 *
+*  If outblock == inblock generate mute pattern.
+*
 * Notes:
 *  local1 = "in" = current inblock position pointer.
 *  local3 = "i" = for loop counter.
@@ -48,8 +50,11 @@ void sub_prepare_SPDIF(struct em8300_s *em, unsigned char *outblock, unsigned ch
 	unsigned short int local2; // 16 bit, unsigned
 	unsigned int i; // 32 bit, signed
 	unsigned char local4; // 8 bit, unsigned
+	unsigned char mutepattern[] = {0x00, 0x00};
+	int mute;
 
-	in = inblock;
+	mute = (inblock == outblock) ? 1 : 0;
+	in = (mute) ? mutepattern : inblock;
 
 	for (i = 0; i < (inlength >> 2); i++) {
 		if (em->dword_DB4 == 0xc0) {
@@ -67,7 +72,8 @@ void sub_prepare_SPDIF(struct em8300_s *em, unsigned char *outblock, unsigned ch
 		}
 
 		local2 = in[0] << 8 | in[1];
-		in += 2;
+		if (!mute)
+			in +=2;
 
 		if (em->dword_DB4 != 0) {
 			outblock[i * 8 + 3] = 2;
@@ -80,7 +86,8 @@ void sub_prepare_SPDIF(struct em8300_s *em, unsigned char *outblock, unsigned ch
 		outblock[i * 8] = local2 >> 12 | local4;
 
        		local2 = in[0] << 8 | in[1];
-		in += 2;
+		if (!mute)
+			in +=2;
 
 		outblock[i * 8 + 7] = 1;
 		outblock[i * 8 + 6] = local2 << 4;
@@ -286,9 +293,11 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	switch (cmd) { 
 	case SNDCTL_DSP_RESET: /* reset device */
 		pr_debug("em8300_audio.o: SNDCTL_DSP_RESET\n");
-		em8300_fifo_sync(em->mafifo);
-		em8300_fifo_sync(em->mvfifo);
-		return 0;
+		em8300_fifo_free(em->mafifo);
+		em->mafifo = em8300_fifo_alloc();
+		em8300_fifo_free(em->mvfifo);
+		em->mvfifo = em8300_fifo_alloc();
+		val = 0;
 		break;
 
 	case SNDCTL_DSP_SYNC:  /* wait until last byte is played and reset device */
@@ -488,9 +497,6 @@ int em8300_audio_release(struct em8300_s *em)
 
 static int set_audiomode(struct em8300_s *em, int mode)
 {
-	unsigned char mutepattern_src[0x300];
-	unsigned char mutepattern[0x600];
-	
 	em->audio_mode = mode;
 	
 	em->clockgen &= ~CLOCKGEN_OUTMASK;
@@ -503,7 +509,6 @@ static int set_audiomode(struct em8300_s *em, int mode)
 	
 	em8300_clockgen_write(em, em->clockgen);
 
-	memset(mutepattern_src, 0, sizeof(mutepattern_src));
 	memset(em->byte_D90, 0, sizeof(em->byte_D90));
 
 	em->byte_D90[1] = 0x98;
@@ -534,18 +539,19 @@ static int set_audiomode(struct em8300_s *em, int mode)
 		write_register(EM8300_AUDIO_RATE, 0x3a0);
 
 		em->byte_D90[0] = 0x0;
-		sub_prepare_SPDIF(em, mutepattern, mutepattern_src, 0x300);
-	
-		em8300_writeregblock(em, 2 * ucregister(Mute_Pattern), (unsigned *) mutepattern, 0x600);
+        sub_prepare_SPDIF(em, em->mafifo->preprocess_buffer, em->mafifo->preprocess_buffer, 0x300);
+
+        em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)em->mafifo->preprocess_buffer, em->mafifo->slotsize);
+
 		printk(KERN_NOTICE "em8300_audio.o: Digital PCM audio enabled\n");
 		break;
 	case EM8300_AUDIOMODE_DIGITALAC3:
 		write_register(EM8300_AUDIO_RATE, 0x3a0);
 
 		em->byte_D90[0] = 0x40;
-		sub_prepare_SPDIF(em, mutepattern, mutepattern_src, 0x300);
+        sub_prepare_SPDIF(em, em->mafifo->preprocess_buffer, em->mafifo->preprocess_buffer, 0x300);
 
-		em8300_writeregblock(em, 2 * ucregister(Mute_Pattern), (unsigned *) mutepattern, 0x600);
+        em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)em->mafifo->preprocess_buffer, em->mafifo->slotsize);
 		printk(KERN_NOTICE "em8300_audio.o: Digital AC3 audio enabled\n");
 		break;
 	}

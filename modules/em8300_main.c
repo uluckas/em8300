@@ -50,7 +50,6 @@
 
 #include <linux/version.h>
 #include <asm/uaccess.h>
-
 #include <linux/i2c-algo-bit.h>
 
 #include "encoder.h"
@@ -117,7 +116,7 @@ static int em8300_cards,clients;
 static unsigned int remap[EM8300_MAX]={};
 #endif
 static struct em8300_s em8300[EM8300_MAX];
-#ifdef REGISTER_DSP
+#ifdef CONFIG_SOUND_OSS
 static int dsp_num_table[16];
 #endif
 #ifdef CONFIG_DEVFS_FS
@@ -241,13 +240,13 @@ static int find_em8300(void)
 		em->adr = dev->resource[0].start;
 #endif	
 		em->memsize = 1024 * 1024;
-	
+
 		pci_read_config_byte(dev, PCI_CLASS_REVISION, &revision);
 		em->pci_revision = revision;
 		pr_info("em8300: EM8300 %x (rev %d) ", dev->device, revision);
 		printk("bus: %d, devfn: %d, irq: %d, ", dev->bus->number, dev->devfn, dev->irq);
 		printk("memory: 0x%08lx.\n", em->adr);
-	
+
 		em->mem = ioremap(em->adr, em->memsize);
 		pr_info("em8300: mapped-memory at 0x%p\n", em->mem);
 #ifdef CONFIG_MTRR
@@ -360,7 +359,7 @@ static int em8300_io_write(struct file *file, const char * buf,	size_t count, lo
 {
 	struct em8300_s *em = file->private_data;
 	int subdevice = EM8300_MINOR(file->f_dentry->d_inode) % 4;
-	
+
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_VIDEO:
 		return em8300_video_write(em, buf, count, ppos);
@@ -412,7 +411,7 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 	return 0;
 }
 
-int em8300_io_release(struct inode* inode, struct file* filp) 
+int em8300_io_release(struct inode* inode, struct file *filp)
 {
 	struct em8300_s *em = filp->private_data;
 	int subdevice = EM8300_MINOR(inode) % 4;
@@ -446,7 +445,7 @@ static struct file_operations em8300_fops = {
 	release: em8300_io_release,
 };
 
-#ifdef REGISTER_DSP
+#ifdef CONFIG_SOUND_OSS
 static int em8300_dsp_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, unsigned long arg)
 {
 	struct em8300_s *em = filp->private_data;
@@ -624,7 +623,7 @@ void __exit em8300_exit(void)
 			devfs_unregister(em8300_handle[(card * 4) + frame]);
 		}
 #endif
-#ifdef REGISTER_DSP
+#ifdef CONFIG_SOUND_OSS
 		unregister_sound_dsp(em8300[card].dsp_num);
 #endif
 	}
@@ -652,8 +651,8 @@ int __init em8300_init(void)
 #ifdef CONFIG_PROC_FS
 	struct proc_dir_entry *proc;
 #endif
-	memset(&em8300[0], 0, sizeof(em8300));
-#ifdef REGISTER_DSP
+	//memset(&em8300, 0, sizeof(em8300) * EM8300_MAX);
+#ifdef CONFIG_SOUND_OSS
 	memset(&dsp_num_table, 0, sizeof(dsp_num_table));
 #endif
 
@@ -712,7 +711,7 @@ int __init em8300_init(void)
 		em8300_handle[(card * 4) + 3] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, em8300_major,
 				(card * 4) + 3, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 #endif
-#ifdef REGISTER_DSP
+#ifdef CONFIG_SOUND_OSS
 		if ((em8300[card].dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, -1)) < 0) {
 			printk(KERN_ERR "em8300: cannot register oss audio device!\n");
 			goto err_audio_dsp;
@@ -730,7 +729,7 @@ int __init em8300_init(void)
 #endif
 	return 0;
 
-#ifdef REGISTER_DSP
+#ifdef CONFIG_SOUND_OSS
  err_audio_dsp:
 #endif
  err_chrdev:
@@ -741,7 +740,7 @@ int __init em8300_init(void)
 		}
 		frame = 3;
 #endif
-#ifdef REGISTER_DSP
+#ifdef CONFIG_SOUND_OSS
 		unregister_sound_dsp(em[card].dsp_num);
 #endif
 	}

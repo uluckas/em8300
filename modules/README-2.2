@@ -9,5 +9,5 @@ If your kernel sources are in a location other than /usr/src/linux
 you need to modify the second line of the Makefile.
 
 If you have configured sound support in your kernel and want the driver
-to register a /dev/dsp device, edit the Makefile and add -DREGISTER_DSP
+to register a /dev/dsp device, edit the Makefile and add -DCONFIG_SOUND_OSS
 to EXTRA_CFLAGS

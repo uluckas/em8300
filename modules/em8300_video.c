@@ -306,7 +306,7 @@ int em8300_video_write(struct em8300_s *em, const char * buf, size_t count, loff
 		}	
 
 #ifdef DEBUG_SYNC
-		pr_debug("em8300_video.o: pts: %u\n", pts >> 1);
+		pr_info("em8300_video.o: pts: %u\n", em->video_pts >> 1);
 #endif
 
 		write_register(ptsfifoptr, em->video_offset >> 16);

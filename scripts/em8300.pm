@@ -1,3 +1,11 @@
+package em8300;
+
+require Exporter;
+@ISA    = qw(Exporter);
+@EXPORT = qw(em8300_open em8300_close em8300_write em8300_read
+             em8300_getregister em8300_getstatus em8300_setbcs
+             em8300_setaspectratio);
+
 $_IOC_NRBITS    =  8;
 $_IOC_TYPEBITS  =  8;
 $_IOC_SIZEBITS  = 14;
@@ -30,7 +38,7 @@ sub EMCTL_IOCTL_SETBCS { _IOC(1,'C',4,12) }
 sub EMCTL_IOCTL_SETASPECTRATIO { _IOC(1,'C',5,4) }
 
 sub em8300_open {
-  open(EMDEV,"</dev/em8300") or die("Can't open device");
+  open(EMDEV,"</dev/em8300") or die("Can't open device /dev/em8300: $!");
 }
 
 sub em8300_close {

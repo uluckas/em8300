@@ -16,6 +16,10 @@
 	As Ville Skyttä pointed out, there's no need to install em8300.pm
 	with execute permissions. Thanks again to him.
 
+	* scripts/em8300.pm:
+	Make em8300.pm a perl package, and improve error message when
+	/dev/em8300 cannot be opened. Thanks again to Ville Skyttä.
+
 2004-11-10  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Replace remap_page_range with remap_pfn_range for kernels 2.6.10

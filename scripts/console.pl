@@ -306,6 +306,18 @@ sub reset {
 }  
 
 
+sub I2C_em9010_in {
+  my $bits = shift;
+  my $data;
+  
+  for(my $i=$bits-1; $i >= 0; $i--) {
+    $data |= I2C_read_data() << $i;
+    I2C_clk(1);
+    I2C_clk(0);
+  }
+  return $data;
+}
+
 sub sub_23660 {
   local($arg1,$arg2)=@_;
   I2C_clk(0);
@@ -328,25 +340,15 @@ sub sub_236f0 {
   sub_23660($arg1,$arg3);
 }
 
-sub sub_237e0 {
+# sub_237e0
+sub em9010_write {
   local($arg1,$arg2,$arg3)=@_;
   sub_236f0($arg1,1,0);
   sub_23660($arg2,1);
 }
 
-sub I2C_e9010_in {
-  my $bits = shift;
-  my $data;
-  
-  for(my $i=$bits-1; $i >= 0; $i--) {
-    $data |= I2C_read_data() << $i;
-    I2C_clk(1);
-    I2C_clk(0);
-  }
-  return $data;
-}
-
-sub sub_23780 {
+# sub_23700
+sub em9010_read {
   local($arg1)=@_;
 
   sub_236f0($arg1,0,0);
@@ -358,6 +360,34 @@ sub sub_23780 {
   I2C_clk(1);
   return $val;
   
+}
+
+sub em9010_read16 {
+  local($reg)=@_;
+  
+  if($reg > 128) {
+    em9010_write(3,0);
+    em9010_write(4,$reg);
+  } else {
+    em9010_write(4,0);
+    em9010_write(3,$reg);
+  }
+  return em9010_read(2) | (em9010_read(1) << 8);
+}
+
+sub em9010_write16 {
+  local($reg,$value)=@_;
+  
+  if($reg > 128) {
+    em9010_write(3,0);
+    em9010_write(4,$reg);
+  } else {
+    em9010_write(4,0);
+    em9010_write(3,$reg);
+  }
+
+  em9010_write(2,$value & 0xff);
+  em9010_write(1,$value >> 8);
 }
 
 sub resolve_register
@@ -385,7 +415,9 @@ sub usage {
   print "sw <REGISTER> <VALUE>\tWrite to mysterious serial device\n"; 
   print "bcs <BRIGHTNESS> <CONTRAST> <SATURATION>\n"; 
   print "ow <REGISTER> <DATA>\tWrite to overlay processor\n"; 
-  print "or <REGISTER>\t\tRead from overlay processor\n"; 
+  print "ow16 <REGISTER> <DATA>\tWrite to overlay processor 16-bit register\n"; 
+#  print "or <REGISTER>\t\tRead from overlay processor\n"; 
+#  print "or16 <REGISTER>\t\tRead from overlay processor 16-bit\n"; 
   print "win <WIDTH> <HEIGHT> <XPOS> <YPOS>\tSet overlay window size/position\n"; 
 
   print "status\t\t\tGet status from device driver\n"; 
@@ -488,9 +520,13 @@ while(<>) {
       print sprintf("%-20s (0x%04x): 0x%04x",$r,$reg,$val), "\n";
     }
   } elsif(/^ow [0-9a-f]+ [0-9a-f]+/) {
-    s/^ow ([0-9a-f]+) ([0-9a-f]+)/sub_237e0(hex($1),hex($2))/e;
+    s/^ow ([0-9a-f]+) ([0-9a-f]+)/em9010_write(hex($1),hex($2))/e;
+  } elsif(/^ow16 [0-9a-f]+ [0-9a-f]+/) {
+    s/^ow16 ([0-9a-f]+) ([0-9a-f]+)/em9010_write16(hex($1),hex($2))/e;
   } elsif(/^or [0-9a-f]+/) {
-    s/^or ([0-9a-f]+)/printf "%02x\n",sub_23780(hex($1))/e;
+    s/^or ([0-9a-f]+)/printf "%02x\n",em9010_read(hex($1))/e;
+  } elsif(/^or16 [0-9a-f]+/) {
+    s/^or16 ([0-9a-f]+)/printf "%02x\n",em9010_read16(hex($1))/e;
   } elsif(/^x/) {
     
     $displaybuffer=em8300_read($microcode_registers{dicom_displaybuffer},1) + 0x1000;

@@ -151,7 +151,9 @@ static struct em8300_s em8300[EM8300_MAX];
 static int dsp_num_table[16];
 #endif
 #ifdef CONFIG_DEVFS_FS
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,70)
 devfs_handle_t em8300_handle[EM8300_MAX*4];
+#endif
 #endif
 #ifdef CONFIG_PROC_FS
 struct proc_dir_entry *em8300_proc;
@@ -794,9 +796,16 @@ void __exit em8300_exit(void)
 
 	for (card = 0; card < em8300_cards; card++) {
 #ifdef CONFIG_DEVFS_FS
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,69)
 		for (frame = 3; frame >= 0; frame--) {
 			devfs_unregister(em8300_handle[(card * 4) + frame]);
 		}
+#else
+		devfs_remove("%s-%d", EM8300_LOGNAME, card);
+		devfs_remove("%s_mv-%d", EM8300_LOGNAME, card);
+		devfs_remove("%s_ma-%d", EM8300_LOGNAME, card);
+		devfs_remove("%s_sp-%d", EM8300_LOGNAME, card);
+#endif
 #endif
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
 		unregister_sound_dsp(em8300[card].dsp_num);
@@ -869,6 +878,7 @@ int __init em8300_init(void)
 		proc->owner = THIS_MODULE;
 #endif
 #ifdef CONFIG_DEVFS_FS
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,70)
 		sprintf(devname, "%s-%d", EM8300_LOGNAME, card );
 		em8300_handle[(card * 4)] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
 				(card * 4), S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
@@ -881,6 +891,20 @@ int __init em8300_init(void)
 		sprintf(devname, "%s_sp-%d", EM8300_LOGNAME, card );
 		em8300_handle[(card * 4) + 3] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, EM8300_MAJOR,
 				(card * 4) + 3, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
+#else
+		devfs_mk_cdev(MKDEV(EM8300_MAJOR, (card * 4)),
+			      S_IFCHR | S_IRUGO | S_IWUGO,
+			      "%s-%d", EM8300_LOGNAME, card);
+		devfs_mk_cdev(MKDEV(EM8300_MAJOR, (card * 4) + 1),
+			      S_IFCHR | S_IRUGO | S_IWUGO,
+			      "%s_mv-%d", EM8300_LOGNAME, card);
+		devfs_mk_cdev(MKDEV(EM8300_MAJOR, (card * 4) + 2),
+			      S_IFCHR | S_IRUGO | S_IWUGO,
+			      "%s_ma-%d", EM8300_LOGNAME, card);
+		devfs_mk_cdev(MKDEV(EM8300_MAJOR, (card * 4) + 3),
+			      S_IFCHR | S_IRUGO | S_IWUGO,
+			      "%s_sp-%d", EM8300_LOGNAME, card);
+#endif
 #endif
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
 		if ((em8300[card].dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, -1)) < 0) {
@@ -910,7 +934,24 @@ int __init em8300_init(void)
 	while (card-- > 0) {
 		while (frame-- > 0) {
 #ifdef CONFIG_DEVFS_FS
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,69)
 			devfs_unregister(em8300_handle[(card * 4) + frame]);
+#else
+			switch (frame) {
+			case 0:
+				devfs_remove("%s-%d", EM8300_LOGNAME, card);
+				break;
+			case 1:
+				devfs_remove("%s_mv-%d", EM8300_LOGNAME, card);
+				break;
+			case 2:
+				devfs_remove("%s_ma-%d", EM8300_LOGNAME, card);
+				break;
+			case 3:
+				devfs_remove("%s_sp-%d", EM8300_LOGNAME, card);
+				break;
+			}
+#endif
 #endif
 		}
 		frame = 3;

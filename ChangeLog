@@ -1,3 +1,10 @@
+2004-03-24  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_main.c:
+	Since kernel 2.5.69, one should use devfs_remove instead of
+	devfs_unregister; and since 2.5.70, devfs_mk_cdev instead of
+	devfs_register. Thanks to Peter Zijlstra for his patch (forwarded
+	by Håkon Skjelten).
+
 2004-03-23  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Since before kernel 2.4.0, the file_operations structure has an

@@ -65,7 +65,10 @@ int dxr3_get_status();
 
 // Data IO functions
 int dxr3_video_write(const char *buf, int n);
+// write raw audio data
 int dxr3_audio_write(const char *buf, int n);
+// if we're in digitalac3 mode, process the data accordingly
+int dxr3_audio_write_ac3(const char *buf, int n);
 int dxr3_subpic_write(const char *buf, int n);
 
 // Timestamp related functions

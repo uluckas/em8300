@@ -112,12 +112,15 @@ int dxr3_subpic_write(const char *buf, int n)
 
 int dxr3_audio_write(const char *buf, int n)
 {
-	// TODO: Add DIGITALPCM support
+	return write(state.fd_audio, buf, n);
+}
 
-  	if (state.audiomode == DXR3_AUDIOMODE_DIGITALAC3) {
-	  return output_spdif(buf, buf+n, state.fd_audio);
+int dxr3_audio_write_ac3(const char *buf, int n)
+{
+        if (state.audiomode == DXR3_AUDIOMODE_DIGITALAC3) {
+		return output_spdif(buf, buf+n, state.fd_audio);
 	} else {
-	  return write(state.fd_audio, buf, n);
+		return write(state.fd_audio, buf, n);
 	}
 }
 

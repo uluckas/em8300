@@ -1,3 +1,10 @@
+2001-05-13  Rick Haines  <rick@kuroyi.net>
+
+	* include/libdxr3/api.h,
+	  libdxr3/dxr3-api.c:
+	dxr3_audio_write() now just writes the data sent to it,
+	dxr3_audio_write_ac3() will process it if in digitalac3 mode.
+	
 2001-05-11  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_video.c (em8300_video_check_ptsfifo):

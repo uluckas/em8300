@@ -13,6 +13,11 @@
 	linux/wrapper.h are replaced by SetPageReserved and
 	ClearPageReserved. Thanks to Håkon Skjelten for pointing this.
 
+	* modules/em8300_main.c:
+	Between kernel 2.5.2 and 2.6.0-test4 (inclusive), one must use
+	minor(inode->i_rdev) rather than MINOR(inode->i_rdev). Thanks
+	again to Håkon Skjelten.
+
 2004-03-16  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_fifo.c,
 	  modules/em8300_ioctl.c,

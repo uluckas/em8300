@@ -73,12 +73,12 @@
 /* It seems devfs will implement a new scheme of enumerating minor numbers.
  * Currently it seems broken. But that is why we added these macros.
  */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,2) || LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
 #define EM8300_MINOR(inode) (MINOR((inode)->i_rdev) % 4)
 #define EM8300_CARD(inode) (MINOR((inode)->i_rdev) / 4)
 #else
-#define EM8300_MINOR(inode) (minor(inode->i_rdev) % 4)
-#define EM8300_CARD(inode) (minor(inode->i_rdev) / 4)
+#define EM8300_MINOR(inode) (minor((inode)->i_rdev) % 4)
+#define EM8300_CARD(inode) (minor((inode)->i_rdev) / 4)
 #endif
 
 #if !defined(CONFIG_I2C_ALGOBIT) && !defined(CONFIG_I2C_ALGOBIT_MODULE)
@@ -604,7 +604,7 @@ static int em8300_dsp_ioctl(struct inode* inode, struct file* filp, unsigned int
 
 static int em8300_dsp_open(struct inode* inode, struct file* filp)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,2) || LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
 	int dsp_num = ((MINOR(inode->i_rdev) >> 4) & 0x0f);
 #else
 	int dsp_num = ((minor(inode->i_rdev) >> 4) & 0x0f);

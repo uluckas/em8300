@@ -31,7 +31,6 @@ if [ "$1" = "configure" ]; then
 
     if [ ! -f /usr/lib/em8300/microcode0.bin ]; then
     
-        PWD=`pwd`
 	cd /tmp/
 
         if [ -f /tmp/enc2dev.vx_ ]; then
@@ -49,15 +48,18 @@ if [ "$1" = "configure" ]; then
         if [ -f microcode0.bin ]; then
             install -d /usr/lib/em8300
             install -m644 microcode0.bin /usr/lib/em8300/
-	    rm -f microcode0.bin microcode1.bin
+	    rm -f microcode0.bin
+	fi
+	if [ -f microcode1.bin ]; then
+	    install -d /usr/lib/em8300
+	    install -m644 microcode1.bin /usr/lib/em8300/
 	fi
     
         ln -sf /usr/lib/em8300/microcode0.bin /etc/dxr3.ux
 
-        cd $PWD
     fi
     
-    show_msg critical em8300/install_note
+#    show_msg critical em8300/install_note
     ldconfig
 fi
 db_stop

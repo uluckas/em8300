@@ -1,8 +1,9 @@
 Debian README for em8300 package
 
-INSTALL
-
-To get started you must have the modules compiled, which they aren't at this moment I guess.
+COMPILING MODULES
+-----------------
+To compile the kernel modules you need the em8300-source package, and
+after installing it follow these instructions:
 
 Change to your sourcetree where the source is installed.
 
@@ -20,16 +21,34 @@ Build the modules
 
 Install modules
 
-# dpkg -i ../em8300-modules-<kvers>_0.8-1.deb
+# dpkg -i ../em8300-modules-<kvers>_<debvers>.deb
 
-The next thing to do is uploading the microcode unless the player handles this automatic. Xine 0.5 doesn't
+The next thing to do is to upload the microcode unless the player 
+handles this automatic. Xine 0.5 doesn't
 
-# /usr/share/em8300/microcode_upload.pl /etc/dxr3.ux
+# /usr/sbin/upload_mc.sh
 
 This should be all
 
+NOTE ABOUT MICROCODE
+--------------------
+The microcodes are installed in /usr/lib/em8300 and a link from /etc/dxr3.ux
+to microcode0.bin is created during installation. You could change this
+if you rather want it to point to microcode1.bin instead.
+
+Then to upload the microcode just run /usr/sbin/upload_mc.sh
+
+To enable upload of the microcode on boot edit the /etc/em8300.conf
+
+FILES
+-----
+Some perl-scripts can be found in /usr/share/em8300 and the
+microcodes in /usr/lib/em8300
+
 CONTACT
+-------
+For questions about dxr3 go to http://dxr3.sourceforge.net/ and for 
+debian specific question you could send me a mail 
+Jonas Birme <jonas@birme.se>
 
-For questions about dxr3 go to http://dxr3.sourceforge.net/ and for debian specific question you could send me a mail Jonas Birme <jonas@birme.se>
-
-Jonas Birme, 29 Aug 2001
+Jonas Birme, 28 Nov 2001

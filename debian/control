@@ -2,7 +2,7 @@ Source: em8300
 Section: contrib/graphics
 Priority: optional
 Maintainer: Jonas Birme <jonas@birme.se>
-Standards-Version: 0.8.1
+Standards-Version: 3.1.0
 
 Package: em8300
 Architecture: any
@@ -10,7 +10,7 @@ Depends: ${shlibs:Depends}
 Description: H+ / DXR3 device driver for Linux.
  For further information, visit the webpage at http://dxr3.sourceforge.net/
  .
- Installs libdxr3 and em8300-modules for compilation
+ Installs libdxr3 and extracts the microcode.
 
 Package: em8300-source
 Section: admin

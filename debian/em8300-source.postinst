@@ -1,5 +1,8 @@
 #!/bin/sh -e
 
+# source debconf library
+. /usr/share/debconf/confmodule
+
 # movedoc - function to make the transition /usr/doc -> /usr/share/doc
 
 movedoc()
@@ -20,6 +23,14 @@ movedoc()
   fi
 }
 
+add_msg() { db_fset $2 seen false || true; db_input $1 $2 || true; }
+
+show_msg() { add_msg $1 $2; db_go; }
+
 if [ "$1" = configure ]; then
     movedoc
+
+  if [ "$DEBIAN_FRONTEND" != "Noninteractive" ]; then
+    show_msg critical em8300/install_note
+  fi
 fi

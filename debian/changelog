@@ -1,3 +1,50 @@
+em8300 (0.8.3cvs20011127-3) unstable; urgency=high
+
+  * Added a config file and enabled the possibility to upload
+    the microcode at boot.
+    
+  * Some changes to the README.Debian file
+  
+  * Some minor changes in the copyright file
+
+  * Changes to the init.d-script
+  
+ -- Jonas Birme <jonas@birme.se>  Wed, 28 nov 2001 09:46:34 +0100
+ 
+em8300 (0.8.3cvs20011127-2) unstable; urgency=high
+
+  * Added a little script to upload microcode
+
+  * Changed some templates
+  
+  * Updated README
+
+ -- Jonas Birme <jonas@birme.se>  Tue, 27 nov 2001 18:01:02 +0100
+ 
+em8300 (0.8.3cvs20011127-1) unstable; urgency=high
+
+  * eeprom.o renamed to adv717x_eeprom.o
+ 
+ -- Jonas Birme <jonas@birme.se>  Tue, 27 nov 2001 07:23:59 +0100
+ 
+em8300 (0.8.3cvs20011107-1) unstable; urgency=high
+
+  * mplayer support, thanks to David Holm.
+  
+ -- Jonas Birme <jonas@birme.se>  Wed, 7 nov 2001 17:04:56 +0100
+ 
+em8300 (0.8.3cvs20011101-1) unstable; urgency=high
+
+  * 0.8.3 released
+  
+ -- Jonas Birme <jonas@birme.se>  Thu, 1 nov 2001 12:04:32 +0100
+ 
+em8300 (0.8.2cvs20010923-1) unstable; urgency=high
+
+  * 0.8.2 released with many autocal-fixes.
+ 
+ -- Jonas Birme <jonas@birme.se>  Sun, 23 sep 2001 12:36:11 +0200
+
 em8300 (0.8.1cvs20010910-2) unstable; urgency=high
 
   * Got rid of setvers.sh. Using substvars

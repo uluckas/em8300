@@ -36,7 +36,16 @@ install: build
 	dh_clean -k
 	dh_installdirs
 	$(MAKE) install DESTDIR=`pwd`/debian/$(package)
-	 
+	install -d "debian/$(package)/usr/sbin"
+	# Debian specific stuff
+	install -m755 debian/scripts/upload_microcode.sh debian/$(package)/usr/sbin/upload_mc.sh
+	install -d "debian/$(package)/etc"
+	install -m644 debian/em8300.conf.dist debian/$(package)/etc/em8300.conf
+	install -d "debian/$(package)/usr/share/doc/$(package)"
+	install -m644 debian/em8300.conf.dist debian/$(package)/usr/share/doc/$(package)/em8300.conf.dist
+	install -m644 AUTHORS debian/$(package)/usr/share/doc/$(package)/AUTHORS
+	gzip -9v debian/$(package)/usr/share/doc/$(package)/*
+
 clean: .prereq
 	dh_testdir
 	dh_testroot
@@ -48,7 +57,7 @@ clean-modules:
 	dh_testdir
 	dh_testroot
 	-rm -f build-modules
-	-rm -rf debian/$(pkgmod)-$(kvers)
+	-rm -rf debian/$(pkgmod)
 	-rm -f debian/control.tmp
 	-cd modules ;\
 	$(MAKE) clean ;\
@@ -92,6 +101,7 @@ binary-modules: build-modules
 	dh_installchangelogs -p$(pkgmod)
 	dh_installdeb -p$(pkgmod_novers) -Pdebian/$(pkgmod)
 	dh_fixperms -p$(pkgmod)
+	dpkg-gencontrol -Pdebian/$(pkgmod) -Vkvers=$(kvers) -cdebian/$(pkgmod_novers).control
 	dh_md5sums -p$(pkgmod)
 	dh_builddeb -p$(pkgmod) --destdir $(MOD_DIR)/..
 

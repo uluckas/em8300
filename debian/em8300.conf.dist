@@ -1,0 +1,10 @@
+# Configuration file for the em8300 chip
+#
+
+# To enable uploading microcode at boot, set this to yes.
+# Default: no
+BOOTUPLOAD="no"
+
+# Where the microcode is
+# Default: /etc/dxr3.ux
+MICROCODE="/etc/dxr3.ux"

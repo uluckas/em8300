@@ -7,6 +7,11 @@
 	Use AM_CFLAGS and AM_LDFLAGS rather than CFLAGS and LDFLAGS to
 	avoid automake warnings. Thanks to Ville Skyttä.
 
+	* modules/Makefile:
+	Support DESTDIR to install the built modules in a root directory
+	different from /, which is especially useful to build
+	packages. Thanks to Ville Skyttä.
+
 2004-11-10  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Replace remap_page_range with remap_pfn_range for kernels 2.6.10

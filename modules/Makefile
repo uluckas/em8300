@@ -42,8 +42,8 @@ MODULES := adv717x.ko bt865.ko em8300.ko
 endif
 
 install: $(MODULES)
-	install -d /lib/modules/$(KERNVER)/$(MODINST)
-	install $(MODULES) /lib/modules/$(KERNVER)/$(MODINST)
+	install -d $(DESTDIR)/lib/modules/$(KERNVER)/$(MODINST)
+	install $(MODULES) $(DESTDIR)/lib/modules/$(KERNVER)/$(MODINST)
 
 uninstall:
 	rm -rf /lib/modules/$(KERNVER)/$(MODINST)

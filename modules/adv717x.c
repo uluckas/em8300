@@ -251,7 +251,6 @@ static int adv717x_update(struct i2c_client *client)
 
 	memcpy(tmpconfig, data->config, data->configlen);
 
-	tmpconfig[1] &= ~0x80;
 	tmpconfig[1] |= data->bars ? 0x80:0;
 
 	switch(data->chiptype) {

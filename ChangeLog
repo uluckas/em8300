@@ -1,3 +1,8 @@
+2001-06-27  Rick Haines  <rick@kuroyi.net>
+
+	* modules/adv717x.c (adv717x_update):
+	Fix color bars.
+	
 2001-06-26  Rick Haines  <rick@kuroyi.net>
 
 	* scripts/microcode_upload.pl:

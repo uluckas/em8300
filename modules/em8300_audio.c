@@ -385,7 +385,6 @@ int em8300_audio_setup(struct em8300_s *em) {
     write_ucregister(MA_Threshold,6);
     
     mpegaudio_command(em,MACOMMAND_PLAY);
-    write_register(0x1f47, 0x18);
     mpegaudio_command(em,MACOMMAND_PAUSE);
 
     return 0;

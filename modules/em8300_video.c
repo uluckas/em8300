@@ -112,7 +112,10 @@ int em8300_video_flush(struct em8300_s *em)
 	rdptrhi = read_ucregister(MV_RdPtr_Hi);
 	write_ucregister(MV_Wrptr_Lo, rdptrlo);
 	write_ucregister(MV_Wrptr_Hi, rdptrhi);
-	write_ucregister(MV_Command, MVCOMMAND_FLUSHBUF);
+	*em->mvfifo->writeptr = *em->mvfifo->readptr;
+	em->mvfifo->waiting = 0;
+	em->video_ptsvalid = 0;
+	em8300_video_sync(em);
 	spin_unlock(&em->mvfifo->lock);
 	return 0;
 }

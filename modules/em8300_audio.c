@@ -305,6 +305,7 @@ int em8300_audio_open(struct em8300_s *em)
     if(!em->ucodeloaded)
 	return -ENODEV;
     em->swapbytes = 1;
+    em->audio_first=1;
     return audio_start(em);
 }
 
@@ -414,11 +415,14 @@ int em8300_audio_calcbuffered(struct em8300_s *em) {
 int em8300_audio_write(struct em8300_s *em, const char * buf,
 		       size_t count, loff_t *ppos)
 {
-    if((em->audio_sync == AUDIO_SYNC_REQUESTED) && (em->audio_ptsvalid)) {
+
+    if( ((em->audio_sync == AUDIO_SYNC_REQUESTED) || em->audio_first) && (em->audio_ptsvalid)) {
 	int ret;
-	
-	//	em8300_fifo_sync(em->mafifo);
-	em8300_audio_flush(em);
+
+	if(!em->audio_first) {
+	    em8300_fifo_sync(em->mafifo);
+	    em8300_audio_flush(em);
+	}
 
 	ret = em8300_fifo_writeblocking(em->mafifo, count, buf,0);
 
@@ -431,18 +435,17 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 
 	em->audio_sync = AUDIO_SYNC_INACTIVE;
 	em->audio_ptsvalid = 0;
+	em->audio_first=0;
 	return ret;
     }
 
     if(em->audio_ptsvalid) {
-	long picpts;
+	long scr;
 	
-	picpts =
-	    read_ucregister(PicPTSLo) +
-	    (read_ucregister(PicPTSHi) << 16);
-	picpts = (read_ucregister(MV_SCRhi) << 16) | read_ucregister(MV_SCRlo);
+	scr = (read_ucregister(MV_SCRhi) << 16) | read_ucregister(MV_SCRlo);
+	
 	if(em->audio_rate) {
-	    em->audio_lag = picpts - (em->audio_pts -
+	    em->audio_lag = scr - (em->audio_pts -
 		45000/4 * em8300_audio_calcbuffered(em)
 		/ (em->audio_rate));
 	    if(em->audio_sync == AUDIO_SYNC_INACTIVE &&
@@ -452,15 +455,16 @@ int em8300_audio_write(struct em8300_s *em, const char * buf,
 		    DEBUG(printk("em8300_audio.o: Audio out of sync (%d). Resyncing.\n",				em->audio_lag	));
 		}		
 	}
-
+	/*
 	if(em->audio_sync == AUDIO_SYNC_REQUESTED) {
-	    if(em->audio_pts > picpts) {
+	    if(em->audio_pts > scr) {
 		em8300_audio_flush(em);
 		mpegaudio_command(em,MACOMMAND_PAUSE);
 		em->audio_syncpts=em->audio_pts;
 		em->audio_sync=AUDIO_SYNC_INPROGRESS;
 	    }
 	}
+	*/
 	em->audio_ptsvalid=0;
     } 
 

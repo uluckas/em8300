@@ -55,7 +55,6 @@ int em8300_video_start(struct em8300_s *em) {
     write_ucregister(MV_FrameEventHi,0x7fff);
 
     em->video_first = 1;
-    
     return mpegvideo_command(em,MVCOMMAND_START);
 }
 
@@ -218,33 +217,35 @@ int em8300_video_write(struct em8300_s *em, const char * buf,
 	int ptsfifoptr=0;
 	em->video_pts>>=1;
 	//	printk("em8300_video.o: video_write %x,%x %x\n",count,em->video_pts,em->video_offset);
-
+	/*
 	if(em->video_first) {
 	    unsigned startpts;
-	    startpts = em->video_pts + 45000 / 30;
+	    startpts = em->video_pts + em->videodelay;
 	    write_ucregister(MV_SCRlo, startpts & 0xffff);
 	    write_ucregister(MV_SCRhi, (startpts >> 16) & 0xffff);
+	    printk("Setting SCR: %d\n",startpts);
 	    em->video_first = 0;
-	} else {
-	    flags = 0x40000000;
-	    ptsfifoptr = ucregister(MV_PTSFifo) + 4*em->video_ptsfifo_ptr;
+	} 
+	*/
+	flags = 0x40000000;
+	ptsfifoptr = ucregister(MV_PTSFifo) + 4*em->video_ptsfifo_ptr;
 
-	    if(read_register(ptsfifoptr+1) & 1) {
-		em->video_ptsfifo_waiting=1;
-		interruptible_sleep_on(&em->video_ptsfifo_wait);
-		em->video_ptsfifo_waiting=0;
-		if(signal_pending(current)) 
-		    return -EINTR;
-	    }
+	if(read_register(ptsfifoptr+1) & 1) {
+	    em->video_ptsfifo_waiting=1;
+	    interruptible_sleep_on(&em->video_ptsfifo_wait);
+	    em->video_ptsfifo_waiting=0;
+	    if(signal_pending(current)) 
+		return -EINTR;
+	}	
+	
+	write_register(ptsfifoptr, em->video_offset >> 16);
+	write_register(ptsfifoptr+1, em->video_offset & 0xffff);
+	write_register(ptsfifoptr+2, em->video_pts >> 16);
+	write_register(ptsfifoptr+3, (em->video_pts & 0xffff) | 1);
+	
+	em->video_ptsfifo_ptr++;
+	em->video_ptsfifo_ptr %= read_ucregister(MV_PTSSize) / 4;
 
-	    write_register(ptsfifoptr, em->video_offset >> 16);
-	    write_register(ptsfifoptr+1, em->video_offset & 0xffff);
-	    write_register(ptsfifoptr+2, em->video_pts >> 16);
-	    write_register(ptsfifoptr+3, (em->video_pts & 0xffff) | 1);
-
-	    em->video_ptsfifo_ptr++;
-	    em->video_ptsfifo_ptr %= read_ucregister(MV_PTSSize) / 4;
-	}
 	em->video_ptsvalid=0;
     }
 

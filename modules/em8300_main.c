@@ -81,29 +81,8 @@ void em8300_irq(int irq, void *dev_id, struct pt_regs * regs)
 	}
 
 	if(irqstatus & IRQSTATUS_VIDEO_VBL) {
-	    long picpts,scr,lag;
-
 	    em8300_video_check_ptsfifo(em);
 	    em8300_spu_check_ptsfifo(em);
-	    
-	    picpts = (read_ucregister(PicPTSHi) << 16) |
-		read_ucregister(PicPTSLo);
-	    scr = (read_ucregister(MV_SCRhi) << 16) | read_ucregister(MV_SCRlo);
-	    lag = scr-picpts;
-
-	    if((em->audio_sync == AUDIO_SYNC_INPROGRESS) &&
-	       (scr >= em->audio_syncpts) )
-	    {	
-		mpegaudio_command(em,MACOMMAND_PLAY);
-		em->audio_sync=0;
-	    }
-	    
-	    if(lag > PTSLAG_LIMIT || lag < -PTSLAG_LIMIT) {
-		  DEBUG(printk("em8300_main.o: Video out of sync (%ld). Resyncing.\n",lag));
-		scr = picpts + 0x3000;
-		write_ucregister(MV_SCRhi, scr >> 16);		
-		write_ucregister(MV_SCRlo, scr & 0xffff);		
-	    }
 
 	    do_gettimeofday(&tv);
 	    em->irqtimediff = TIMEDIFF(tv,em->tv);
@@ -520,6 +499,10 @@ void cleanup_module(void) {
 }
 
 int em8300_init(struct em8300_s *em) {
+    /* Setup parameters */
+    em->videodelay = 0x3000;
+    em->max_videodelay = 90000*4;    
+    
     write_register(0x30000, read_register(0x30000));
 
     write_register(0x1f50, 0x123);

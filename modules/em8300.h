@@ -192,11 +192,14 @@ struct em8300_s
     int audio_rate;
     int audio_lag;
     int audio_sync,audio_syncpts;
+    int audio_first;
     int dword_DB4;
     unsigned char byte_D90[24];
 
     /* Video */
     int video_mode;
+    int videodelay;
+    int max_videodelay;
     int aspect_ratio;
     int video_pts,video_ptsvalid,video_offset,video_count;
     int video_ptsfifo_ptr;

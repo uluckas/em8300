@@ -45,11 +45,9 @@ static int em8300_proc_read(char *page, char **start, off_t off, int count, int 
 	len += sprintf(page + len,
 		       "em8300 module version %s\n",
 		       EM8300_VERSION);
-	if (!em->ucodeloaded) {
-		len += sprintf(page + len,
-			       "Microcode hasn't been loaded\n");
-		return len;
-	}
+	len += sprintf(page + len,
+		       "Micocode%s loaded\n",
+		       em->ucodeloaded ? "" : " not");
 	/* Device information */
 	len += sprintf(page + len,
 		       "Card revision %d\n",
@@ -77,37 +75,39 @@ static int em8300_proc_read(char *page, char **start, off_t off, int count, int 
 		       em->encoder->adapter->name);
  encoder_done:
 	len += sprintf(page + len,
-		       "Memory mapped at addressrange 0x%0lx->0x%0lx%s\n",
+		       "Memory mapped at address range 0x%0lx->0x%0lx%s\n",
 		       (unsigned long int) em->mem,
 		       (unsigned long int) em->mem
 		       + (unsigned long int) em->memsize,
 		       em->mtrr_reg ? " (FIFOs using MTRR)" : "");
-	em8300_dicom_get_dbufinfo(em);
-	len += sprintf(page + len,
-		       "Displaybuffer resolution: %dx%d\n",
-		       em->dbuf_info.xsize, em->dbuf_info.ysize);
-	len += sprintf(page + len,
-		       "Dicom set to %s\n",
-		       em->dicom_tvout ? "TV-out" : "overlay");
-	if (em->dicom_tvout) {
+	if (em->ucodeloaded) {
+		em8300_dicom_get_dbufinfo(em);
 		len += sprintf(page + len,
-			       "Using %s\n",
-			       (em->video_mode == EM8300_VIDEOMODE_PAL) ? "PAL" : "NTSC");
+			       "Display buffer resolution: %dx%d\n",
+			       em->dbuf_info.xsize, em->dbuf_info.ysize);
 		len += sprintf(page + len,
-			       "Aspect is %s\n",
-			       (em->aspect_ratio == EM8300_ASPECTRATIO_4_3) ? "4:3" : "16:9");
-	} else {
-		len += sprintf(page + len,
-			       "em9010 %s\n",
-			       em->overlay_enabled ? "online" : "offline");
-		len += sprintf(page + len,
-			       "video mapped to screen coordinates %dx%d (%dx%d)\n",
-			       em->overlay_frame_xpos, em->overlay_frame_ypos,
-			       em->overlay_xres, em->overlay_yres);
+			       "Dicom set to %s\n",
+			       em->dicom_tvout ? "TV-out" : "overlay");
+		if (em->dicom_tvout) {
+			len += sprintf(page + len,
+				       "Using %s\n",
+				       (em->video_mode == EM8300_VIDEOMODE_PAL) ? "PAL" : "NTSC");
+			len += sprintf(page + len,
+				       "Aspect is %s\n",
+				       (em->aspect_ratio == EM8300_ASPECTRATIO_4_3) ? "4:3" : "16:9");
+		} else {
+			len += sprintf(page + len,
+				       "em9010 %s\n",
+				       em->overlay_enabled ? "online" : "offline");
+			len += sprintf(page + len,
+				       "Video mapped to screen coordinates %dx%d (%dx%d)\n",
+				       em->overlay_frame_xpos, em->overlay_frame_ypos,
+				       em->overlay_xres, em->overlay_yres);
+		}
 	}
 	len += sprintf(page + len,
 		       "%s audio output\n",
-		       (em->audio_mode == EM8300_AUDIOMODE_ANALOG) ? "analog" : "digital");
+		       (em->audio_mode == EM8300_AUDIOMODE_ANALOG) ? "Analog" : "Digital");
 	return len;
 }
 

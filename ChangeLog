@@ -1,3 +1,9 @@
+2005-04-07  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_procfs.c:
+	Give more useful information in /proc/em8300/<number> when no
+	microcode is loaded. Thanks to Ville Skyttä who did most the
+	work.
+
 2005-03-30  Nicolas Boullis  <nboullis@debian.org>
 	* .cvsignore:
 	Add autom4te.cache to .cvsignore, as suggested by Ville Skyttä.

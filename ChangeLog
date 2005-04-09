@@ -1,23 +1,33 @@
+2005-04-09  Nicolas Boullis  <nboullis@debian.org>
+	* modules/adv717x.c,
+	  modules/bt865.c:
+	Since 2.6.12 kernels (well, at the time of this writing, it is not
+	released yet, but this is true for -rc2), i2c clients dont have
+	id any more. Thanks to Jure Peƒçar who first pointed this out.
+
+	* Changelog:
+	Convert to UTF-8 to spell Jure's name correctly.
+
 2005-04-07  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_procfs.c:
 	Give more useful information in /proc/em8300/<number> when no
-	microcode is loaded. Thanks to Ville Skytt‰ who did most the
+	microcode is loaded. Thanks to Ville Skytt√§ who did most the
 	work.
 
 2005-03-30  Nicolas Boullis  <nboullis@debian.org>
 	* .cvsignore:
-	Add autom4te.cache to .cvsignore, as suggested by Ville Skytt‰.
+	Add autom4te.cache to .cvsignore, as suggested by Ville Skytt√§.
 
 	* dhc/Makefile.am,
 	  dhc/dhc.desktop,
 	  overlay/Makefile.am,
 	  overlay/autocal.desktop,
 	  overlay/dxr3view.desktop:
-	Add .desktop files, provided by Ville Skytt‰.
+	Add .desktop files, provided by Ville Skytt√§.
 
 	* modules/em8300-udev.permissions,
 	  modules/em8300-udev.rules:
-	Add udev configuration files, provided by Ville Skytt‰. Thanks
+	Add udev configuration files, provided by Ville Skytt√§. Thanks
 	Ville for those contributions.
 
 2005-03-24  Nicolas Boullis  <nboullis@debian.org>
@@ -46,12 +56,12 @@
 
 2005-03-08  Nicolas Boullis  <nboullis@debian.org>
 	* em8300setup/em8300setup.c:
-	Improve em8300setup's usage message. Thanks to Ville Skytt‰ for
+	Improve em8300setup's usage message. Thanks to Ville Skytt√§ for
 	the rephrasing.
 
 	* include/linux/Makefile.am:
 	Nuke extraneous creation of the /usr/include/linux
-	directory. Thanks to Ville Skytt‰.
+	directory. Thanks to Ville Skytt√§.
 
 2005-03-07  Nicolas Boullis  <nboullis@debian.org>
 	* modules/adv717x.c,
@@ -62,7 +72,7 @@
 	* acconfig.h,
 	  configure.in:
 	Improve use of AC_DEFINE in configure.in and remove acconfig.h to
-	kill a warning when running autoconf. Thanks to Ville Skytt‰.
+	kill a warning when running autoconf. Thanks to Ville Skytt√§.
 
 2004-11-14  Nicolas Boullis  <nboullis@debian.org>
 	* dhc/Makefile.am,
@@ -71,20 +81,20 @@
 	  libdxr3/libac3/Makefile.am,
 	  overlay/Makefile.am:
 	Use AM_CFLAGS and AM_LDFLAGS rather than CFLAGS and LDFLAGS to
-	avoid automake warnings. Thanks to Ville Skytt‰.
+	avoid automake warnings. Thanks to Ville Skytt√§.
 
 	* modules/Makefile:
 	Support DESTDIR to install the built modules in a root directory
 	different from /, which is especially useful to build
-	packages. Thanks to Ville Skytt‰.
+	packages. Thanks to Ville Skytt√§.
 
 	* scripts/Makefile.am:
-	As Ville Skytt‰ pointed out, there's no need to install em8300.pm
+	As Ville Skytt√§ pointed out, there's no need to install em8300.pm
 	with execute permissions. Thanks again to him.
 
 	* scripts/em8300.pm:
 	Make em8300.pm a perl package, and improve error message when
-	/dev/em8300 cannot be opened. Thanks again to Ville Skytt‰.
+	/dev/em8300 cannot be opened. Thanks again to Ville Skytt√§.
 
 	* .cvsignore,
 	  autotools/.cvsignore,
@@ -190,11 +200,11 @@
 	Since kernel 2.5.69, one should use devfs_remove instead of
 	devfs_unregister; and since 2.5.70, devfs_mk_cdev instead of
 	devfs_register. Thanks to Peter Zijlstra for his patch (forwarded
-	by HÂkon Skjelten).
+	by H√•kon Skjelten).
 
 	* modules/ldm:
 	Update ldm to support .ko modules (since kernel 2.5.51), thanks to
-	HÂkon Skjelten.
+	H√•kon Skjelten.
 
 	* modules/Makefile:
 	Rewrite modules/Makefile mostly from scratch to support both 2.4
@@ -202,12 +212,12 @@
 
 	* modules/em8300_main.c:
 	Call em8300_spu_release when em8300_io_release is called for an
-	em8300_sp device. Thanks to HÂkon Skjelten for this change.
+	em8300_sp device. Thanks to H√•kon Skjelten for this change.
 
 2004-03-23  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Since before kernel 2.4.0, the file_operations structure has an
-	owner field. Thanks to HÂkon Skjelten for pointing this.
+	owner field. Thanks to H√•kon Skjelten for pointing this.
 
 	* modules/adv717x.c,
 	  modules/bt865.c:
@@ -217,12 +227,12 @@
 	* modules/em8300_main.c:
 	Since kernel 2.5.12, mem_map_reserve and mem_map_unreserve from
 	linux/wrapper.h are replaced by SetPageReserved and
-	ClearPageReserved. Thanks to HÂkon Skjelten for pointing this.
+	ClearPageReserved. Thanks to H√•kon Skjelten for pointing this.
 
 	* modules/em8300_main.c:
 	Between kernel 2.5.2 and 2.6.0-test4 (inclusive), one must use
 	minor(inode->i_rdev) rather than MINOR(inode->i_rdev). Thanks
-	again to HÂkon Skjelten.
+	again to H√•kon Skjelten.
 
 2004-03-16  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_fifo.c,
@@ -230,51 +240,51 @@
 	  modules/em8300_spu.c,
 	  modules/em8300_video.c:
 	The variable jiffies has type unsigned long, not unsigned int;
-	thanks to HÂkon Skjelten for pointing this.
+	thanks to H√•kon Skjelten for pointing this.
 
 	* modules/adv717x.c,
 	  modules/bt865.c:
 	Erase (set to zero) the memory freshly allocated with
-	kmalloc for an i2c_client structure. Thanks again to HÂkon
+	kmalloc for an i2c_client structure. Thanks again to H√•kon
 	Skjelten.
 
 	* modules/adv717x.c,
 	  modules/bt865.c,
 	  modules/em8300_i2c.c:
 	Since kernel 2.5.67, the i2c_client and i2c_adapter structs have
-	no data field; once more, thanks to HÂkon Skjelten for his patch.
+	no data field; once more, thanks to H√•kon Skjelten for his patch.
 
 	* modules/adv717x.c,
 	  modules/bt865.c,
 	  modules/em8300_main.c:
 	Since kernel 2.5.18, no symbol is exported by default, so
-	EXPORT_NO_SYMBOLS is useless. Thanks again to HÂkon Skjelten for
+	EXPORT_NO_SYMBOLS is useless. Thanks again to H√•kon Skjelten for
 	pointing this.
 
 	* modules/adv717x.c,
 	  modules/bt865.c,
 	  modules/em8300_main.c:
 	Since kernel 2.5.48, MOD_INC_USE_COUNT and MOD_DEC_USE_COUNT are
-	deprecated. Thanks again to HÂkon Skjelten.
+	deprecated. Thanks again to H√•kon Skjelten.
 
 	* modules/em8300_main.c:
 	Since kernel 2.5.48, request_irq is in linux/interrupt.h . Thanks
-	again to HÂkon Skjelten.
+	again to H√•kon Skjelten.
 
 	* modules/em8300_main.c:
 	Since kernel 2.5.69, the handler provided to request_irq
 	(em8300_irq) must return an irqreturn_t value. Thanks again to
-	HÂkon Skjelten.
+	H√•kon Skjelten.
 
 	* modules/em8300_main.c:
 	Since kernel 2.5.3, the interface of the remap_page_range function
-	changed. Thanks again to HÂkon Skjelten.
+	changed. Thanks again to H√•kon Skjelten.
 
 2004-03-14  Nicolas Boullis  <nboullis@debian.org>
 	* modules/Makefile:
 	When building modules, if $(I2C_LOCATION) is set, ensure that 
 	the i2c headers from $(I2C_LOCATION) are prioritized over those 
-	from the kernel source, thanks to Janne Kujanp‰‰ for pointing 
+	from the kernel source, thanks to Janne Kujanp√§√§ for pointing 
 	the problem.
 
 	* modules/Makefile,
@@ -289,7 +299,7 @@
 	* modules/em8300_fifo.c,
 	  modules/em8300_fifo.h:
 	Do locking with proper mutexes (implemented with semaphores) 
-	rather than misusing spinlocks. Thanks to HÂkon Skjelten and 
+	rather than misusing spinlocks. Thanks to H√•kon Skjelten and 
 	Rune for pointing the misuse while working on a patch to support 
 	2.6 kernels.
 
@@ -375,7 +385,7 @@
 2003-11-22  David Holm  <dholm@gentoo.org>
 	* modules/em8300_main.c,
 	  modules/em8300_video.c:
-	Applied patch from Anders Rune Jensen <anders©gnulinux∑dk> which
+	Applied patch from Anders Rune Jensen <anders¬©gnulinux¬∑dk> which
 	fixes the O_NONBLOCK bug.
 
 2002-01-08  Rick Haines  <rick@kuroyi.net>
@@ -1586,7 +1596,7 @@
 	  modules/em8300_dicom.c,
 	  modules/em8300_video.c:
 	fix aspect ratio stuff thanks to information on enabling
-	16x9 mode from Morten B¯geskov.
+	16x9 mode from Morten B√∏geskov.
 
 	* omsplugin/dxr3/em8300.h,
 	  omsplugin/dxr3/dxr3-api.h,
@@ -1633,7 +1643,7 @@
 2001-02-25  Rick Haines  <rick@kuroyi.net>
 
 	* modules/em8300_main.c
-	merge patch from FrÈdÈric Crozat,
+	merge patch from Fr√©d√©ric Crozat,
 	"A cast is needed in switch, otherwise em8300.o
 	needs a function which is only present in 
 	libgcc.a (compiler library) :  __cmpdi2"
@@ -1642,7 +1652,7 @@
 	added swap_redblue_pal for people with
 	swapped red and blue components;
 	changes Timing Register 1 for PAL and PAL60.
-	register values from FrÈdÈric Crozat.
+	register values from Fr√©d√©ric Crozat.
 	
 2001-02-19  Rick Haines  <rick@kuroyi.net>
 

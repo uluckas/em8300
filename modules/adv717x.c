@@ -491,7 +491,9 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 			printk(KERN_NOTICE "adv717x.o: ADV7170 chip detected\n");
 		}
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,12)
 		new_client->id = adv717x_id++;
+#endif
 
 		if ((err = i2c_attach_client(new_client))) {
 			kfree(new_client);

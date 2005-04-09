@@ -907,7 +907,9 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
 		strcpy(new_client->name, "BT865 chip");
 		printk(KERN_NOTICE "bt865.o: BT865 chip detected\n");
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,12)
 		new_client->id = bt865_id++;
+#endif
 
 		if ((err = i2c_attach_client(new_client))) {
 			kfree(new_client);

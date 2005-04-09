@@ -113,7 +113,6 @@ ssize_t em8300_spu_write(struct em8300_s *em, const char * buf, size_t count, lo
 
 int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 {
-	int err;
 	unsigned clu[16];
 
 	switch (cmd) {
@@ -125,8 +124,8 @@ int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 		em->sp_ptsvalid = 1;
 		break;
 	case EM8300_IOCTL_SPU_SETPALETTE:
-		if ((err = verify_area(VERIFY_READ, (void *) arg, 16 * 4) < 0)) {
-			return err;
+		if (!access_ok(VERIFY_READ, (void *) arg, 16 * 4)) {
+			return -EFAULT;
 		}
 		copy_from_user(clu, (void *) arg, 16 * 4);
 		em8300_spu_setpalette(em, clu);
@@ -138,8 +137,8 @@ int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 				em8300_spu_button(em, 0);
 				break;
 			}
-			if ((err = verify_area(VERIFY_READ, (void *) arg, sizeof(btn)) < 0))
-				return err;
+			if (!access_ok(VERIFY_READ, (void *) arg, sizeof(btn)))
+				return -EFAULT;
 			copy_from_user(&btn, (void*) arg, sizeof(btn));
 			em8300_spu_button(em, &btn);
 		}

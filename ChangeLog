@@ -8,6 +8,13 @@
 	* Changelog:
 	Convert to UTF-8 to spell Jure's name correctly.
 
+	* modules/em8300_audio.c,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_spu.c:
+	Replace all calls to verify_area with calls to access_ok, as
+	verify_area is deprecated in 2.6.12-rc2 and supposed to go away
+	soon.
+
 2005-04-07  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_procfs.c:
 	Give more useful information in /proc/em8300/<number> when no

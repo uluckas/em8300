@@ -292,7 +292,7 @@ static int set_format(struct em8300_s *em, int fmt)
 
 int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 {
-	int err, len = 0;
+	int len = 0;
 	int val = 0;
 
 	if (_SIOC_DIR(cmd) != _SIOC_NONE && _SIOC_DIR(cmd) != 0) {
@@ -304,13 +304,13 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 			return -EFAULT;
 		}
 		if (_SIOC_DIR(cmd) & _SIOC_WRITE) {
-			if ((err = verify_area(VERIFY_READ, (void *) arg, len)) < 0) {
-				return err;
+			if (!access_ok(VERIFY_READ, (void *) arg, len)) {
+				return -EFAULT;
 			}
 		}
 		if (_SIOC_DIR(cmd) & _SIOC_READ) {
-			if ((err = verify_area(VERIFY_WRITE, (void *) arg, len)) < 0) {
-				return err;
+			if (!access_ok(VERIFY_WRITE, (void *) arg, len)) {
+				return -EFAULT;
 			}
 		}
 	}

@@ -28,7 +28,7 @@
 int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 {
 	em8300_register_t reg;
-	int val, len, err;
+	int val, len;
 	em8300_bcs_t bcs;
 	em8300_overlay_window_t ov_win;
 	em8300_overlay_screen_t ov_scr;
@@ -43,13 +43,13 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 			return -EFAULT;
 		}
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
-			if ((err = verify_area(VERIFY_READ, (void *) arg, len)) < 0) {
-				return err;
+			if (!access_ok(VERIFY_READ, (void *) arg, len)) {
+				return -EFAULT;
 			}
 		}
 		if (_IOC_DIR(cmd) & _IOC_READ) {
-			if ((err = verify_area(VERIFY_WRITE, (void *) arg, len)) < 0) {
-				return err;
+			if (!access_ok(VERIFY_WRITE, (void *) arg, len)) {
+				return -EFAULT;
 			}
 		}
 	}

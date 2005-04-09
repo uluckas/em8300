@@ -15,6 +15,9 @@
 	verify_area is deprecated in 2.6.12-rc2 and supposed to go away
 	soon.
 
+	* Makefile.am:
+	Clean up EXTRA_DIST.
+
 2005-04-07  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_procfs.c:
 	Give more useful information in /proc/em8300/<number> when no

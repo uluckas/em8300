@@ -2,6 +2,14 @@
 	* em8300setup/em8300setup.1:
 	Fix the em8300setup manpage, as suggested by Ville Skyttä.
 
+	* modules/em8300_main.c,
+	  modules/em8300_spu.c,
+	  modules/em8300_video.c:
+	Initialize the wait queues before the IRQ is requested, as it
+	seems to prevent the system from hanging up randomly when the
+	em8300 module is loaded for some people. Many thanks to Jon
+	Burgess for this patch.
+
 2005-04-09  Nicolas Boullis  <nboullis@debian.org>
 	* modules/adv717x.c,
 	  modules/bt865.c:

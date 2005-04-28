@@ -152,7 +152,6 @@ int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 
 int em8300_spu_init(struct em8300_s *em)
 {
-	init_waitqueue_head(&em->sp_ptsfifo_wait);
 	return 0;
 }
 

@@ -679,6 +679,10 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	if (em->mtrr_reg) pr_info("em8300: using MTRR\n");
 #endif
 
+	init_waitqueue_head(&em->video_ptsfifo_wait);
+	init_waitqueue_head(&em->vbi_wait);
+	init_waitqueue_head(&em->sp_ptsfifo_wait);
+
 	result = request_irq(dev->irq, em8300_irq, SA_SHIRQ | SA_INTERRUPT, "em8300", (void *) em);
 
 	if (result == -EINVAL) {

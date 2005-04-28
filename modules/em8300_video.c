@@ -161,9 +161,6 @@ void set_dicom_kmin(struct em8300_s *em)
 
 int em8300_video_setup(struct em8300_s *em)
 {
-	init_waitqueue_head(&em->video_ptsfifo_wait);
-	init_waitqueue_head(&em->vbi_wait);
-
 	write_register(0x1f47, 0x0);
 
 	if (em->encoder_type == ENCODER_BT865) {

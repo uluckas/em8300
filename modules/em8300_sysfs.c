@@ -27,7 +27,7 @@
 #include <linux/device.h>
 
 #ifndef EM8300_SYSFS_DIR
-#define EM8300_SYSFS_DIR "media"
+#define EM8300_SYSFS_DIR "em8300"
 #endif
 
 static void em8300_class_release(struct class_device *cd)

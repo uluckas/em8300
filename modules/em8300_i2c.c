@@ -90,9 +90,12 @@ static int em8300_i2c_reg(struct i2c_client *client)
 		}
 		em->encoder = client;
 		break;
-	case  I2C_DRIVERID_BT865:
+	case I2C_DRIVERID_BT865:
 		em->encoder_type = ENCODER_BT865;
 		em->encoder = client;
+		break;
+	case I2C_DRIVERID_EEPROM:
+		/* do nothing */
 		break;
 	default:
 		printk(KERN_ERR "em8300_i2c: unknown client id\n");

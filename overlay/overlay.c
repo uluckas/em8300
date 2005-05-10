@@ -49,7 +49,7 @@ overlay_t *overlay_init(FILE *dev)
     if(!o)
 	return NULL;
 
-    memset(o,sizeof(overlay_t),0);
+    memset(o,0,sizeof(overlay_t));
 
     o->fp = dev;
     o->dev = fileno(dev);

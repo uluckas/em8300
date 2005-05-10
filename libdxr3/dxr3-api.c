@@ -185,7 +185,6 @@ int dxr3_audio_get_buffersize()
 	em8300_register_t ucregister;
     
 	int buffsize = 0;
-	int error;
 	
 	if( !state.open ) return -1;
 	

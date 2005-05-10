@@ -112,8 +112,8 @@ int lookup_parameter(overlay_t *o, struct lut_entry *lut, char *name, void **ptr
 
 int overlay_read_state(overlay_t *o, char *p)
 {
-    char *a,*tok;
-    char path[128],fname[128],tmp[128],line[256];
+    char *tok;
+    char fname[128],tmp[128],line[256];
     FILE *fp;
     struct lut_entry *lut;
     void *ptr;
@@ -176,10 +176,8 @@ void overlay_update_params(overlay_t *o) {
 
 int overlay_write_state(overlay_t *o, char *p)	
 {
-    char *a;
-    char path[128],fname[128],tmp[128];
+    char fname[128],tmp[128];
     FILE *fp;
-    char line[256],*tok;
     struct lut_entry *lut;
     int i,j;
 	
@@ -330,7 +328,7 @@ int overlay_set_keycolor(overlay_t *o, int color) {
 static void least_sq_fit(int *x, int *y, int n, float *k, float *m)
 {
     float sx=0,sy=0,sxx=0,sxy=0;
-    float delta,b;
+    float delta;
     int i;
 
     for(i=0; i < n; i++) {
@@ -351,7 +349,6 @@ int overlay_autocalibrate(overlay_t *o, pattern_drawer_cb pd, void *arg)
     em8300_overlay_calibrate_t cal;
     em8300_overlay_window_t win;
     int x[256],r[256],g[256],b[256],n;
-    float k,m;
     
 #ifdef MATLAB_OUTPUT
     FILE *f;

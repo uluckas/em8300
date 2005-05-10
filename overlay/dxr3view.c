@@ -136,7 +136,6 @@ key_cb(GtkWidget *window,
 int main( int argc, char *argv[] )
 {
 	dxr3view_globals g;
-	GdkColormap *colormap;
 	FILE *dev;
 	float tmpratiolist[7] = {0,1.33,1.5,1.66,1.75,1.85,2.0};
 	Screen *xscrn;

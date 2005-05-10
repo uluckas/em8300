@@ -17,6 +17,13 @@
 	Fix the order of the arguments to memset. Thanks to Ville Skyttä
 	for spotting and fixing this.
 
+	* libdxr3/dxr3-api.c,
+	  overlay/autocal.c,
+	  overlay/dxr3view.c,
+	  overlay/overlay.c:
+	Nuke some unused variables. Thanks again to Ville Skyttä for
+	these.
+
 2005-04-29  Nicolas Boullis  <nboullis@debian.org>
 	* em8300setup/em8300setup.1:
 	Fix the em8300setup manpage, as suggested by Ville Skyttä.

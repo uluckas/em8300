@@ -40,14 +40,9 @@ int main( int   argc,
           char *argv[] )
 {
     FILE *dev	;
-    int tmp;
-    int i;
     overlay_t *ov;
     Screen *xscrn;
     
-    em8300_overlay_calibrate_t cal;
-    em8300_overlay_screen_t scr;
-      
     dpy = XOpenDisplay (NULL);
     if (!dpy) _exit(1);
 

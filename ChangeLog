@@ -7,6 +7,12 @@
 	* modules/em8300_sysfs.c:
 	Move the sysfs information from class media to class em8300.
 
+	* modules/Makefile:
+	Improve the part that extract the kernel version to handle complex
+	include/linux/version.h (as seen for example on Fedora) that
+	handle several different versions. Thanks to Ville Salmela for
+	showing the problem.
+
 2005-04-29  Nicolas Boullis  <nboullis@debian.org>
 	* em8300setup/em8300setup.1:
 	Fix the em8300setup manpage, as suggested by Ville Skyttä.

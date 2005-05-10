@@ -37,7 +37,7 @@ build:
 clean:
 	-rm -f *.o *.ko *.mod.c .*.cmd .*.o.flags
 
-KERNVER := $(shell cat $(KERNEL_LOCATION)/include/linux/version.h | sed -ne 's/^\#define[[:space:]]\+UTS_RELEASE[[:space:]]\+"\(.*\)"$$/\1/p')
+KERNVER := $(shell $(CPP) -dM $(KERNEL_LOCATION)/include/linux/version.h | sed -ne 's/^\#define[[:space:]]\+UTS_RELEASE[[:space:]]\+"\(.*\)"$$/\1/p')
 MODINST := em8300
 
 # Test if the kernel if older than 2.5.51

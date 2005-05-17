@@ -132,7 +132,12 @@ MODULE_PARM_DESC(major, "Major number used for the devices. "
 static int em8300_cards,clients;
 
 static struct em8300_s em8300[EM8300_MAX];
+
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
+int dsp_num[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
+MODULE_PARM(dsp_num, "1-" __MODULE_STRING(EM8300_MAX) "i");
+MODULE_PARM_DESC(dsp_num, "The /dev/dsp number to assign to the card. -1 for automatic (this is the default).");
+
 static int dsp_num_table[16];
 #endif
 
@@ -522,11 +527,11 @@ static int em8300_dsp_ioctl(struct inode* inode, struct file* filp, unsigned int
 
 static int em8300_dsp_open(struct inode* inode, struct file* filp)
 {
-	int dsp_num = ((EM8300_IMINOR(inode) >> 4) & 0x0f);
-	int card = dsp_num_table[dsp_num] - 1;
+	int dsp_number = ((EM8300_IMINOR(inode) >> 4) & 0x0f);
+	int card = dsp_num_table[dsp_number] - 1;
 	int err = 0;
 
-	pr_debug("em8300: opening dsp %i for card %i\n", dsp_num, card);
+	pr_debug("em8300: opening dsp %i for card %i\n", dsp_number, card);
 
 	if (card < 0 || card >= em8300_cards) {
 		return -ENODEV;
@@ -702,7 +707,7 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	em8300_register_card(em);
 
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
-	if ((em->dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, -1)) < 0) {
+	if ((em->dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, dsp_num[em->card_nr])) < 0) {
 		printk(KERN_ERR "em8300: cannot register oss audio device!\n");
 	} else {
 		dsp_num_table[em->dsp_num >> 4 & 0x0f] = em8300_cards + 1;

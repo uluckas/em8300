@@ -1,3 +1,8 @@
+2005-05-17  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_main.c:
+	Add a new module option to choose the dsp number to use. Thanks to
+	Brendon Lloyd Higgins for providing the patch.
+
 2005-05-10  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_i2c.c:
 	There seem to be eeprom chips connected through i2c; no need to

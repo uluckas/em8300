@@ -166,7 +166,7 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
 		}
 	} else {
 		if (em->audio.channels == 2) {
-			copy_from_user(em->mafifo->preprocess_buffer, inbuf_user, inlength);
+			(void)copy_from_user(em->mafifo->preprocess_buffer, inbuf_user, inlength);
 		} else {
 			for(i = 0; i < inlength; i += 2) {
 				get_user(em->mafifo->preprocess_buffer[2 * i + 0], inbuf_user++);
@@ -427,7 +427,9 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		buf_info.fragsize = em->audio.slotsize;
 		buf_info.bytes = em->mafifo->nslots * em->audio.slotsize / 2;
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETOSPACE\n");
-		return copy_to_user((void *) arg, &buf_info, sizeof(audio_buf_info));
+		if (copy_to_user((void *) arg, &buf_info, sizeof(audio_buf_info)))
+			return -EFAULT;
+		return 0;
 	}
 
 	case SNDCTL_DSP_GETISPACE:
@@ -469,7 +471,9 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 		ci.blocks = 0;
 		ci.ptr = 0;
 		pr_debug("em8300_audio.o: SNDCTL_DSP_GETOPTR %i\n", ci.bytes);
-		return copy_to_user((void *) arg, &ci, sizeof(count_info));
+		if (copy_to_user((void *) arg, &ci, sizeof(count_info)))
+			return -EFAULT;
+		return 0;
 	}
 	case SNDCTL_DSP_GETODELAY:
 		val = em8300_audio_calcbuffered(em);
@@ -645,6 +649,7 @@ int em8300_ioctl_setaudiomode(struct em8300_s *em, int mode)
 int em8300_ioctl_getaudiomode(struct em8300_s *em, long int mode)
 {
 	int a = em->audio_mode;
-	copy_to_user((void *) mode, &a, sizeof(int));
+	if (copy_to_user((void *) mode, &a, sizeof(int)))
+		return -EFAULT;
 	return 0;
 }

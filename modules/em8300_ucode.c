@@ -128,7 +128,10 @@ int em8300_ucode_upload(struct em8300_s *em, void *ucode_user, int ucode_size)
 
 	upload_prepare(em);
 
-	copy_from_user(ucode, ucode_user, ucode_size);
+	if (copy_from_user(ucode, ucode_user, ucode_size)) {
+		kfree(ucode);
+		return -EFAULT;
+	}
 
 	memcount = 0;
 

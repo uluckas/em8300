@@ -454,7 +454,7 @@ void em8300_spu_release(struct em8300_s *em);
 int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg);
 int em8300_ioctl_setvideomode(struct em8300_s *em, int mode);
 int em8300_ioctl_setaspectratio(struct em8300_s *em, int ratio);
-void em8300_ioctl_getstatus(struct em8300_s *em, char *usermsg);
+int em8300_ioctl_getstatus(struct em8300_s *em, char *usermsg);
 int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc);
 void em8300_ioctl_enable_videoout(struct em8300_s *em, int mode);
 int em8300_ioctl_setplaymode(struct em8300_s *em, int mode);

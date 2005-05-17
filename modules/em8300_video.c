@@ -403,7 +403,8 @@ int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 		}
 		if (_IOC_DIR(cmd) & _IOC_READ) {
 			scr = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);
-			copy_to_user((void *) arg, &scr, sizeof(unsigned));
+			if (copy_to_user((void *) arg, &scr, sizeof(unsigned)))
+				return -EFAULT;
 		}
 		break;
 

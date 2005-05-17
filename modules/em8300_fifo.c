@@ -202,10 +202,13 @@ int em8300_fifo_write_nolock(struct fifo_s *fifo, int n, const char *userbuffer,
 			break;
 		}
 
+		if (!access_ok(VERIFY_READ, userbuffer, copysize))
+			return -EFAULT;
+
 		if (fifo->preprocess_cb) {
 			fifo->preprocess_cb(fifo->em, fifo->fifobuffer + writeindex * fifo->slotsize, userbuffer, copysize);
 		} else {
-			copy_from_user(fifo->fifobuffer + writeindex * fifo->slotsize, userbuffer, copysize);
+			(void)copy_from_user(fifo->fifobuffer + writeindex * fifo->slotsize, userbuffer, copysize);
 		}
 
 		writeindex++;
@@ -240,6 +243,9 @@ int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *use
 
 	while (n) {
 		copy_size = em8300_fifo_write_nolock(fifo, n, userbuffer, flags);
+
+		if (copy_size == -EFAULT)
+			return -EFAULT;
 
 		if (copy_size < 0) {
 			return -EIO;

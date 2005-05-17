@@ -3,6 +3,17 @@
 	Add a new module option to choose the dsp number to use. Thanks to
 	Brendon Lloyd Higgins for providing the patch.
 
+	* include/linux/em8300.h,
+	  modules/em8300_audio.c,
+	  modules/em8300_fifo.c,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_spu.c,
+	  modules/em8300_ucode.c,
+	  modules/em8300_video.c:
+	Use (or properly and explicitely discard in a few cases) the
+	return value of copy_from_user and copy_to_user. Thanks to Ville
+	Skyttä for pointing the problem, and for fixing my broken patch.
+
 2005-05-10  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_i2c.c:
 	There seem to be eeprom chips connected through i2c; no need to

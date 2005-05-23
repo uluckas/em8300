@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2005 Jon Burgess <jburgess@uklinux.net>
+ */
 #define __NO_VERSION__
 
 #include <linux/module.h>
@@ -13,6 +16,7 @@
 #include <linux/pci.h>
 #include <asm/io.h>
 #include <asm/uaccess.h>
+#include <linux/wait.h>
 
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
@@ -20,6 +24,8 @@
 #include "em8300_reg.h"
 #include <linux/em8300.h>
 #include "em8300_fifo.h"
+
+#include "em8300_compat24.h"
 
 unsigned default_palette[16] = {
 	0xe18080, 0x2b8080, 0x847b9c, 0x51ef5a, 0x7d8080, 0xb48080, 0xa910a5,
@@ -75,7 +81,7 @@ void em8300_spu_check_ptsfifo(struct em8300_s *em)
 ssize_t em8300_spu_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
 {
 	int flags = 0;
-	unsigned long safe_jiff = jiffies;
+	long ret;
 
 	if (!(em->sp_mode)) return 0;
 //	em->sp_ptsvalid=0;
@@ -83,18 +89,14 @@ ssize_t em8300_spu_write(struct em8300_s *em, const char * buf, size_t count, lo
 		int ptsfifoptr;
 
 		ptsfifoptr = ucregister(SP_PTSFifo) + 2 * em->sp_ptsfifo_ptr;
-
-		if (read_register(ptsfifoptr + 1) & 1) {
-			interruptible_sleep_on_timeout(&em->sp_ptsfifo_wait, HZ);
-			if (time_after_eq(jiffies, safe_jiff + HZ)) {
-				printk(KERN_ERR "em8300_spu.c: SPU Fifo timeout\n");
-				return -EINTR;
-			}
-
-			if (signal_pending(current)) {
-				return -EINTR;
-			}
+		ret = wait_event_interruptible_timeout(em->sp_ptsfifo_wait,
+						       (read_register(ptsfifoptr + 1) & 1) == 0, HZ);
+		if (ret == 0) {
+			printk(KERN_ERR "em8300_spu.c: SPU Fifo timeout\n");
+			return -EINTR;
 		}
+		else if (ret < 0)
+			return ret;
 
 		write_register(ptsfifoptr + 0, em->sp_pts >> 16);
 		write_register(ptsfifoptr + 1, (em->sp_pts & 0xffff) | 1);

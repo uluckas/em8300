@@ -4,6 +4,15 @@
 	em8300_class_release messages and to make them slightly more
 	informative. Thanks Ville.
 
+	* modules/em8300_compat24.h,
+	  modules/em8300_fifo.c,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_spu.c,
+	  modules/em8300_video.c:
+	Replace the old deprecated *_sleep_on_* functions with the new
+	wait_event_* ones. Many thanks to Jon Burgess who did most (not to
+	say all) the work.
+
 2005-05-17  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Add a new module option to choose the dsp number to use. Thanks to

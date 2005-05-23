@@ -1,5 +1,6 @@
 /*
 	Copyright (C) 2000 Henrik Johansson <henrikjo@post.utfors.se>
+	Copyright (C) 2005 Jon Burgess <jburgess@uklinux.net>
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -37,6 +38,7 @@
 #include <asm/page.h>
 #include <linux/sched.h>
 #include <asm/segment.h>
+#include <linux/wait.h>
 
 #include <linux/version.h>
 #include <asm/uaccess.h>
@@ -48,7 +50,7 @@
 #include <linux/em8300.h>
 #include "em8300_fifo.h"
 
-
+#include "em8300_compat24.h"
 
 int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr, int rdptr, int pcisize, int slotsize, int fifotype)
 {
@@ -161,22 +163,16 @@ int em8300_fifo_check(struct fifo_s *fifo)
 
 int em8300_fifo_sync(struct fifo_s *fifo)
 {
-	unsigned long safe_jiff = jiffies;
-
-	while (readl(fifo->writeptr) != readl(fifo->readptr)) {
-		interruptible_sleep_on_timeout(&fifo->wait, 3 * HZ);
-		if (time_after_eq(jiffies, safe_jiff + (3 * HZ))) {
-			printk(KERN_ERR "em8300.o: FIFO sync timeout during sync\n");
-			return -EINTR;
-		}
-
-		if (signal_pending(current)) {
-			printk(KERN_ERR "em8300.o: FIFO sync interrupted\n");
-			return -EINTR;
-		}
+	long ret;
+	ret = wait_event_interruptible_timeout(fifo->wait, readl(fifo->writeptr) == readl(fifo->readptr), 3 * HZ);
+	if (ret == 0) {
+		printk(KERN_ERR "em8300.o: FIFO sync timeout during sync\n");
+		return -EINTR;
 	}
-
-	return 0;
+	else if (ret > 0)
+		return 0;
+	else
+		return ret;
 }
 
 int em8300_fifo_write_nolock(struct fifo_s *fifo, int n, const char *userbuffer, int flags)
@@ -235,6 +231,7 @@ int em8300_fifo_write(struct fifo_s *fifo, int n, const char *userbuffer, int fl
 int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *userbuffer, int flags)
 {
 	int total_bytes_written = 0, copy_size;
+	long ret;
 
 	if (!fifo->valid) {
 		return -EPERM;
@@ -266,35 +263,31 @@ int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *use
 			/* FIXME: are these all conditions for a running DMA engine? */
 
 			if (running) {
-				interruptible_sleep_on_timeout(&fifo->wait, HZ);
-				if (!em8300_fifo_freeslots(fifo)) {
-					printk("Fifo still full, trying stop %p\n", fifo);
-					em8300_video_setplaymode(em, EM8300_PLAYMODE_STOPPED);
-					em8300_video_setplaymode(em, EM8300_PLAYMODE_PLAY);
+				int i;
+				for (i=0; i<2; i++) {
 
-					interruptible_sleep_on_timeout(&fifo->wait, 3 * HZ);
-					if (!em8300_fifo_freeslots(fifo)) {
-						printk(KERN_ERR "em8300.o: FIFO sync timeout during blocking write, n = %d, copy_size = %d, total = %d, free slots = %d\n", n, copy_size, total_bytes_written, em8300_fifo_freeslots(fifo));
-						if (total_bytes_written) {
-							return total_bytes_written;
-						} else {
-							return -EINTR;
-						}
+					ret = wait_event_interruptible_timeout(fifo->wait, em8300_fifo_freeslots(fifo), 2 * HZ);
+					if (ret > 0)
+						break;
+					else if (ret == 0) {
+						printk("Fifo still full, trying stop\n");
+						em8300_video_setplaymode(em, EM8300_PLAYMODE_STOPPED);
+						em8300_video_setplaymode(em, EM8300_PLAYMODE_PLAY);
 					}
+					else
+						return (total_bytes_written>0)?total_bytes_written:ret;
 				}
-			} else {
-				interruptible_sleep_on(&fifo->wait);
+				if (ret == 0) {
+					printk(KERN_ERR "em8300.o: FIFO sync timeout during blocking write\n");
+					return (total_bytes_written>0)?total_bytes_written:-EINTR;
+				}
 			}
-		}
-
-		if (signal_pending(current)) {
-			if (total_bytes_written) {
-				return total_bytes_written;
-			} else {
-				return -EINTR;
+			else {
+				if ((ret = wait_event_interruptible(fifo->wait, em8300_fifo_freeslots(fifo))))
+					return (total_bytes_written>0)?total_bytes_written:ret;
 			}
-		}
 
+		}
 	}
 
 	// printk(KERN_ERR "em8300.o: count = %d\n", total_bytes_written);

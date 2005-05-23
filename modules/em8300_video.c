@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2005 Jon Burgess <jburgess@uklinux.net>
+ */
 #define __NO_VERSION__
 
 #include <linux/module.h>
@@ -13,6 +16,7 @@
 #include <linux/pci.h>
 #include <asm/io.h>
 #include <asm/uaccess.h>
+#include <linux/wait.h>
 
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
@@ -22,6 +26,8 @@
 #include "em8300_fifo.h"
 
 #include <linux/soundcard.h>
+
+#include "em8300_compat24.h"
 
 extern int bt865_ucode_timeout[EM8300_MAX];
 
@@ -321,7 +327,7 @@ ssize_t em8300_video_write(struct em8300_s *em, const char * buf, size_t count, 
 {
 	unsigned flags = 0;
 	int written;
-	unsigned long safe_jiff = jiffies;
+	long ret;
 
 	if (em->video_ptsvalid) {
 		int ptsfifoptr = 0;
@@ -330,16 +336,14 @@ ssize_t em8300_video_write(struct em8300_s *em, const char * buf, size_t count, 
 		flags = 0x40000000;
 		ptsfifoptr = ucregister(MV_PTSFifo) + 4 * em->video_ptsfifo_ptr;
 
-		if (read_register(ptsfifoptr+3) & 1) {
-			interruptible_sleep_on_timeout(&em->video_ptsfifo_wait, HZ);
-			if (time_after_eq(jiffies, safe_jiff + HZ)) {
-				return -EINTR;
-			}
-
-			if (signal_pending(current)) {
-				return -EINTR;
-			}
+		ret = wait_event_interruptible_timeout(em->video_ptsfifo_wait,
+						       (read_register(ptsfifoptr + 3) & 1) == 0, HZ);
+		if (ret == 0) {
+			printk(KERN_ERR "em8300_video.c: Video Fifo timeout\n");
+			return -EINTR;
 		}
+		else if (ret < 0)
+			return ret;
 
 #ifdef DEBUG_SYNC
 		pr_info("em8300_video.o: pts: %u\n", em->video_pts >> 1);

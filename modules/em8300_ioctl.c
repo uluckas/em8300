@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2005 Jon Burgess <jburgess@uklinux.net>
+ */
 #define __NO_VERSION__
 
 #include <linux/module.h>
@@ -13,6 +16,7 @@
 #include <linux/pci.h>
 #include <asm/io.h>
 #include <asm/uaccess.h>
+#include <linux/wait.h>
 
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
@@ -24,6 +28,7 @@
 #include "encoder.h"
 
 #include "em8300_registration.h"
+#include "em8300_compat24.h"
 
 int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 {
@@ -34,7 +39,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 	em8300_overlay_screen_t ov_scr;
 	em8300_overlay_calibrate_t ov_cal;
 	em8300_attribute_t attr;
-	unsigned long safe_jiff = jiffies;
+	int old_count;
+	long ret;
 
 	if (_IOC_DIR(cmd) != 0) {
 		len = _IOC_SIZE(cmd);
@@ -104,20 +110,16 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 			return -ENOTTY;
 		}
 
+		old_count = em->irqcount;
 		em->irqmask |= IRQSTATUS_VIDEO_VBL;
 		write_ucregister(Q_IrqMask, em->irqmask);
 
-		/* go to sleep */
-		// interruptible_sleep_on(&em->vbi_wait);
-		interruptible_sleep_on_timeout(&em->vbi_wait, HZ);
-		if (time_after_eq(jiffies, safe_jiff + HZ)) {
+		ret = wait_event_interruptible_timeout(em->vbi_wait, em->irqcount != old_count, HZ);
+		if (ret == 0)
 			return -EINTR;
-		}
+		else if (ret < 0)
+		        return ret;		
 
-		/* check if signal arrived */
-		if (signal_pending(current)) {
-			return -EINTR;
-		}
 		/* copy timestamp and return */
 		if (copy_to_user((void *) arg, &em->tv, sizeof(struct timeval)))
 			return -EFAULT;

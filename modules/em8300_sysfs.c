@@ -32,7 +32,7 @@
 
 static void em8300_class_release(struct class_device *cd)
 {
-	printk (KERN_NOTICE "em8300_class_release()\n");
+	printk (KERN_DEBUG "em8300_class_release(%s)\n", cd->class_id);
 }
 
 static struct class em8300_class = {

@@ -1,3 +1,9 @@
+2005-05-23  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_sysfs.c:
+	Apply the patch by Ville Skyttä to lower the priority of the
+	em8300_class_release messages and to make them slightly more
+	informative. Thanks Ville.
+
 2005-05-17  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Add a new module option to choose the dsp number to use. Thanks to

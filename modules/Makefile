@@ -28,7 +28,7 @@ KERNEL_LOCATION := /lib/modules/$(shell uname -r)/build
 # especially for using 2.8.x modules with 2.4.x kernels.)
 #export EM8300_I2C_LOCATION := /usr/src/modules/i2c
 #export EM8300_I2C_FORCE_API := NEW
-export EM8300_VERSION := "0.15.0"
+export EM8300_VERSION := "0.15.0-alsa"
 export EM8300_DIR := $(PWD)/..
 
 build:
@@ -89,7 +89,7 @@ endif
 em8300-objs := em8300_main.o em8300_i2c.o em8300_audio.o em8300_fifo.o \
 		em8300_video.o em8300_misc.o em8300_dicom.o em8300_ucode.o \
 		em8300_ioctl.o em8300_spu.o em9010.o em8300_registration.o \
-		em8300_procfs.o em8300_devfs.o em8300_sysfs.o
+		em8300_procfs.o em8300_devfs.o em8300_sysfs.o em8300_alsa.o
 ifeq ($(BUILD_IOCTL32),y)
 em8300-objs += em8300_ioctl32.o
 endif

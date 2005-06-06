@@ -198,6 +198,10 @@ typedef struct {
 #define EM8300_LOGNAME "em8300"
 extern int major;
 
+#include <sound/driver.h>
+#include <sound/core.h>
+#include <sound/pcm.h>
+
 struct dicom_s {
 	int luma;
 	int chroma;
@@ -259,9 +263,13 @@ struct em8300_s
 	struct class_device classdev_sp;
 #endif
 
+	snd_card_t *alsa_card;
+
 	/* Fifos */
 	struct fifo_s *mvfifo;
+#if 0
 	struct fifo_s *mafifo;
+#endif
 	struct fifo_s *spfifo;
 	int mtrr_reg;
 	

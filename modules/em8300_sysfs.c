@@ -166,6 +166,9 @@ struct em8300_registrar_s em8300_sysfs_registrar =
 	.disable_card      = &em8300_sysfs_disable_card,
 	.unregister_card   = &em8300_sysfs_unregister_card,
 	.unregister_driver = &em8300_sysfs_unregister_driver,
+	.audio_interrupt   = NULL,
+	.video_interrupt   = NULL,
+	.vbl_interrupt     = NULL,
 };
 
 #else /* LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,46) */
@@ -178,6 +181,9 @@ struct em8300_registrar_s em8300_sysfs_registrar =
 	.disable_card      = NULL,
 	.unregister_card   = NULL,
 	.unregister_driver = NULL,
+	.audio_interrupt   = NULL,
+	.video_interrupt   = NULL,
+	.vbl_interrupt     = NULL,
 };
 
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,46) */

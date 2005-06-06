@@ -99,6 +99,9 @@ struct em8300_registrar_s em8300_devfs_registrar =
 	.disable_card      = &em8300_devfs_disable_card,
 	.unregister_card   = &em8300_devfs_unregister_card,
 	.unregister_driver = NULL,
+	.audio_interrupt   = NULL,
+	.video_interrupt   = NULL,
+	.vbl_interrupt     = NULL,
 };
 
 #else /* CONFIG_DEVFS_FS */
@@ -111,6 +114,9 @@ struct em8300_registrar_s em8300_devfs_registrar =
 	.disable_card      = NULL,
 	.unregister_card   = NULL,
 	.unregister_driver = NULL,
+	.audio_interrupt   = NULL,
+	.video_interrupt   = NULL,
+	.vbl_interrupt     = NULL,
 };
 
 #endif /* CONFIG_DEVFS_FS */

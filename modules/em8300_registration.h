@@ -37,6 +37,9 @@ struct em8300_registrar_s {
 	void (*disable_card)(struct em8300_s *);
 	void (*unregister_card)(struct em8300_s *);
 	void (*unregister_driver)(void);
+	void (*audio_interrupt)(struct em8300_s *);
+	void (*video_interrupt)(struct em8300_s *);
+	void (*vbl_interrupt)(struct em8300_s *);
 };
 
 extern void em8300_register_driver(void);
@@ -45,5 +48,8 @@ extern void em8300_enable_card(struct em8300_s *);
 extern void em8300_disable_card(struct em8300_s *);
 extern void em8300_unregister_card(struct em8300_s *);
 extern void em8300_unregister_driver(void);
+extern void em8300_audio_interrupt(struct em8300_s *);
+extern void em8300_video_interrupt(struct em8300_s *);
+extern void em8300_vbl_interrupt(struct em8300_s *);
 
 #endif /* EM8300_REGISTRATION_H */

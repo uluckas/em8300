@@ -187,7 +187,7 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 				return -EFAULT;
 		}
 		break;
-
+/*
 	case _IOC_NR(EM8300_IOCTL_GET_AUDIOMODE):
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
@@ -201,7 +201,7 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 			em8300_ioctl_getaudiomode(em, arg);
 		}
 		break;
-
+*/
 	case _IOC_NR(EM8300_IOCTL_SET_SPUMODE):
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
@@ -381,8 +381,10 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 				return -ENOSYS;
 			case EM8300_SUBDEVICE_VIDEO:
 				return em8300_video_flush(em);
+/*
 			case EM8300_SUBDEVICE_AUDIO:
 				return em8300_audio_flush(em);
+*/
 			case EM8300_SUBDEVICE_SUBPICTURE:
 				return -ENOSYS;
 			default:
@@ -419,9 +421,6 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc)
 	if (em->mvfifo) {
 		em8300_fifo_free(em->mvfifo);
 	}
-	if (em->mafifo) {
-		em8300_fifo_free(em->mafifo);
-	}
 	if (em->spfifo) {
 		em8300_fifo_free(em->spfifo);
 	}
@@ -430,16 +429,11 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc)
 		return -ENOMEM;
 	}
 
-	if (!(em->mafifo = em8300_fifo_alloc())) {
-		return -ENOMEM;
-	}
-
 	if (!(em->spfifo = em8300_fifo_alloc())) {
 		return -ENOMEM;
 	}
 
 	em8300_fifo_init(em,em->mvfifo, MV_PCIStart, MV_PCIWrPtr, MV_PCIRdPtr, MV_PCISize, 0x900, FIFOTYPE_VIDEO);
-	em8300_fifo_init(em,em->mafifo, MA_PCIStart, MA_PCIWrPtr, MA_PCIRdPtr, MA_PCISize, 0x1000, FIFOTYPE_AUDIO);
 	//	em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x1000, FIFOTYPE_VIDEO);
 	em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x800, FIFOTYPE_VIDEO);
 	em8300_spu_init(em);
@@ -465,11 +459,11 @@ int em8300_ioctl_getstatus(struct em8300_s *em, char *usermsg)
 	struct timeval tv;
 	long tdiff, frames, scr, picpts;
 	char mvfstatus[128];
-	char mafstatus[128];
+//	char mafstatus[128];
 	char spfstatus[128];
 
 	em8300_fifo_statusmsg(em->mvfifo, mvfstatus);
-	em8300_fifo_statusmsg(em->mafifo, mafstatus);
+//	em8300_fifo_statusmsg(em->mafifo, mafstatus);
 	em8300_fifo_statusmsg(em->spfifo, spfstatus);
 
 	frames = (read_ucregister(MV_FrameCntHi) << 16) | read_ucregister(MV_FrameCntLo);

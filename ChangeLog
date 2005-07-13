@@ -1,3 +1,10 @@
+2005-07-13  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300-udev.permissions,
+	  modules/em8300-udev.rules:
+	Kill the old obsolete em8300-udev.permissions file and put its
+	settings into em8300-udev.rules; kill the compatibility symlinks
+	as everyone should be using the numbered devices by now.
+
 2005-05-23  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_sysfs.c:
 	Apply the patch by Ville Skyttä to lower the priority of the

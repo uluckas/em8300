@@ -68,8 +68,6 @@ AM_CONDITIONAL(HAVE_GTK, test x$has_gtk = "xyes")
 
 AC_OUTPUT([
 	Makefile
-	em8300.spec
-	em8300.sysv
 	include/Makefile
 	include/libdxr3/Makefile
 	include/linux/Makefile

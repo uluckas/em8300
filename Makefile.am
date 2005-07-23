@@ -1,8 +1,5 @@
 EXTRA_DIST = modules/* shinit.sh
 
-pkgdata_DATA = modules.tar.gz
-pkgdata_SCRIPTS = em8300.sysv
-
 if HAVE_GTK
 SUBDIRS = libdxr3 overlay dhc include scripts em8300setup
 else
@@ -13,19 +10,3 @@ debug:
 	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  (cd $$subdir && $(MAKE) $@) \
 	done;
-
-clean-generic:
-	rm -rf BUILD SPECS RPMS SOURCES SRPMS
-	rm -f rpmrc rpmmacros
-
-modules.tar.gz:
-	tar czvf modules.tar.gz modules
-
-dist-rpm: em8300.spec modules.tar.gz dist
-	rm -rf    BUILD SPECS RPMS/{noarch,i386,i686} SOURCES SRPMS
-	mkdir -p BUILD SPECS RPMS/{noarch,i386,i686} SOURCES SRPMS
-	cp -f ${top_srcdir}/@PACKAGE@-@VERSION@.tar.gz ./SOURCES
-	echo "%_topdir `pwd`"	> rpmmacros
-	echo "macrofiles: /usr/lib/rpm/macros: ... :`pwd`/rpmmacros"	> rpmrc
-	rpm --rcfile rpmrc -ba em8300.spec
-

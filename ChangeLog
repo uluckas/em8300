@@ -4,6 +4,12 @@
 	Completely kill the old unnumbered compatibility symlinks,
 	following Ville Skyttä's suggestion. Thanks Ville.
 
+	* Makefile.am,
+	  configure.in,
+	  em8300.spec.in,
+	  em8300.sysv.in:
+	Kill the old outdated rpm stuff, as suggested by Ville Skyttä.
+
 2005-07-13  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300-udev.permissions,
 	  modules/em8300-udev.rules:

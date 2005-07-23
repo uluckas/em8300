@@ -1,3 +1,9 @@
+2005-07-23  Nicolas Boullis  <nboullis@debian.org>
+	* modules/devfs_symlinks,
+	  modules/devices.sh:
+	Completely kill the old unnumbered compatibility symlinks,
+	following Ville Skyttä's suggestion. Thanks Ville.
+
 2005-07-13  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300-udev.permissions,
 	  modules/em8300-udev.rules:

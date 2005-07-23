@@ -10,6 +10,14 @@
 	  em8300.sysv.in:
 	Kill the old outdated rpm stuff, as suggested by Ville Skyttä.
 
+	* Makefile.am,
+	  bootstrap,
+	  configure.in,
+	  include/Makefile.am,
+	  overlay/Makefile.am:
+	Kill the libdxr3 library that nobody ever used. Thanks to Ville
+	Skyttä for finding a few bits I had missed.
+
 2005-07-13  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300-udev.permissions,
 	  modules/em8300-udev.rules:

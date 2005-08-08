@@ -5,7 +5,11 @@
 	  em8300setup/Makefile.am,
 	  include/linux/Makefile.am,
 	  overlay/Makefile.am:
+
 	Autotools cleanup.
+	* include/libdxr3,
+	  libdxr3.
+	Finish to kill libdxr3, as suggested by Ville Skyttä.
 
 2005-07-23  Nicolas Boullis  <nboullis@debian.org>
 	* modules/devfs_symlinks,

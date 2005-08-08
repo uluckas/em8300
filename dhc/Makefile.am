@@ -1,7 +1,7 @@
 EXTRA_DIST = dhc.desktop
 
 AM_CFLAGS = @GLOBAL_CFLAGS@ $(GTK_CFLAGS)
-INCLUDES = -I@srcdir@/include -I/usr/local/include
+INCLUDES = -I@top_srcdir@/include
 AM_LDFLAGS = $(GTK_LIBS) -lpthread
 
 bin_PROGRAMS = dhc

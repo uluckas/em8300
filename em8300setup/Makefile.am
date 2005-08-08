@@ -1,5 +1,5 @@
 AM_CFLAGS = @GLOBAL_CFLAGS@
-INCLUDES = -I@srcdir@/include -I/usr/local/include
+INCLUDES = -I@top_srcdir@/include
 
 bin_PROGRAMS = em8300setup
 man_MANS = em8300setup.1

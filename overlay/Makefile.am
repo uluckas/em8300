@@ -1,7 +1,7 @@
-EXTRA_DIST = configs/ autocal.desktop dxr3view.desktop
+EXTRA_DIST = $(srcdir)/configs/README $(srcdir)/configs/res_* autocal.desktop dxr3view.desktop
 
 AM_CFLAGS = @GLOBAL_CFLAGS@ $(GTK_CFLAGS)
-INCLUDES = -I@srcdir@/include -I/usr/local/include
+INCLUDES = -I@top_srcdir@/include
 AM_LDFLAGS = $(GTK_LIBS)
 
 bin_PROGRAMS = autocal dxr3view

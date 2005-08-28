@@ -78,7 +78,7 @@ static int snd_em8300_playback_open(snd_pcm_substream_t *substream)
 	snd_em8300_playback_hw.periods_min = read_ucregister(MA_PCISize) / 3;
 	snd_em8300_playback_hw.periods_max = read_ucregister(MA_PCISize) / 3;
 	snd_em8300_playback_hw.period_bytes_min = 4096;
-	snd_em8300_playback_hw.period_bytes_max = 32768;
+	snd_em8300_playback_hw.period_bytes_max = 8192;
 	snd_em8300_playback_hw.buffer_bytes_max = snd_em8300_playback_hw.periods_max * snd_em8300_playback_hw.period_bytes_max;
 	runtime->hw = snd_em8300_playback_hw;
 

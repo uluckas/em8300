@@ -211,7 +211,7 @@ int em8300_i2c_init(struct em8300_s *em)
 	em->i2c_ops_2.client_register = em8300_i2c_reg;
 	em->i2c_ops_2.client_unregister = em8300_i2c_unreg;
 
-	i2c_set_adapdata(&em->i2c_ops_1, (void *)em);
+	i2c_set_adapdata(&em->i2c_ops_2, (void *)em);
 
 	ret = i2c_bit_add_bus(&em->i2c_ops_2);
 	return ret;

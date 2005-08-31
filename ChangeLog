@@ -1,3 +1,9 @@
+2005-08-31  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_i2c.c:
+	Fix a bug in the setup of the second i2c adapter, spotted by Marco
+	Schluessler (LordZodiac). This bug was introduced on March 16 this
+	year. Thanks Marco.
+
 2005-08-08  Nicolas Boullis  <nboullis@debian.org>
 	* Makefile.am,
 	  configure.in,
@@ -8,7 +14,7 @@
 	Autotools cleanup.
 
 	* include/libdxr3,
-	  libdxr3.
+	  libdxr3:
 	Finish to kill libdxr3, as suggested by Ville Skyttä.
 
 	* modules/adv717x_eeprom.c.old:

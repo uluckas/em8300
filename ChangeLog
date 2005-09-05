@@ -1,3 +1,8 @@
+2005-09-05  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_main.c:
+	Properly catch errors in pci_enable_device. Thanks to Jon Burgess
+	for spotting the problem and providing a patch.
+
 2005-08-31  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_i2c.c:
 	Fix a bug in the setup of the second i2c adapter, spotted by Marco

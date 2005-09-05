@@ -670,7 +670,11 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	em->adr = dev->resource[0].start;
 	em->memsize = 1024 * 1024;
 
-	pci_enable_device(dev);
+	if ((result = pci_enable_device(dev)) != 0) {
+		printk(KERN_ERR "em8300: Unable to enable PCI device\n");
+		return result;
+	}
+
 	pci_read_config_byte(dev, PCI_CLASS_REVISION, &revision);
 	em->pci_revision = revision;
 	pr_info("em8300: EM8300 %x (rev %d) ", dev->device, revision);

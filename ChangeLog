@@ -3,6 +3,10 @@
 	Properly catch errors in pci_enable_device. Thanks to Jon Burgess
 	for spotting the problem and providing a patch.
 
+	* configure.in,
+	  modules/Makefile:
+	Release 0.15.1.
+
 2005-08-31  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_i2c.c:
 	Fix a bug in the setup of the second i2c adapter, spotted by Marco
@@ -52,6 +56,11 @@
 	Kill the old obsolete em8300-udev.permissions file and put its
 	settings into em8300-udev.rules; kill the compatibility symlinks
 	as everyone should be using the numbered devices by now.
+
+2005-06-01  Nicolas Boullis  <nboullis@debian.org>
+	* configure.in,
+	  modules/Makefile:
+	Release 0.15.0.
 
 2005-05-23  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_sysfs.c:

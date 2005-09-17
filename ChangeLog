@@ -1,3 +1,7 @@
+2005-09-16  Ville Skyttä  <scop@users.sourceforge.net>
+	* modules/em8300_procfs.c:
+	Include version of loaded microcode in procfs info.
+
 2005-09-05  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Properly catch errors in pci_enable_device. Thanks to Jon Burgess

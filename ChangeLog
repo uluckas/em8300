@@ -1,3 +1,29 @@
+2005-10-19  Ville Skyttä  <scop@users.sourceforge.net>
+	* COPYING,
+	  dhc/dhc_callback.c,
+	  dhc/dhc_gui.c,
+	  dhc/dhc_main.c,
+	  em8300setup/em8300setup.c,
+	  modules/Makefile,
+	  modules/adv717x.c,
+	  modules/bt865.c,
+	  modules/em8300_compat24.h,
+	  modules/em8300_devfs.c,
+	  modules/em8300_devfs.h,
+	  modules/em8300_fifo.c,
+	  modules/em8300_ioctl32.c,
+	  modules/em8300_ioctl32.h,
+	  modules/em8300_main.c,
+	  modules/em8300_procfs.c,
+	  modules/em8300_procfs.h,
+	  modules/em8300_registration.c,
+	  modules/em8300_registration.h,
+	  modules/em8300_sysfs.c,
+	  modules/em8300_sysfs.h,
+	  overlay/allblackbut.h,
+	  scripts/msexpand.pl:
+	Update FSF's address.
+
 2005-09-16  Ville Skyttä  <scop@users.sourceforge.net>
 	* modules/em8300_procfs.c:
 	Include version of loaded microcode in procfs info.

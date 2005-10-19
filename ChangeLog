@@ -1,3 +1,20 @@
+2005-10-19  Nicolas Boullis  <nboullis@debian.org>
+	* Makefile.am,
+	  configure.in,
+	  em8300setup/em8300setup.1,
+	  em8300setup/em8300setup.c,
+	  include/linux/em8300.h,
+	  modules/em8300_audio.c,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_main.c,
+	  modules/em8300_ucode.c,
+	  scripts/.cvsignore,
+	  scripts/microcode_upload.pl,
+	  scripts/microcode_upload.pl.in:
+	Implement automatic on-demand loading of the firmware using the
+	hotplug facility (also available in udev). This requires to change
+	the default firmware location.
+
 2005-10-19  Ville Skyttä  <scop@users.sourceforge.net>
 	* COPYING,
 	  dhc/dhc_callback.c,

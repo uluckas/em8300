@@ -65,6 +65,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		return em8300_ioctl_init(em, (em8300_microcode_t *) arg);
 
 	case _IOC_NR(EM8300_IOCTL_WRITEREG):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -80,6 +82,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		break;
 
 	case _IOC_NR(EM8300_IOCTL_READREG):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -98,6 +102,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		break;
 
 	case _IOC_NR(EM8300_IOCTL_GETSTATUS):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -106,6 +112,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		break;
 
 	case _IOC_NR(EM8300_IOCTL_VBI):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -126,6 +134,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		return 0;
 
 	case _IOC_NR(EM8300_IOCTL_GETBCS):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -146,6 +156,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		break;
 
 	case _IOC_NR(EM8300_IOCTL_SET_VIDEOMODE):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -162,6 +174,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		break;
 
 	case _IOC_NR(EM8300_IOCTL_SET_PLAYMODE):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -173,6 +187,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		break;
 
 	case _IOC_NR(EM8300_IOCTL_SET_ASPECTRATIO):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -189,6 +205,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		break;
 
 	case _IOC_NR(EM8300_IOCTL_GET_AUDIOMODE):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -203,6 +221,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		break;
 
 	case _IOC_NR(EM8300_IOCTL_SET_SPUMODE):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -219,6 +239,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		break;
 
 	case _IOC_NR(EM8300_IOCTL_OVERLAY_SETMODE):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -232,6 +254,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		break;
 
 	case _IOC_NR(EM8300_IOCTL_OVERLAY_SIGNALMODE):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -245,6 +269,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		break;
 
 	case _IOC_NR(EM8300_IOCTL_OVERLAY_SETWINDOW):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -263,6 +289,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		break;
 
 	case _IOC_NR(EM8300_IOCTL_OVERLAY_SETSCREEN):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -281,6 +309,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 	break;
 
 	case _IOC_NR(EM8300_IOCTL_OVERLAY_CALIBRATE):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -300,6 +330,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 	break;
 
 	case _IOC_NR(EM8300_IOCTL_OVERLAY_GET_ATTRIBUTE):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -317,6 +349,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		break;
 
 	case _IOC_NR(EM8300_IOCTL_SCR_GET):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -346,6 +380,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 	break;
 
 	case _IOC_NR(EM8300_IOCTL_SCR_GETSPEED):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -368,6 +404,8 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 	break;
 
 	case _IOC_NR(EM8300_IOCTL_FLUSH):
+		em8300_require_ucode(em);
+
 		if (!em->ucodeloaded) {
 			return -ENOTTY;
 		}
@@ -401,14 +439,25 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc)
 {
 	em8300_microcode_t uc;
+	unsigned char *ucode;
 	int ret;
 
 	if (copy_from_user(&uc, useruc, sizeof(em8300_microcode_t)))
 		return -EFAULT;
 
-	if ((ret = em8300_ucode_upload(em, uc.ucode, uc.ucode_size))) {
-		return ret;
+	ucode = kmalloc(uc.ucode_size, GFP_KERNEL);
+	if (!ucode) {
+		return -ENOMEM;
 	}
+
+	if (copy_from_user(ucode, uc.ucode, uc.ucode_size)) {
+		kfree(ucode);
+		return -EFAULT;
+	}
+
+	em8300_ucode_upload(em, ucode, uc.ucode_size);
+
+	kfree(ucode);
 
 	em8300_dicom_init(em);
 
@@ -450,8 +499,10 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc)
 
 	em8300_ioctl_enable_videoout(em, 1);
 
-	if (em->ucodeloaded == 0)
+#if ! ( defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE) )
+	if (!em->ucodeloaded)
 		em8300_enable_card(em);
+#endif
 
 	em->ucodeloaded = 1;
 

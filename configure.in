@@ -56,6 +56,13 @@ if test x$has_gtk = xyes; then
 fi
 AM_CONDITIONAL(HAVE_GTK, test x$has_gtk = "xyes")
 
+FIRMWARE_DIR=/lib/firmware
+AC_ARG_WITH(firmware-dir,
+  [  --with-firmware-dir=DIR use DIR as firmware directory (/lib/firmware by default)], 
+  if test "x$withval" != xyes; then FIRMWARE_DIR="$withval"; fi)
+AC_SUBST(FIRMWARE_DIR)
+AC_DEFINE_UNQUOTED(FIRMWARE_DIR, "$FIRMWARE_DIR", [Define the default path for the firmware.])
+
 AC_OUTPUT([
 	Makefile
 	include/Makefile
@@ -64,4 +71,5 @@ AC_OUTPUT([
 	dhc/Makefile
 	em8300setup/Makefile
 	scripts/Makefile
+	scripts/microcode_upload.pl
 ])

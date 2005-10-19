@@ -114,24 +114,14 @@ int upload_prepare(struct em8300_s *em)
 	return 0;
 }
 
-int em8300_ucode_upload(struct em8300_s *em, void *ucode_user, int ucode_size)
+void em8300_ucode_upload(struct em8300_s *em, void *ucode, int ucode_size)
 {
 	int flags, offset, len;
-	unsigned char *ucode, *p;
+	unsigned char *p;
 	int memcount, i;
 	char regname[128];
 
-	ucode = kmalloc(ucode_size, GFP_KERNEL);
-	if (!ucode) {
-		return -ENOMEM;
-	}
-
 	upload_prepare(em);
-
-	if (copy_from_user(ucode, ucode_user, ucode_size)) {
-		kfree(ucode);
-		return -EFAULT;
-	}
 
 	memcount = 0;
 
@@ -171,7 +161,78 @@ int em8300_ucode_upload(struct em8300_s *em, void *ucode_user, int ucode_size)
 		memcount += len;
 		p += len;
 	}
-
-	kfree(ucode);
-	return 0;
 }
+
+#if defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE)
+
+#include <linux/firmware.h>
+#include "em8300_fifo.h"
+#include "em8300_registration.h"
+
+void em8300_require_ucode(struct em8300_s *em)
+{
+	if (!em->ucodeloaded) {
+		const struct firmware *fw_entry = NULL;
+
+		if (request_firmware(&fw_entry, "em8300.bin", &em->dev->dev) != 0) {
+			printk(KERN_ALERT "%s: firmware %s is missing, cannot start.\n",
+			       em->dev->dev.bus_id, "em8300.bin");
+			return;
+		}
+		em8300_ucode_upload(em, fw_entry->data, fw_entry->size);
+
+		em8300_dicom_init(em);
+
+		if (em8300_video_setup(em)) {
+			return;
+		}
+
+		if (em->mvfifo) {
+			em8300_fifo_free(em->mvfifo);
+		}
+		if (em->mafifo) {
+			em8300_fifo_free(em->mafifo);
+		}
+		if (em->spfifo) {
+			em8300_fifo_free(em->spfifo);
+		}
+
+		if (!(em->mvfifo = em8300_fifo_alloc())) {
+			return;
+		}
+
+		if (!(em->mafifo = em8300_fifo_alloc())) {
+			return;
+		}
+
+		if (!(em->spfifo = em8300_fifo_alloc())) {
+			return;
+		}
+
+		em8300_fifo_init(em,em->mvfifo, MV_PCIStart, MV_PCIWrPtr, MV_PCIRdPtr, MV_PCISize, 0x900, FIFOTYPE_VIDEO);
+		em8300_fifo_init(em,em->mafifo, MA_PCIStart, MA_PCIWrPtr, MA_PCIRdPtr, MA_PCISize, 0x1000, FIFOTYPE_AUDIO);
+		//	em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x1000, FIFOTYPE_VIDEO);
+		em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x800, FIFOTYPE_VIDEO);
+		em8300_spu_init(em);
+
+		if (em8300_audio_setup(em)) {
+			return;
+		}
+
+		em8300_ioctl_enable_videoout(em, 1);
+
+		em->ucodeloaded = 1;
+
+		printk(KERN_NOTICE "em8300: Microcode version 0x%02x loaded\n", read_ucregister(MicroCodeVersion));
+
+	}
+}
+
+#else
+
+void em8300_require_ucode(struct em8300_s *em)
+{
+	return;
+}
+
+#endif

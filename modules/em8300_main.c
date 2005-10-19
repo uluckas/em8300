@@ -280,10 +280,11 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 		err = em8300_audio_open(em);
 		break;
 	case EM8300_SUBDEVICE_VIDEO:
-		em8300[card].nonblock[2] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
+		em8300_require_ucode(em);
 		if (!em->ucodeloaded) {
 			return -ENODEV;
 		}
+		em8300[card].nonblock[2] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
 		em8300_video_open(em);
 
 		em8300_ioctl_enable_videoout(em, 1);
@@ -291,10 +292,11 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 		em8300_video_setplaymode(em, EM8300_PLAYMODE_PLAY);
 		break;
 	case EM8300_SUBDEVICE_SUBPICTURE:
-		em8300[card].nonblock[3] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
+		em8300_require_ucode(em);
 		if (!em->ucodeloaded) {
 			return -ENODEV;
 		}
+		em8300[card].nonblock[3] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
 		err = em8300_spu_open(em);
 		break;
 	default:
@@ -719,6 +721,10 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	}
 #endif
 
+#if defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE)
+	em8300_enable_card(em);
+#endif
+
 	em8300_cards++;
 	return 0;
 }
@@ -728,12 +734,17 @@ static void __devexit em8300_remove(struct pci_dev *pci)
 	struct em8300_s *em = pci_get_drvdata(pci);
 
 	if (em) {
+#if defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE)
+		em8300_disable_card(em);
+#else
 		if (em->ucodeloaded == 1)
 			em8300_disable_card(em);
+#endif
 
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
 		unregister_sound_dsp(em->dsp_num);
 #endif
+
 		em8300_unregister_card(em);
 
 		release_em8300(em);

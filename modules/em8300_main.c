@@ -40,7 +40,6 @@
 #include <asm/pgtable.h>
 #include <asm/page.h>
 #include <linux/sched.h>
-#include <asm/segment.h>
 #ifdef CONFIG_MTRR
 #include <asm/mtrr.h>
 #endif

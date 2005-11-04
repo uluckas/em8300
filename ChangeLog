@@ -1,3 +1,9 @@
+2005-11-04  Nicolas Boullis  <nboullis@debian.org>
+	* modules/adv717x.c,
+	  modules/bt865.c:
+	Stop using i2c_is_isa_adapter as it seems to be useless, and is
+	not compatible with the i2c stack in 2.6.14 kernels.
+
 2005-10-19  Nicolas Boullis  <nboullis@debian.org>
 	* Makefile.am,
 	  configure.in,

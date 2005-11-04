@@ -85,12 +85,6 @@ static int color_bars[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 MODULE_PARM(color_bars, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be displayed on your screen (used for testing if the chip is working). Defaults to 0.");
 
-#define i2c_is_isa_client(clientptr) \
-		((clientptr)->adapter->algo->id == I2C_ALGO_ISA)
-#define i2c_is_isa_adapter(adapptr) \
-		((adapptr)->algo->id == I2C_ALGO_ISA)
-
-
 #define ADV7175_REG_MR0 0
 #define ADV7175_REG_MR1 1
 #define ADV7175_REG_TTXRQ_CTRL 0x24
@@ -454,10 +448,6 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 	struct i2c_client *new_client;
 	int mr0, mr1;
 	int err;
-
-	if (i2c_is_isa_adapter(adapter)) {
-		return 0;
-	}
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA)) {
 		return 0;

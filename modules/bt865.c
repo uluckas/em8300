@@ -65,12 +65,6 @@ static int rgb_mode[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 MODULE_PARM(rgb_mode, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(rgb_mode, "If you set this to 1, RGB output is enabled. You will need to hack the DXR3 hardware. Defaults to 0.");
 
-#define i2c_is_isa_client(clientptr) \
-		((clientptr)->adapter->algo->id == I2C_ALGO_ISA)
-#define i2c_is_isa_adapter(adapptr) \
-		((adapptr)->algo->id == I2C_ALGO_ISA)
-
-
 static int bt865_attach_adapter(struct i2c_adapter *adapter);
 int bt865_detach_client(struct i2c_client *client);
 int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg);
@@ -870,10 +864,6 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
 	struct bt865_data_s *data;
 	struct i2c_client *new_client;
 	int err, chk = 0;
-
-	if (i2c_is_isa_adapter(adapter)) {
-		return 0;
-	}
 
 	chk = i2c_check_functionality(adapter,
 			I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA);

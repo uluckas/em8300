@@ -1,3 +1,12 @@
+2005-11-05  Nicolas Boullis  <nboullis@debian.org>
+	* modules/README-modoptions,
+	  modules/adv717x.c:
+	Make it possible to select the output mode with adv717x
+	chips. This adds support for YUV, and for svideo to composite
+	video adapters that merely use the luminance signal as composite
+	video. Many thanks to Derrik Pates who did most (not to say all)
+	the work.
+
 2005-11-04  Nicolas Boullis  <nboullis@debian.org>
 	* modules/adv717x.c,
 	  modules/bt865.c:

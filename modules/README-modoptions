@@ -18,6 +18,41 @@ General fixes:
    color_bars          -- set to 1 to enable color bars
                           (only used to test the chip)
 
+ adv717x:
+   output_mode         -- select the output style to use:
+     comp+svideo       -- both svideo and composite video output
+                          for use with the provided composite video adapter
+                          (default)
+     svideo            -- svideo only
+     comp              -- composite video only
+                          for use with the provided composite video adapter
+     comp+psvideo      -- both svideo with luminance replaced by composite
+                            video and composite
+                          for use either with the provided composite video
+                            adapter, or with ones that use svideo luma as
+                            composite video, or as degraded svideo
+                          (especially useful if you don't know what kind of
+                            cabling you will use)
+     psvideo           -- svideo with luminance replaced by composite video
+                          for use with svideo to video composite adapter that
+                            use svideo luma as composite video, or as degraded
+                            svideo
+     composvideo       -- composite svideo on the luminance pin of the svideo
+                            connector
+                          for use with svideo to video composite adapter that
+                            use svideo luma as composite video
+     yuv               -- separated yuv
+                          for use with special-purpose cables, such as the ones
+                            provided with Sigma Designs' Xcard boards, and with
+                            high-end tv sets or video projectors
+     rgb               -- separated rgb
+                          for use with modified boards to get the required 4th
+                            signal, for highest-quality video
+     rgbs              -- separated rgb with sync on each signal
+                          might be usable with no hardware modification of the
+                            board, with high-end tv sets or video projectors
+                            that support such signals
+
 
 If your red and blue colors channels are switched:
 

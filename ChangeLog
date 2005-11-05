@@ -7,6 +7,10 @@
 	video. Many thanks to Derrik Pates who did most (not to say all)
 	the work.
 
+	* Makefile.am:
+	Fix the firmware installation command, to make it possible to
+	build and install outside the source directory.
+
 2005-11-04  Nicolas Boullis  <nboullis@debian.org>
 	* modules/adv717x.c,
 	  modules/bt865.c:

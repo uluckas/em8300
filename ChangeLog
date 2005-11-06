@@ -2,6 +2,13 @@
 	* modules/README-modoptions:
 	Improve phrasing of output_mode descriptions.
 
+	* dhc/dhc_main.c,
+	  overlay/autocal.c,
+	  overlay/dxr3view.c,
+	  overlay/overlay.c:
+	Avoid crashes when the device cannot be opened, improve error
+	messages.
+
 2005-11-05  Nicolas Boullis  <nboullis@debian.org>
 	* modules/README-modoptions,
 	  modules/adv717x.c:

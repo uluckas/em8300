@@ -44,6 +44,9 @@ overlay_t *overlay_init(FILE *dev)
 {
     overlay_t *o;
 
+    if(!dev)
+	return NULL;
+
     o = (overlay_t *) malloc(sizeof(overlay_t));
 
     if(!o)

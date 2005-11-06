@@ -51,7 +51,7 @@ int main (int argc, char *argv[])
 	// Open em8300 device
 	if((dev=open(EM_DEV, O_WRONLY))==-1)
 	{
-		perror("Error opening em8300");
+		perror("Error opening " EM_DEV " for writing");
 		_exit(-1);
 	}
 

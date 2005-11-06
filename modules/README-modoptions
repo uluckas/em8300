@@ -19,10 +19,10 @@ General fixes:
                           (only used to test the chip)
 
  adv717x:
-   output_mode         -- select the output style to use:
+   output_mode         -- select the output mode to use:
      comp+svideo       -- both svideo and composite video output
                           for use with the provided composite video adapter
-                          (default)
+                          or a svideo cable (default)
      svideo            -- svideo only
      comp              -- composite video only
                           for use with the provided composite video adapter
@@ -39,7 +39,7 @@ General fixes:
                             svideo
      composvideo       -- composite svideo on the luminance pin of the svideo
                             connector
-                          for use with svideo to video composite adapter that
+                          for use with svideo to composite video adapter that
                             use svideo luma as composite video
      yuv               -- separated yuv
                           for use with special-purpose cables, such as the ones
@@ -47,7 +47,7 @@ General fixes:
                             high-end tv sets or video projectors
      rgb               -- separated rgb
                           for use with modified boards to get the required 4th
-                            signal, for highest-quality video
+                            signal, for high quality video
      rgbs              -- separated rgb with sync on each signal
                           might be usable with no hardware modification of the
                             board, with high-end tv sets or video projectors

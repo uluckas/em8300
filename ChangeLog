@@ -1,3 +1,7 @@
+2005-11-06  Ville Skyttä  <scop@users.sourceforge.net>
+	* modules/README-modoptions:
+	Improve phrasing of output_mode descriptions.
+
 2005-11-05  Nicolas Boullis  <nboullis@debian.org>
 	* modules/README-modoptions,
 	  modules/adv717x.c:

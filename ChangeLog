@@ -3,6 +3,11 @@
 	  overlay/autocal.desktop:
 	Remove the (nowadays invalid) "SystemSetup" category.
 
+	* dhc/.cvsignore,
+	  dhc/Makefile.am,
+	  dhc/dhc.desktop:
+	Extract an icon from pixmaps.h for use in the DHC menu entry.
+
 2005-11-06  Ville Skyttä  <scop@users.sourceforge.net>
 	* modules/README-modoptions:
 	Improve phrasing of output_mode descriptions.

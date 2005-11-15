@@ -62,7 +62,12 @@ MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be d
 
 static int rgb_mode[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 MODULE_PARM(rgb_mode, "1-" __MODULE_STRING(EM8300_MAX) "i");
-MODULE_PARM_DESC(rgb_mode, "If you set this to 1, RGB output is enabled. You will need to hack the DXR3 hardware. Defaults to 0.");
+MODULE_PARM_DESC(rgb_mode, "Deprecated, use output_mode instead.");
+
+static char *output_mode[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = NULL };
+MODULE_PARM(output_mode, "1-" __MODULE_STRING(EM8300_MAX) "s");
+MODULE_PARM_DESC(output_mode, "Specifies the output mode to use for the BT865 video encoder. See the README-modoptions file for the list of mode names to use. Default is SVideo + composite (\"comp+svideo\").");
+
 
 static int bt865_attach_adapter(struct i2c_adapter *adapter);
 int bt865_detach_client(struct i2c_client *client);
@@ -966,6 +971,17 @@ int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg)
 
 int __init bt865_init(void)
 {
+	int i;
+	for (i=0; i < EM8300_MAX; i++)
+		if ((output_mode[i]) && (output_mode[i][0])) {
+			if (strcmp(output_mode[i], "comp+svideo") == 0) {
+				rgb_mode[i] = 0;
+			} else if (strcmp(output_mode[i], "rgb") == 0) {
+				rgb_mode[i] = 1;
+			} else {
+				printk(KERN_WARNING "bt865: Unknown output mode: %s\n", output_mode[i]);
+			}
+		}
 	//request_module("i2c-algo-bit");
 	return i2c_add_driver(&bt865_driver);
 }

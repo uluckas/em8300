@@ -8,6 +8,11 @@
 	  dhc/dhc.desktop:
 	Extract an icon from pixmaps.h for use in the DHC menu entry.
 
+	* modules/README-modoptions,
+	  modules/bt865.c:
+	Rename the rgb_mode parameter to output_mode for consistency
+	with the adv717x driver.
+
 2005-11-06  Ville Skyttä  <scop@users.sourceforge.net>
 	* modules/README-modoptions:
 	Improve phrasing of output_mode descriptions.

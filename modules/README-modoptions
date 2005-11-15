@@ -12,9 +12,13 @@ General fixes:
                           second uses a bt865.
 
  bt865:
-   rgb_mode            -- set to 1 to enable RGB output
-                          (requires hacking DXR3 hardware)
-
+   output_mode         -- select the output mode to use:
+     comp+svideo       -- both svideo and composite video output
+                          for use with the provided composite video adapter
+                          or a svideo cable (default)
+     rgb               -- separated rgb
+                          for use with modified boards to get the required 4th
+                            signal, for high quality video
    color_bars          -- set to 1 to enable color bars
                           (only used to test the chip)
 

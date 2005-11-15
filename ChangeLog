@@ -1,3 +1,8 @@
+2005-11-15  Ville Skyttä  <scop@users.sourceforge.net>
+	* dhc/dhc.desktop,
+	  overlay/autocal.desktop:
+	Remove the (nowadays invalid) "SystemSetup" category.
+
 2005-11-06  Ville Skyttä  <scop@users.sourceforge.net>
 	* modules/README-modoptions:
 	Improve phrasing of output_mode descriptions.

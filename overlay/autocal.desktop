@@ -5,4 +5,4 @@ Exec=autocal
 Terminal=false
 Type=Application
 Encoding=UTF-8
-Categories=Application;Settings;HardwareSettings;System;SystemSetup;GTK;
+Categories=Application;Settings;HardwareSettings;System;GTK;

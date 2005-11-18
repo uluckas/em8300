@@ -1,3 +1,8 @@
+2005-11-19  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_i2c.c:
+	Lock the encoder's module while it is in use. Many thanks to Jon
+	Burgess who did all the work.
+
 2005-11-15  Ville Skyttä  <scop@users.sourceforge.net>
 	* dhc/dhc.desktop,
 	  overlay/autocal.desktop:

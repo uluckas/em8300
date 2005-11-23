@@ -500,6 +500,8 @@ int em8300_audio_flush(struct em8300_s *em)
 
 int em8300_audio_open(struct em8300_s *em)
 {
+	em8300_require_ucode(em);
+
 	if (!em->ucodeloaded) {
 		return -ENODEV;
 	}

@@ -75,6 +75,16 @@ static int em8300_getsda(void *data)
 	return readl(&em->mem[em->i2c_pin_reg]) & (p->data << 8);
 }
 
+static int em8300_i2c_lock_client(struct i2c_client *client)
+{
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54) && !defined(EM8300_I2C_FORCE_OLD_API))
+	if (!try_module_get(client->driver->owner)) {
+		printk(KERN_ERR "em8300_i2c: Unable to lock client module\n");
+		return -ENODEV;
+	}
+#endif
+	return 0;
+}
 
 static int em8300_i2c_reg(struct i2c_client *client)
 {
@@ -82,6 +92,9 @@ static int em8300_i2c_reg(struct i2c_client *client)
 
 	switch (client->driver->id) {
 	case I2C_DRIVERID_ADV717X:
+		if (em8300_i2c_lock_client(client)) {
+			return -ENODEV;
+		}
 		if (!strncmp(client->name, "ADV7175", 7)) {
 			em->encoder_type = ENCODER_ADV7175;
 		}
@@ -91,6 +104,9 @@ static int em8300_i2c_reg(struct i2c_client *client)
 		em->encoder = client;
 		break;
 	case I2C_DRIVERID_BT865:
+		if (em8300_i2c_lock_client(client)) {
+			return -ENODEV;
+		}
 		em->encoder_type = ENCODER_BT865;
 		em->encoder = client;
 		break;
@@ -111,10 +127,11 @@ static int em8300_i2c_unreg(struct i2c_client *client)
 
 	switch (client->driver->id) {
 	case I2C_DRIVERID_ADV717X:
+	case I2C_DRIVERID_BT865:
 		em->encoder = NULL;
-		break;
-	case  I2C_DRIVERID_BT865:
-		em->encoder = NULL;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54) && !defined(EM8300_I2C_FORCE_OLD_API))
+		module_put(client->driver->owner);
+#endif
 		break;
 	}
 
@@ -211,7 +228,7 @@ int em8300_i2c_init(struct em8300_s *em)
 	em->i2c_ops_2.client_register = em8300_i2c_reg;
 	em->i2c_ops_2.client_unregister = em8300_i2c_unreg;
 
-	i2c_set_adapdata(&em->i2c_ops_1, (void *)em);
+	i2c_set_adapdata(&em->i2c_ops_2, (void *)em);
 
 	ret = i2c_bit_add_bus(&em->i2c_ops_2);
 	return ret;

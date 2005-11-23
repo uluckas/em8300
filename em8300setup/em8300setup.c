@@ -14,8 +14,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
+
+#include <config.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -119,7 +121,7 @@ int main(int argc, char * argv[]) {
 	int number_of_devs=4;
 
 	/* Populate with default location - user can override below. */
-	sprintf(ucode_file,"/usr/share/misc/em8300.uc"); 
+	sprintf(ucode_file,FIRMWARE_DIR "/em8300.bin"); 
 	/* Read microcode file */
 	if (argc == 1) {
 	    /* behave as em8300init with no arguments */
@@ -182,7 +184,7 @@ int main(int argc, char * argv[]) {
 							printf("  -a, -d, -3\tSet audio mode to analog, digitalpcm, digital ac3\n");
 							printf("  -o, -w\tSet aspect ratio to normal[4:3], widescreen[16:9]\n");
 							printf("  -S, -s\tSet spu mode On(S), Off(s)\n");
-							printf("  -f <filename>\tSpecify alternate location of microcode\n\t\t(Defaults to /usr/share/misc/em8300.uc)\n");
+							printf("  -f <filename>\tSpecify alternate location of microcode\n\t\t(Defaults to " FIRMWARE_DIR "/em8300.bin)\n");
 							printf("  -q\t\tQuery the current settings for all of the above and\n\t\texit without making any changes\n");
 							printf("  <none>\tPassing no option (except -f) causes the microcode\n\t\tto be loaded\n");
 

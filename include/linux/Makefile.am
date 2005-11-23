@@ -1,4 +1,4 @@
-em8300incdir = /usr/include/linux/
+em8300incdir = $(includedir)/linux
 
 em8300inc_HEADERS = em8300.h
 

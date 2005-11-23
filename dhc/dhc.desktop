@@ -2,7 +2,8 @@
 Name=DXR3/Hollywood+ Control Panel
 Comment=DXR3/Hollywood Plus control panel
 Exec=dhc
+Icon=dhc
 Terminal=false
 Type=Application
 Encoding=UTF-8
-Categories=Application;Settings;HardwareSettings;System;SystemSetup;GTK;
+Categories=Application;Settings;HardwareSettings;System;GTK;

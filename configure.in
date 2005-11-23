@@ -1,20 +1,18 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(libdxr3/dxr3-api.c)
+AC_INIT(em8300setup/em8300setup.c)
 dnl AC_PREREQ(2.50)
 AC_PREREQ(2.13)
 AC_CONFIG_AUX_DIR(autotools)
 
 EM8300_MAJOR=0
 EM8300_MINOR=15
-EM8300_SUB=0
+EM8300_SUB=2
 EM8300_PRE="-alsa"
 TAR_NAME="em8300-"$EM8300_MAJOR.$EM8300_MINOR.$EM8300_SUB$EM8300_PRE
-SPEC_VERSION=$EM8300_MAJOR.$EM8300_MINOR.$EM8300_SUB$EM8300_PRE
 AC_SUBST(EM8300_MAJOR)
 AC_SUBST(EM8300_MINOR)
 AC_SUBST(EM8300_SUB)
 AC_SUBST(TAR_NAME)
-AC_SUBST(SPEC_VERSION)
 
 AC_PROG_CC
 
@@ -23,17 +21,9 @@ AM_INIT_AUTOMAKE("em8300", $EM8300_MAJOR.$EM8300_MINOR.$EM8300_SUB$EM8300_PRE)
 AC_CANONICAL_HOST
 AM_CONFIG_HEADER(include/config.h)
 
-dnl Libtool
-AM_PROG_LIBTOOL
-
-BUILD_LIB_STATIC="-static"
-AC_SUBST(BUILD_LIB_STATIC)
-
 dnl Checks for programs.
-AC_PROG_AWK
 AC_PROG_MAKE_SET
 AC_PROG_INSTALL
-AC_PROG_LN_S
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -66,17 +56,20 @@ if test x$has_gtk = xyes; then
 fi
 AM_CONDITIONAL(HAVE_GTK, test x$has_gtk = "xyes")
 
+FIRMWARE_DIR=/lib/firmware
+AC_ARG_WITH(firmware-dir,
+  [  --with-firmware-dir=DIR use DIR as firmware directory (/lib/firmware by default)], 
+  if test "x$withval" != xyes; then FIRMWARE_DIR="$withval"; fi)
+AC_SUBST(FIRMWARE_DIR)
+AC_DEFINE_UNQUOTED(FIRMWARE_DIR, "$FIRMWARE_DIR", [Define the default path for the firmware.])
+
 AC_OUTPUT([
 	Makefile
-	em8300.spec
-	em8300.sysv
 	include/Makefile
-	include/libdxr3/Makefile
 	include/linux/Makefile
-	libdxr3/Makefile
-	libdxr3/libac3/Makefile
 	overlay/Makefile
 	dhc/Makefile
 	em8300setup/Makefile
 	scripts/Makefile
+	scripts/microcode_upload.pl
 ])

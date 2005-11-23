@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * The author may be reached as zeevm@siglab.technion.ac.il
  *
@@ -51,7 +51,7 @@ int main (int argc, char *argv[])
 	// Open em8300 device
 	if((dev=open(EM_DEV, O_WRONLY))==-1)
 	{
-		perror("Error opening em8300");
+		perror("Error opening " EM_DEV " for writing");
 		_exit(-1);
 	}
 

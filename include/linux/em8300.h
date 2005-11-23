@@ -417,7 +417,8 @@ ssize_t em8300_audio_write(struct em8300_s *em, const char * buf,
 int mpegaudio_command(struct em8300_s *em, int cmd);
 
 /* em8300_ucode.c */
-int em8300_ucode_upload(struct em8300_s *em, void *ucode_user, int ucode_size);
+void em8300_ucode_upload(struct em8300_s *em, void *ucode, int ucode_size);
+void em8300_require_ucode(struct em8300_s *em);
 
 /* em8300_misc.c */
 int em8300_setregblock(struct em8300_s *em, int offset, int val, int len);

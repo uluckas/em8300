@@ -15,12 +15,14 @@
 
 	You should have received a copy of the GNU General Public License
 	along with this program; if not, write to the Free Software
-	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+	Foundation Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
 #include <linux/config.h>
 #include <linux/proc_fs.h>
 #include <linux/module.h>
+#include <asm/io.h>
 #include "em8300_procfs.h"
+#include "em8300_reg.h"
 
 #ifdef CONFIG_PROC_FS
 
@@ -45,9 +47,6 @@ static int em8300_proc_read(char *page, char **start, off_t off, int count, int 
 	len += sprintf(page + len,
 		       "em8300 module version %s\n",
 		       EM8300_VERSION);
-	len += sprintf(page + len,
-		       "Micocode%s loaded\n",
-		       em->ucodeloaded ? "" : " not");
 	/* Device information */
 	len += sprintf(page + len,
 		       "Card revision %d\n",
@@ -81,6 +80,9 @@ static int em8300_proc_read(char *page, char **start, off_t off, int count, int 
 		       + (unsigned long int) em->memsize,
 		       em->mtrr_reg ? " (FIFOs using MTRR)" : "");
 	if (em->ucodeloaded) {
+		len += sprintf(page + len,
+			       "Microcode version 0x%02x loaded\n",
+			       read_ucregister(MicroCodeVersion));
 		em8300_dicom_get_dbufinfo(em);
 		len += sprintf(page + len,
 			       "Display buffer resolution: %dx%d\n",
@@ -104,6 +106,8 @@ static int em8300_proc_read(char *page, char **start, off_t off, int count, int 
 				       em->overlay_frame_xpos, em->overlay_frame_ypos,
 				       em->overlay_xres, em->overlay_yres);
 		}
+	} else {
+		len += sprintf(page + len, "Microcode not loaded\n");
 	}
 	len += sprintf(page + len,
 		       "%s audio output\n",

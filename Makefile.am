@@ -1,12 +1,11 @@
-EXTRA_DIST = modules/* shinit.sh
+firmwaredir = @FIRMWARE_DIR@
 
-pkgdata_DATA = modules.tar.gz
-pkgdata_SCRIPTS = em8300.sysv
+EXTRA_DIST = $(srcdir)/modules/INSTALL $(srcdir)/modules/Makefile $(srcdir)/modules/README* $(srcdir)/modules/*.c $(srcdir)/modules/*.h $(srcdir)/modules/devices.sh $(srcdir)/modules/em8300-udev.rules $(srcdir)/modules/em8300.uc $(srcdir)/modules/ldm $(srcdir)/modules/rmm shinit.sh
 
 if HAVE_GTK
-SUBDIRS = libdxr3 overlay dhc include scripts em8300setup
+SUBDIRS = include overlay dhc scripts em8300setup
 else
-SUBDIRS = libdxr3 include scripts em8300setup
+SUBDIRS = include scripts em8300setup
 endif
 
 debug:
@@ -14,18 +13,6 @@ debug:
 	  (cd $$subdir && $(MAKE) $@) \
 	done;
 
-clean-generic:
-	rm -rf BUILD SPECS RPMS SOURCES SRPMS
-	rm -f rpmrc rpmmacros
-
-modules.tar.gz:
-	tar czvf modules.tar.gz modules
-
-dist-rpm: em8300.spec modules.tar.gz dist
-	rm -rf    BUILD SPECS RPMS/{noarch,i386,i686} SOURCES SRPMS
-	mkdir -p BUILD SPECS RPMS/{noarch,i386,i686} SOURCES SRPMS
-	cp -f ${top_srcdir}/@PACKAGE@-@VERSION@.tar.gz ./SOURCES
-	echo "%_topdir `pwd`"	> rpmmacros
-	echo "macrofiles: /usr/lib/rpm/macros: ... :`pwd`/rpmmacros"	> rpmrc
-	rpm --rcfile rpmrc -ba em8300.spec
-
+install-data-local:
+	test -z "$(firmwaredir)" || $(mkdir_p) "$(DESTDIR)$(firmwaredir)"
+	$(INSTALL_DATA) $(top_srcdir)/modules/em8300.uc "$(DESTDIR)$(firmwaredir)/em8300.bin"

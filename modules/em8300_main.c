@@ -15,7 +15,7 @@
 
 	You should have received a copy of the GNU General Public License
 	along with this program; if not, write to the Free Software
-	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+	Foundation Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
 #include <linux/config.h>
 #include <linux/version.h>
@@ -40,7 +40,6 @@
 #include <asm/pgtable.h>
 #include <asm/page.h>
 #include <linux/sched.h>
-#include <asm/segment.h>
 #ifdef CONFIG_MTRR
 #include <asm/mtrr.h>
 #endif
@@ -289,10 +288,11 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 		break;
 */
 	case EM8300_SUBDEVICE_VIDEO:
-		em8300[card].nonblock[2] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
+		em8300_require_ucode(em);
 		if (!em->ucodeloaded) {
 			return -ENODEV;
 		}
+		em8300[card].nonblock[2] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
 		em8300_video_open(em);
 
 		em8300_ioctl_enable_videoout(em, 1);
@@ -300,10 +300,11 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 		em8300_video_setplaymode(em, EM8300_PLAYMODE_PLAY);
 		break;
 	case EM8300_SUBDEVICE_SUBPICTURE:
-		em8300[card].nonblock[3] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
+		em8300_require_ucode(em);
 		if (!em->ucodeloaded) {
 			return -ENODEV;
 		}
+		em8300[card].nonblock[3] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
 		err = em8300_spu_open(em);
 		break;
 	default:
@@ -689,7 +690,11 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	em->adr = dev->resource[0].start;
 	em->memsize = 1024 * 1024;
 
-	pci_enable_device(dev);
+	if ((result = pci_enable_device(dev)) != 0) {
+		printk(KERN_ERR "em8300: Unable to enable PCI device\n");
+		return result;
+	}
+
 	pci_read_config_byte(dev, PCI_CLASS_REVISION, &revision);
 	em->pci_revision = revision;
 	pr_info("em8300: EM8300 %x (rev %d) ", dev->device, revision);
@@ -736,6 +741,10 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 #endif
 #endif
 
+#if defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE)
+	em8300_enable_card(em);
+#endif
+
 	em8300_cards++;
 	return 0;
 }
@@ -745,14 +754,19 @@ static void __devexit em8300_remove(struct pci_dev *pci)
 	struct em8300_s *em = pci_get_drvdata(pci);
 
 	if (em) {
+#if defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE)
+		em8300_disable_card(em);
+#else
 		if (em->ucodeloaded == 1)
 			em8300_disable_card(em);
+#endif
 
 #if 0
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
 		unregister_sound_dsp(em->dsp_num);
 #endif
 #endif
+
 		em8300_unregister_card(em);
 
 		release_em8300(em);

@@ -57,7 +57,7 @@ int main( int   argc,
 
     if(!(dev=fopen("/dev/em8300-0", "r")))
         {
-	    perror("Error opening em8300");
+	    perror("Error opening /dev/em8300-0 for reading");
 	    _exit(-1);
         }
 

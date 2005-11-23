@@ -15,7 +15,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 ifeq ($(KERNELRELEASE),)
 
@@ -28,7 +28,7 @@ KERNEL_LOCATION := /lib/modules/$(shell uname -r)/build
 # especially for using 2.8.x modules with 2.4.x kernels.)
 #export EM8300_I2C_LOCATION := /usr/src/modules/i2c
 #export EM8300_I2C_FORCE_API := NEW
-export EM8300_VERSION := "0.15.0-alsa"
+export EM8300_VERSION := "0.15.2-alsa"
 export EM8300_DIR := $(PWD)/..
 
 build:

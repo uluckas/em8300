@@ -1,3 +1,176 @@
+2005-11-23  Nicolas Boullis  <nboullis@debian.org>
+	* configure.in,
+	  modules/Makefile:
+	Release 0.15.2.
+
+2005-11-19  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_i2c.c:
+	Lock the encoder's module while it is in use. Many thanks to Jon
+	Burgess who did all the work.
+
+2005-11-15  Ville Skyttä  <scop@users.sourceforge.net>
+	* dhc/dhc.desktop,
+	  overlay/autocal.desktop:
+	Remove the (nowadays invalid) "SystemSetup" category.
+
+	* dhc/.cvsignore,
+	  dhc/Makefile.am,
+	  dhc/dhc.desktop:
+	Extract an icon from pixmaps.h for use in the DHC menu entry.
+
+	* modules/README-modoptions,
+	  modules/bt865.c:
+	Rename the rgb_mode parameter to output_mode for consistency
+	with the adv717x driver.
+
+2005-11-06  Ville Skyttä  <scop@users.sourceforge.net>
+	* modules/README-modoptions:
+	Improve phrasing of output_mode descriptions.
+
+	* dhc/dhc_main.c,
+	  overlay/autocal.c,
+	  overlay/dxr3view.c,
+	  overlay/overlay.c:
+	Avoid crashes when the device cannot be opened, improve error
+	messages.
+
+2005-11-05  Nicolas Boullis  <nboullis@debian.org>
+	* modules/README-modoptions,
+	  modules/adv717x.c:
+	Make it possible to select the output mode with adv717x
+	chips. This adds support for YUV, and for svideo to composite
+	video adapters that merely use the luminance signal as composite
+	video. Many thanks to Derrik Pates who did most (not to say all)
+	the work.
+
+	* Makefile.am:
+	Fix the firmware installation command, to make it possible to
+	build and install outside the source directory.
+
+2005-11-04  Nicolas Boullis  <nboullis@debian.org>
+	* modules/adv717x.c,
+	  modules/bt865.c:
+	Stop using i2c_is_isa_adapter as it seems to be useless, and is
+	not compatible with the i2c stack in 2.6.14 kernels.
+
+	* modules/adv717x.c,
+	  modules/bt865.c,
+	  modules/em8300_fifo.c,
+	  modules/em8300_main.c:
+	Stop including the asm/segment.h header file as it seems to bring
+	nothing useful, and has disappeared in 2.6.14 kernels.
+
+2005-10-19  Nicolas Boullis  <nboullis@debian.org>
+	* Makefile.am,
+	  configure.in,
+	  em8300setup/em8300setup.1,
+	  em8300setup/em8300setup.c,
+	  include/linux/em8300.h,
+	  modules/em8300_audio.c,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_main.c,
+	  modules/em8300_ucode.c,
+	  scripts/.cvsignore,
+	  scripts/microcode_upload.pl,
+	  scripts/microcode_upload.pl.in:
+	Implement automatic on-demand loading of the firmware using the
+	hotplug facility (also available in udev). This requires to change
+	the default firmware location.
+
+2005-10-19  Ville Skyttä  <scop@users.sourceforge.net>
+	* COPYING,
+	  dhc/dhc_callback.c,
+	  dhc/dhc_gui.c,
+	  dhc/dhc_main.c,
+	  em8300setup/em8300setup.c,
+	  modules/Makefile,
+	  modules/adv717x.c,
+	  modules/bt865.c,
+	  modules/em8300_compat24.h,
+	  modules/em8300_devfs.c,
+	  modules/em8300_devfs.h,
+	  modules/em8300_fifo.c,
+	  modules/em8300_ioctl32.c,
+	  modules/em8300_ioctl32.h,
+	  modules/em8300_main.c,
+	  modules/em8300_procfs.c,
+	  modules/em8300_procfs.h,
+	  modules/em8300_registration.c,
+	  modules/em8300_registration.h,
+	  modules/em8300_sysfs.c,
+	  modules/em8300_sysfs.h,
+	  overlay/allblackbut.h,
+	  scripts/msexpand.pl:
+	Update FSF's address.
+
+2005-09-16  Ville Skyttä  <scop@users.sourceforge.net>
+	* modules/em8300_procfs.c:
+	Include version of loaded microcode in procfs info.
+
+2005-09-05  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_main.c:
+	Properly catch errors in pci_enable_device. Thanks to Jon Burgess
+	for spotting the problem and providing a patch.
+
+	* configure.in,
+	  modules/Makefile:
+	Release 0.15.1.
+
+2005-08-31  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_i2c.c:
+	Fix a bug in the setup of the second i2c adapter, spotted by Marco
+	Schluessler (LordZodiac). This bug was introduced on March 16 this
+	year. Thanks Marco.
+
+2005-08-08  Nicolas Boullis  <nboullis@debian.org>
+	* Makefile.am,
+	  configure.in,
+	  dhc/Makefile.am,
+	  em8300setup/Makefile.am,
+	  include/linux/Makefile.am,
+	  overlay/Makefile.am:
+	Autotools cleanup.
+
+	* include/libdxr3,
+	  libdxr3:
+	Finish to kill libdxr3, as suggested by Ville Skyttä.
+
+	* modules/adv717x_eeprom.c.old:
+	Also kill the old modules/adv717x_eeprom.c.old, as suggested
+	by Ville Skyttä.
+
+2005-07-23  Nicolas Boullis  <nboullis@debian.org>
+	* modules/devfs_symlinks,
+	  modules/devices.sh:
+	Completely kill the old unnumbered compatibility symlinks,
+	following Ville Skyttä's suggestion. Thanks Ville.
+
+	* Makefile.am,
+	  configure.in,
+	  em8300.spec.in,
+	  em8300.sysv.in:
+	Kill the old outdated rpm stuff, as suggested by Ville Skyttä.
+
+	* Makefile.am,
+	  bootstrap,
+	  configure.in,
+	  include/Makefile.am,
+	  overlay/Makefile.am:
+	Kill the libdxr3 library that nobody ever used. Thanks to Ville
+	Skyttä for finding a few bits I had missed.
+
+2005-07-13  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300-udev.permissions,
+	  modules/em8300-udev.rules:
+	Kill the old obsolete em8300-udev.permissions file and put its
+	settings into em8300-udev.rules; kill the compatibility symlinks
+	as everyone should be using the numbered devices by now.
+
+2005-06-01  Nicolas Boullis  <nboullis@debian.org>
+	* configure.in,
+	  modules/Makefile:
+	Release 0.15.0.
+
 2005-05-23  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_sysfs.c:
 	Apply the patch by Ville Skyttä to lower the priority of the

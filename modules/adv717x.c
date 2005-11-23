@@ -15,7 +15,7 @@
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include <linux/config.h>
 #include <linux/module.h>
@@ -33,7 +33,6 @@
 #include <asm/pgtable.h>
 #include <asm/page.h>
 #include <linux/sched.h>
-#include <asm/segment.h>
 #include <linux/types.h>
 
 #include <linux/videodev.h>
@@ -85,19 +84,100 @@ static int color_bars[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 MODULE_PARM(color_bars, "1-" __MODULE_STRING(EM8300_MAX) "i");
 MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be displayed on your screen (used for testing if the chip is working). Defaults to 0.");
 
-#define i2c_is_isa_client(clientptr) \
-		((clientptr)->adapter->algo->id == I2C_ALGO_ISA)
-#define i2c_is_isa_adapter(adapptr) \
-		((adapptr)->algo->id == I2C_ALGO_ISA)
+static int output_mode_nr[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
+static char *output_mode[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = NULL };
+MODULE_PARM(output_mode, "1-" __MODULE_STRING(EM8300_MAX) "s");
+MODULE_PARM_DESC(output_mode, "Specifies the output mode to use for the ADV717x video encoder. See the README-modoptions file for the list of mode names to use. Default is SVideo + composite (\"comp+svideo\").");
 
 
-#define ADV7175_REG_MR0 0
-#define ADV7175_REG_MR1 1
-#define ADV7175_REG_TTXRQ_CTRL 0x24
+/* Common register offset definitions */
+#define ADV717X_REG_MR0		0x00
+#define ADV717X_REG_MR1		0x01
+#define ADV717X_REG_TR0		0x07
+
+/* Register offsets specific to the ADV717[56]A chips */
+#define ADV7175_REG_SCFREQ0	0x02
+#define ADV7175_REG_SCFREQ1	0x03
+#define ADV7175_REG_SCFREQ2	0x04
+#define ADV7175_REG_SCFREQ3	0x05
+#define ADV7175_REG_SCPHASE	0x06
+#define ADV7175_REG_CCED0	0x08
+#define ADV7175_REG_CCED1	0x09
+#define ADV7175_REG_CCD0	0x0a
+#define ADV7175_REG_CCD1	0x0b
+#define ADV7175_REG_TR1		0x0c
+#define ADV7175_REG_MR2		0x0d
+#define ADV7175_REG_PCR0	0x0e
+#define ADV7175_REG_PCR1	0x0f
+#define ADV7175_REG_PCR2	0x10
+#define ADV7175_REG_PCR3	0x11
+#define ADV7175_REG_MR3		0x12
+#define ADV7175_REG_TTXRQ_CTRL	0x24
+
+/* Register offsets specific to the ADV717[01] chips */
+#define ADV7170_REG_MR2		0x02
+#define ADV7170_REG_MR3		0x03
+#define ADV7170_REG_MR4		0x04
+#define ADV7170_REG_TR1		0x08
+#define ADV7170_REG_SCFREQ0	0x09
+#define ADV7170_REG_SCFREQ1	0x0a
+#define ADV7170_REG_SCFREQ2	0x0b
+#define ADV7170_REG_SCFREQ3	0x0c
+#define ADV7170_REG_SCPHASE	0x0d
+#define ADV7170_REG_CCED0	0x0e
+#define ADV7170_REG_CCED1	0x0f
+#define ADV7170_REG_CCD0	0x10
+#define ADV7170_REG_CCD1	0x11
+#define ADV7170_REG_PCR0	0x12
+#define ADV7170_REG_PCR1	0x13
+#define ADV7170_REG_PCR2	0x14
+#define ADV7170_REG_PCR3	0x15
+#define ADV7170_REG_TTXRQ_CTRL	0x19
 
 static int adv717x_attach_adapter(struct i2c_adapter *adapter);
 int adv717x_detach_client(struct i2c_client *client);
 int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg);
+
+typedef enum {
+	MODE_COMPOSITE_SVIDEO,
+	MODE_SVIDEO,
+	MODE_COMPOSITE,
+	MODE_COMPOSITE_PSEUDO_SVIDEO,
+	MODE_PSEUDO_SVIDEO,
+	MODE_COMPOSITE_OVER_SVIDEO,
+	MODE_YUV,
+	MODE_YUV_PROG,
+	MODE_RGB,
+	MODE_RGB_NOSYNC,
+	MODE_RGB_PROG,
+	MODE_RGB_PROG_NOSYNC,
+	MODE_MAX
+} OutputModes;
+
+typedef struct {
+	char const * name;
+	int component;
+	int yuv;
+	int euroscart;
+	int progressive;
+	int sync_all;
+	int dacA;
+	int dacB;
+	int dacC;
+	int dacD;
+} OutputModeInfo;
+
+OutputModeInfo ModeInfo[] = {
+	[ MODE_COMPOSITE_SVIDEO ] =		{ "comp+svideo" , 0, 0, 0, 0, 0, 1, 0, 0, 0 },
+	[ MODE_SVIDEO ] =			{ "svideo"      , 0, 0, 0, 0, 0, 1, 1, 0, 0 },
+	[ MODE_COMPOSITE ] =			{ "comp"        , 0, 0, 0, 0, 0, 1, 0, 1, 1 },
+	[ MODE_COMPOSITE_PSEUDO_SVIDEO ] =	{ "comp+psvideo", 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+	[ MODE_PSEUDO_SVIDEO ] =		{ "psvideo"     , 0, 0, 1, 0, 0, 1, 1, 0, 0 },
+	[ MODE_COMPOSITE_OVER_SVIDEO ] =	{ "composvideo" , 0, 0, 1, 0, 0, 1, 1, 1, 0 },
+	[ MODE_YUV ] =				{ "yuv"         , 1, 1, 0, 0, 0, 1, 0, 0, 0 },
+	[ MODE_RGB ] =				{ "rgbs"        , 1, 0, 0, 0, 1, 0, 0, 0, 0 },
+	[ MODE_RGB_NOSYNC ] =			{ "rgb"         , 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
 
 #define CHIP_ADV7175A 1
 #define CHIP_ADV7170  2
@@ -106,8 +186,8 @@ struct adv717x_data_s {
 	int chiptype;
 	int mode;
 	int bars;
-	int rgbmode;
 	int enableoutput;
+	OutputModes out_mode;
 	int pp_pal;
 	int pp_ntsc;
 	int pd_adj_pal;
@@ -278,6 +358,8 @@ static unsigned char NTSC_config_7175[19] = {
 	0x42,   // Mode Register 3
 };
 
+#define SET_REG(f,o,v) (f) = ((f) & ~(1<<(o))) | (((v) & 1) << (o))
+
 static int adv717x_update(struct i2c_client *client)
 {
 	struct adv717x_data_s *data = i2c_get_clientdata(client);
@@ -286,32 +368,64 @@ static int adv717x_update(struct i2c_client *client)
 
 	memcpy(tmpconfig, data->config, data->configlen);
 
-	tmpconfig[1] |= data->bars ? 0x80 : 0;
+	SET_REG(tmpconfig[ADV717X_REG_MR1], 7, data->bars);
 
 	switch(data->chiptype) {
-	case CHIP_ADV7175A:
-		if (data->rgbmode) {
-			tmpconfig[0] |= 0x40;
-		}
+	    case CHIP_ADV7175A:
+		/* ADV7175/6A component out: MR06 (register 0, bit 6) */
+		SET_REG(tmpconfig[ADV717X_REG_MR0], 6,
+				ModeInfo[data->out_mode].component);
+		/* ADV7175/6A YUV out: MR26 (register 13, bit 6) */
+		SET_REG(tmpconfig[ADV7175_REG_MR2], 6,
+				ModeInfo[data->out_mode].yuv);
+		/* ADV7175/6A EuroSCART: MR37 (register 18, bit 7) */
+		SET_REG(tmpconfig[ADV7175_REG_MR3], 7,
+			ModeInfo[data->out_mode].euroscart);
+		/* ADV7175/6A RGB sync: MR05 (register 0, bit 5) */
+		SET_REG(tmpconfig[ADV717X_REG_MR0], 5,
+				ModeInfo[data->out_mode].sync_all);
 		break;
-	case CHIP_ADV7170:
-		if (data->rgbmode) {
-			tmpconfig[3] |= 0x10;
-		}
+	    case CHIP_ADV7170:
+		/* ADV7170/1 component out: MR40 (register 4, bit 0) */
+		SET_REG(tmpconfig[ADV7170_REG_MR4], 0,
+				ModeInfo[data->out_mode].component);
+		/* ADV7170/1 YUV out: MR41 (register 4, bit 1) */
+		SET_REG(tmpconfig[ADV7170_REG_MR4], 1,
+				ModeInfo[data->out_mode].yuv);
+		/* ADV7170/1 EuroSCART: MR33 (register 3, bit 3) */
+		SET_REG(tmpconfig[ADV7170_REG_MR3], 3,
+			ModeInfo[data->out_mode].euroscart);
+		/* ADV7170/1 RGB sync: MR42 (register 4, bit 2) */
+		SET_REG(tmpconfig[ADV7170_REG_MR4], 2,
+				ModeInfo[data->out_mode].sync_all);
 		break;
 	}
+	/* ADV7170/1/5A/6A non-interlace: MR10 (register 1, bit 0) */
+	SET_REG(tmpconfig[ADV717X_REG_MR1], 0,
+			ModeInfo[data->out_mode].progressive);
+	/* ADV7170/1/5A/6A DAC A control: MR16 (register 1, bit 6) */
+	SET_REG(tmpconfig[ADV717X_REG_MR1], 6, ModeInfo[data->out_mode].dacA);
+	/* ADV7170/1/5A/6A DAC B control: MR15 (register 1, bit 5) */
+	SET_REG(tmpconfig[ADV717X_REG_MR1], 5, ModeInfo[data->out_mode].dacB);
+	/* ADV7170/1/5A/6A DAC C control: MR13 (register 1, bit 3) */
+	SET_REG(tmpconfig[ADV717X_REG_MR1], 3, ModeInfo[data->out_mode].dacC);
+	/* ADV7170/1/5A/6A DAC D control: MR14 (register 1, bit 4) */
+	SET_REG(tmpconfig[ADV717X_REG_MR1], 4, ModeInfo[data->out_mode].dacD);
 
 	if (!data->enableoutput) {
-		tmpconfig[1] |= 0x7f;
+		tmpconfig[ADV717X_REG_MR1] |= 0x7f;
 	}
 
 	for(i=0; i < data->configlen; i++) {
 		n = i2c_smbus_write_byte_data(client, i, tmpconfig[i]);
 	}
 
-	i2c_smbus_write_byte_data(client, 7, tmpconfig[7] & 0x7f);
-	i2c_smbus_write_byte_data(client, 7, tmpconfig[7] | 0x80);
-	i2c_smbus_write_byte_data(client, 7, tmpconfig[7] & 0x7f);
+	i2c_smbus_write_byte_data(client, ADV717X_REG_TR0,
+			tmpconfig[ADV717X_REG_TR0] & 0x7f);
+	i2c_smbus_write_byte_data(client, ADV717X_REG_TR0,
+			tmpconfig[ADV717X_REG_TR0] | 0x80);
+	i2c_smbus_write_byte_data(client, ADV717X_REG_TR0,
+			tmpconfig[ADV717X_REG_TR0] & 0x7f);
 
 	return 0;
 }
@@ -389,24 +503,26 @@ static int adv717x_setmode(int mode, struct i2c_client *client) {
 	case ENCODER_MODE_PAL:
 	case ENCODER_MODE_PAL_M:
 	case ENCODER_MODE_PAL60:
-		data->config[7] = (data->config[7] & ~0x40) | data->pp_pal;
+		data->config[ADV717X_REG_TR0] =
+			(data->config[ADV717X_REG_TR0] & ~0x40) | data->pp_pal;
 		switch (data->chiptype) {
 		case CHIP_ADV7175A:
-			data->config[12] = (data->config[12] & ~0xC0) | data->pd_adj_pal;
+			data->config[ADV7175_REG_TR1] = (data->config[ADV7175_REG_TR1] & ~0xC0) | data->pd_adj_pal;
 			break;
 		case CHIP_ADV7170:
-			data->config[8] = (data->config[8] & ~0xC0) | data->pd_adj_pal;
+			data->config[ADV7170_REG_TR1] = (data->config[ADV7170_REG_TR1] & ~0xC0) | data->pd_adj_pal;
 			break;
 		}
 		break;
 	case ENCODER_MODE_NTSC:
-		data->config[7] = (data->config[7] & ~0x40) | data->pp_ntsc;
+		data->config[ADV717X_REG_TR0] =
+			(data->config[ADV717X_REG_TR0] & ~0x40) | data->pp_ntsc;
 		switch (data->chiptype) {
 		case CHIP_ADV7175A:
-			data->config[12] = (data->config[12] & ~0xC0) | data->pd_adj_ntsc;
+			data->config[ADV7175_REG_TR1] = (data->config[ADV7175_REG_TR1] & ~0xC0) | data->pd_adj_ntsc;
 			break;
 		case CHIP_ADV7170:
-			data->config[8] = (data->config[8] & ~0xC0) | data->pd_adj_ntsc;
+			data->config[ADV7170_REG_TR1] = (data->config[ADV7170_REG_TR1] & ~0xC0) | data->pd_adj_ntsc;
 			break;
 		}
 		break;
@@ -438,8 +554,11 @@ static int adv717x_setup(struct i2c_client *client)
 	data->pd_adj_pal = (0x03 & pixeldata_adjust_pal[em->card_nr]) << 6;
 
 	data->bars = color_bars[em->card_nr];
-	data->rgbmode = 0;
 	data->enableoutput = 0;
+	/* Maybe map from a string; dunno? */
+	data->out_mode = output_mode_nr[em->card_nr];
+	if (data->out_mode < 0 || data->out_mode >= MODE_MAX)
+		data->out_mode = 0;
 
 	adv717x_setmode(ENCODER_MODE_PAL60, client);
 
@@ -454,10 +573,6 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 	struct i2c_client *new_client;
 	int mr0, mr1;
 	int err;
-
-	if (i2c_is_isa_adapter(adapter)) {
-		return 0;
-	}
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA)) {
 		return 0;
@@ -475,11 +590,11 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 
 	i2c_set_clientdata(new_client, data);
 
-	i2c_smbus_write_byte_data(new_client, ADV7175_REG_MR1, 0x55);
-	mr1=i2c_smbus_read_byte_data(new_client, ADV7175_REG_MR1);
+	i2c_smbus_write_byte_data(new_client, ADV717X_REG_MR1, 0x55);
+	mr1=i2c_smbus_read_byte_data(new_client, ADV717X_REG_MR1);
 
 	if (mr1 == 0x55) {
-		mr0 = i2c_smbus_read_byte_data(new_client, ADV7175_REG_MR0);
+		mr0 = i2c_smbus_read_byte_data(new_client, ADV717X_REG_MR0);
 
 		if (mr0 & 0x20) {
 			strcpy(new_client->name, "ADV7175A chip");
@@ -562,6 +677,18 @@ int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
 
 int __init adv717x_init(void)
 {
+	int i;
+	for (i=0; i < EM8300_MAX; i++)
+		if ((output_mode[i]) && (output_mode[i][0])) {
+			int j;
+			for (j=0; j < MODE_MAX; j++)
+				if (strcmp(output_mode[i], ModeInfo[j].name) == 0) {
+					output_mode_nr[i] = j;
+					break;
+				}
+			if (j == MODE_MAX)
+				printk(KERN_WARNING "adv717x.o: Unknown output mode: %s\n", output_mode[i]);
+		}
 	//request_module("i2c-algo-bit");
 	return i2c_add_driver(&adv717x_driver);
 }

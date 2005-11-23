@@ -19,7 +19,7 @@
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <linux/module.h>
@@ -37,7 +37,6 @@
 #include <asm/pgtable.h>
 #include <asm/page.h>
 #include <linux/sched.h>
-#include <asm/segment.h>
 #include <linux/types.h>
 
 #include <linux/videodev.h>
@@ -63,12 +62,11 @@ MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be d
 
 static int rgb_mode[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 MODULE_PARM(rgb_mode, "1-" __MODULE_STRING(EM8300_MAX) "i");
-MODULE_PARM_DESC(rgb_mode, "If you set this to 1, RGB output is enabled. You will need to hack the DXR3 hardware. Defaults to 0.");
+MODULE_PARM_DESC(rgb_mode, "Deprecated, use output_mode instead.");
 
-#define i2c_is_isa_client(clientptr) \
-		((clientptr)->adapter->algo->id == I2C_ALGO_ISA)
-#define i2c_is_isa_adapter(adapptr) \
-		((adapptr)->algo->id == I2C_ALGO_ISA)
+static char *output_mode[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = NULL };
+MODULE_PARM(output_mode, "1-" __MODULE_STRING(EM8300_MAX) "s");
+MODULE_PARM_DESC(output_mode, "Specifies the output mode to use for the BT865 video encoder. See the README-modoptions file for the list of mode names to use. Default is SVideo + composite (\"comp+svideo\").");
 
 
 static int bt865_attach_adapter(struct i2c_adapter *adapter);
@@ -871,10 +869,6 @@ static int bt865_detect(struct i2c_adapter *adapter, int address)
 	struct i2c_client *new_client;
 	int err, chk = 0;
 
-	if (i2c_is_isa_adapter(adapter)) {
-		return 0;
-	}
-
 	chk = i2c_check_functionality(adapter,
 			I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA);
 
@@ -977,6 +971,17 @@ int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg)
 
 int __init bt865_init(void)
 {
+	int i;
+	for (i=0; i < EM8300_MAX; i++)
+		if ((output_mode[i]) && (output_mode[i][0])) {
+			if (strcmp(output_mode[i], "comp+svideo") == 0) {
+				rgb_mode[i] = 0;
+			} else if (strcmp(output_mode[i], "rgb") == 0) {
+				rgb_mode[i] = 1;
+			} else {
+				printk(KERN_WARNING "bt865: Unknown output mode: %s\n", output_mode[i]);
+			}
+		}
 	//request_module("i2c-algo-bit");
 	return i2c_add_driver(&bt865_driver);
 }

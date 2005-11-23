@@ -1,3 +1,8 @@
+2005-11-23  Nicolas Boullis  <nboullis@debian.org>
+	* configure.in,
+	  modules/Makefile:
+	Release 0.15.2.
+
 2005-11-19  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_i2c.c:
 	Lock the encoder's module while it is in use. Many thanks to Jon

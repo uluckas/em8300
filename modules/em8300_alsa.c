@@ -28,6 +28,7 @@
 #include <sound/control.h>
 #include <linux/em8300.h>
 #include <linux/pci.h>
+#include <linux/stringify.h>
 
 #include "em8300_reg.h"
 
@@ -44,12 +45,16 @@
 typedef struct {
 	struct em8300_s *em;
 	snd_card_t *card;
-	snd_pcm_t *pcm;
+	snd_pcm_t *pcm_analog;
+	snd_pcm_t *pcm_digital;
 	snd_pcm_substream_t *substream;
 	int volume[2];
 } em8300_alsa_t;
 
 #define em8300_alsa_t_magic 0x11058300
+
+#define EM8300_ALSA_ANALOG_DEVICENUM 0
+#define EM8300_ALSA_DIGITAL_DEVICENUM 1
 
 static snd_pcm_hardware_t snd_em8300_playback_hw = {
 	.info = (
@@ -59,7 +64,6 @@ static snd_pcm_hardware_t snd_em8300_playback_hw = {
 		 //		 SNDRV_PCM_INFO_MMAP_VALID |
 		 SNDRV_PCM_INFO_PAUSE |
 		 0),
-	.formats = SNDRV_PCM_FMTBIT_S16_BE,
 	.rates = SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000,
 	.rate_min = 32000,
 	.rate_max = 48000,
@@ -73,8 +77,14 @@ static int snd_em8300_playback_open(snd_pcm_substream_t *substream)
 	struct em8300_s *em = em8300_alsa->em;
 	snd_pcm_runtime_t *runtime = substream->runtime;
 
+	em8300_require_ucode(em);
+
 	em8300_alsa->substream = substream;
 
+	if (substream->pcm->device == EM8300_ALSA_ANALOG_DEVICENUM)
+		snd_em8300_playback_hw.formats = SNDRV_PCM_FMTBIT_S16_BE;
+	else
+		snd_em8300_playback_hw.formats = SNDRV_PCM_FMTBIT_IEC958_SUBFRAME_BE;
 	snd_em8300_playback_hw.periods_min = read_ucregister(MA_PCISize) / 3;
 	snd_em8300_playback_hw.periods_max = read_ucregister(MA_PCISize) / 3;
 	snd_em8300_playback_hw.period_bytes_min = 4096;
@@ -85,11 +95,19 @@ static int snd_em8300_playback_open(snd_pcm_substream_t *substream)
 //	printk("snd_em8300_playback_open called.\n");
 
 	em->clockgen &= ~CLOCKGEN_OUTMASK;
-	em->clockgen |= CLOCKGEN_ANALOGOUT;
+	if (substream->pcm->device == EM8300_ALSA_ANALOG_DEVICENUM)
+		em->clockgen |= CLOCKGEN_ANALOGOUT;
+	else
+		em->clockgen |= CLOCKGEN_DIGITALOUT;
 	em8300_clockgen_write(em, em->clockgen);
 
-	write_register(EM8300_AUDIO_RATE, 0x62);
-	em8300_setregblock(em, 2 * ucregister(Mute_Pattern), 0, 0x600);
+	if (substream->pcm->device == EM8300_ALSA_ANALOG_DEVICENUM) {
+		write_register(EM8300_AUDIO_RATE, 0x62);
+		em8300_setregblock(em, 2 * ucregister(Mute_Pattern), 0, 0x600);
+	}
+	else {
+		write_register(EM8300_AUDIO_RATE, 0x3a0);
+	}
 
 	return 0;
 }
@@ -224,13 +242,13 @@ static void snd_em8300_pcm_free(snd_pcm_t *pcm)
 }
 */
 
-static int snd_em8300_pcm(em8300_alsa_t *em8300_alsa)
+static int snd_em8300_pcm_analog(em8300_alsa_t *em8300_alsa)
 {
 	struct em8300_s *em = em8300_alsa->em;
 	snd_pcm_t *pcm;
 	int err;
 
-	if ((err = snd_pcm_new(em8300_alsa->card, "EM8300/0", 0, 1, 0, &pcm))<0)
+	if ((err = snd_pcm_new(em8300_alsa->card, "EM8300/" __stringify(EM8300_ALSA_ANALOG_DEVICENUM), EM8300_ALSA_ANALOG_DEVICENUM, 1, 0, &pcm))<0)
 		return err;
 
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &snd_em8300_playback_ops);
@@ -241,7 +259,34 @@ static int snd_em8300_pcm(em8300_alsa_t *em8300_alsa)
 
 	strcpy(pcm->name, "EM8300 DAC");
 
-	em8300_alsa->pcm = pcm;
+	em8300_alsa->pcm_analog = pcm;
+
+	snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
+					      snd_dma_pci_data(em->dev),
+					      (read_ucregister(MA_PCISize) / 3) * 32768,
+					      (read_ucregister(MA_PCISize) / 3) * 32768);
+
+	return 0;
+}
+
+static int snd_em8300_pcm_digital(em8300_alsa_t *em8300_alsa)
+{
+	struct em8300_s *em = em8300_alsa->em;
+	snd_pcm_t *pcm;
+	int err;
+
+	if ((err = snd_pcm_new(em8300_alsa->card, "EM8300/" __stringify(EM8300_ALSA_DIGITAL_DEVICENUM), EM8300_ALSA_DIGITAL_DEVICENUM, 1, 0, &pcm))<0)
+		return err;
+
+	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &snd_em8300_playback_ops);
+
+	pcm->private_data = em8300_alsa;
+	//	pcm->private_free = snd_em8300_pcm_free;
+	//	pcm->info_flags = 0;
+
+	strcpy(pcm->name, "EM8300 IEC958");
+
+	em8300_alsa->pcm_digital = pcm;
 
 	snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
 					      snd_dma_pci_data(em->dev),
@@ -311,7 +356,12 @@ static void em8300_alsa_enable_card(struct em8300_s *em)
 
 	card->private_data = em8300_alsa;
 
-	if ((err = snd_em8300_pcm(em8300_alsa)) < 0) {
+	if ((err = snd_em8300_pcm_analog(em8300_alsa)) < 0) {
+		snd_card_free(card);
+		return;
+	}
+
+	if ((err = snd_em8300_pcm_digital(em8300_alsa)) < 0) {
 		snd_card_free(card);
 		return;
 	}

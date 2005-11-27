@@ -29,6 +29,7 @@
 #include <linux/em8300.h>
 #include <linux/pci.h>
 #include <linux/stringify.h>
+#include <asm/semaphore.h>
 
 #include "em8300_reg.h"
 
@@ -48,6 +49,7 @@ typedef struct {
 	snd_pcm_t *pcm_analog;
 	snd_pcm_t *pcm_digital;
 	snd_pcm_substream_t *substream;
+	struct semaphore lock;
 	int volume[2];
 } em8300_alsa_t;
 
@@ -78,8 +80,16 @@ static int snd_em8300_playback_open(snd_pcm_substream_t *substream)
 	snd_pcm_runtime_t *runtime = substream->runtime;
 
 	em8300_require_ucode(em);
+	if (!em->ucodeloaded)
+		return -ENODEV;
 
+	down(&em8300_alsa->lock);
+	if (em8300_alsa->substream) {
+		up(&em8300_alsa->lock);
+		return -EBUSY;
+	}
 	em8300_alsa->substream = substream;
+	up(&em8300_alsa->lock);
 
 	if (substream->pcm->device == EM8300_ALSA_ANALOG_DEVICENUM)
 		snd_em8300_playback_hw.formats = SNDRV_PCM_FMTBIT_S16_BE;
@@ -322,6 +332,8 @@ static int snd_em8300_create(snd_card_t *card, struct em8300_s *em, em8300_alsa_
 	em8300_alsa = snd_magic_kcalloc(em8300_alsa_t, 0, GFP_KERNEL);
 	if (em8300_alsa == NULL)
 		return -ENOMEM;
+
+	init_MUTEX(&em8300_alsa->lock);
 
 	em8300_alsa->em = em;
 	em8300_alsa->card = card;

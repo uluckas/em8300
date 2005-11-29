@@ -14,5 +14,5 @@ debug:
 	done;
 
 install-data-local:
-	test -z "$(firmwaredir)" || $(mkdir_p) "$(DESTDIR)$(firmwaredir)"
+	test -d "$(DESTDIR)$(firmwaredir)" || $(mkdir_p) "$(DESTDIR)$(firmwaredir)"
 	$(INSTALL_DATA) $(top_srcdir)/modules/em8300.uc "$(DESTDIR)$(firmwaredir)/em8300.bin"

@@ -1,9 +1,3 @@
-2005-11-29  Ville Skyttä  <scop@users.sourceforge.net>
-
-	* Makefile.am:
-	Fix test for firmware dir existence, thanks to Anders Rune Jensen
-	for pointing it out.
-
 2005-11-23  Nicolas Boullis  <nboullis@debian.org>
 	* configure.in,
 	  modules/Makefile:

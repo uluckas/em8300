@@ -1,3 +1,7 @@
+2005-12-01  Ville Skyttä  <scop@users.sourceforge.net>
+	* Makefile.am:
+	Require automake >= 1.8 for $(mkdir_p).
+
 2005-11-23  Nicolas Boullis  <nboullis@debian.org>
 	* configure.in,
 	  modules/Makefile:

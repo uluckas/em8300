@@ -1,3 +1,8 @@
+2005-12-17  Ville Skyttä  <scop@users.sourceforge.net>
+
+	* scripts/*:
+	Whitespace cleanup, no functional changes.
+
 2005-12-01  Ville Skyttä  <scop@users.sourceforge.net>
 	* Makefile.am:
 	Require automake >= 1.8 for $(mkdir_p).

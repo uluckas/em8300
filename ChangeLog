@@ -3,6 +3,9 @@
 	* configure.in:
 	Switch to GTK2 for the GUI utilities.
 
+	* m4/gtk.m4:
+	Removed.
+
 2005-12-17  Ville Skyttä  <scop@users.sourceforge.net>
 
 	* scripts/*:

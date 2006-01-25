@@ -753,7 +753,7 @@ static void __devexit em8300_remove(struct pci_dev *pci)
 	pci_disable_device(pci);
 }
 
-static struct pci_driver em8300_driver = {
+struct pci_driver em8300_driver = {
 	.name     = "Sigma Designs EM8300",
 	.id_table = em8300_ids,
 	.probe    = em8300_probe,
@@ -765,6 +765,8 @@ static void __exit em8300_exit(void)
 #ifdef CONFIG_EM8300_IOCTL32
 	em8300_ioctl32_exit();
 #endif
+
+	em8300_preunregister_driver();
 
 	pci_unregister_driver(&em8300_driver);
 
@@ -809,6 +811,8 @@ static int __init em8300_init(void)
 #endif
 		goto err_init;
 	}
+
+	em8300_postregister_driver();
 
 #ifdef CONFIG_EM8300_IOCTL32
 	em8300_ioctl32_init();

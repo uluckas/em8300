@@ -93,24 +93,28 @@ static void em8300_devfs_unregister_card(struct em8300_s *em)
 
 struct em8300_registrar_s em8300_devfs_registrar =
 {
-	.register_driver   = NULL,
-	.register_card     = &em8300_devfs_register_card,
-	.enable_card       = &em8300_devfs_enable_card,
-	.disable_card      = &em8300_devfs_disable_card,
-	.unregister_card   = &em8300_devfs_unregister_card,
-	.unregister_driver = NULL,
+	.register_driver      = NULL,
+	.postregister_driver  = NULL,
+	.register_card        = &em8300_devfs_register_card,
+	.enable_card          = &em8300_devfs_enable_card,
+	.disable_card         = &em8300_devfs_disable_card,
+	.unregister_card      = &em8300_devfs_unregister_card,
+	.preunregister_driver = NULL,
+	.unregister_driver    = NULL,
 };
 
 #else /* CONFIG_DEVFS_FS */
 
 struct em8300_registrar_s em8300_devfs_registrar =
 {
-	.register_driver   = NULL,
-	.register_card     = NULL,
-	.enable_card       = NULL,
-	.disable_card      = NULL,
-	.unregister_card   = NULL,
-	.unregister_driver = NULL,
+	.register_driver      = NULL,
+	.postregister_driver  = NULL,
+	.register_card        = NULL,
+	.enable_card          = NULL,
+	.disable_card         = NULL,
+	.unregister_card      = NULL,
+	.preunregister_driver = NULL,
+	.unregister_driver    = NULL,
 };
 
 #endif /* CONFIG_DEVFS_FS */

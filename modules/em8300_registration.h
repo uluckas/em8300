@@ -32,18 +32,22 @@
 
 struct em8300_registrar_s {
 	void (*register_driver)(void);
+	void (*postregister_driver)(void);
 	void (*register_card)(struct em8300_s *);
 	void (*enable_card)(struct em8300_s *);
 	void (*disable_card)(struct em8300_s *);
 	void (*unregister_card)(struct em8300_s *);
+	void (*preunregister_driver)(void);
 	void (*unregister_driver)(void);
 };
 
 extern void em8300_register_driver(void);
+extern void em8300_postregister_driver(void);
 extern void em8300_register_card(struct em8300_s *);
 extern void em8300_enable_card(struct em8300_s *);
 extern void em8300_disable_card(struct em8300_s *);
 extern void em8300_unregister_card(struct em8300_s *);
+extern void em8300_preunregister_driver(void);
 extern void em8300_unregister_driver(void);
 
 #endif /* EM8300_REGISTRATION_H */

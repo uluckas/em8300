@@ -1,5 +1,20 @@
-2006-01-21  Ville Skyttä  <scop@users.sourceforge.net>
+2006-01-25  Nicolas Boullis  <nboullis@debian.org>
+	* include/linux/em8300.h,
+	  modules/Makefile,
+	  modules/em8300_devfs.c,
+	  modules/em8300_main.c,
+	  modules/em8300_procfs.c,
+	  modules/em8300_registration.c,
+	  modules/em8300_registration.h,
+	  modules/em8300_sysfs.c,
+	  modules/em8300_udev.c,
+	  modules/em8300_udev.h:
+	Fix support for recent versions of udev by using the good
+	functions. Many thanks to all those who helped make this possible
+	by reporting the problem, testing my patches and checking my
+	code.
 
+2006-01-21  Ville Skyttä  <scop@users.sourceforge.net>
 	* configure.in:
 	Switch to GTK2 for the GUI utilities.
 
@@ -7,7 +22,6 @@
 	Removed.
 
 2005-12-17  Ville Skyttä  <scop@users.sourceforge.net>
-
 	* scripts/*:
 	Whitespace cleanup, no functional changes.
 

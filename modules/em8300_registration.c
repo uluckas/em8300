@@ -23,12 +23,14 @@
 
 #include "em8300_procfs.h"
 #include "em8300_devfs.h"
+#include "em8300_udev.h"
 #include "em8300_sysfs.h"
 
 static struct em8300_registrar_s *registrars[] =
 {
 	&em8300_procfs_registrar,
 	&em8300_devfs_registrar,
+	&em8300_udev_registrar,
 	&em8300_sysfs_registrar,
 	NULL
 };
@@ -40,6 +42,15 @@ void em8300_register_driver(void)
 	for (i = 0; registrars[i]; i++) {
 		if (registrars[i]->register_driver)
 			registrars[i]->register_driver();
+	}
+}
+
+void em8300_postregister_driver(void)
+{
+	int i;
+	for (i = 0; registrars[i]; i++) {
+		if (registrars[i]->postregister_driver)
+			registrars[i]->postregister_driver();
 	}
 }
 
@@ -76,6 +87,15 @@ void em8300_unregister_card(struct em8300_s *em)
 	for (i = 0; registrars[i]; i++) {
 		if (registrars[i]->unregister_card)
 			registrars[i]->unregister_card(em);
+	}
+}
+
+void em8300_preunregister_driver(void)
+{
+	int i;
+	for (i = 0; registrars[i]; i++) {
+		if (registrars[i]->preunregister_driver)
+			registrars[i]->preunregister_driver();
 	}
 }
 

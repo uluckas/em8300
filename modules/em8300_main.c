@@ -517,6 +517,9 @@ struct file_operations em8300_fops = {
 	poll: em8300_poll,
 	open: em8300_io_open,
 	release: em8300_io_release,
+#if defined(CONFIG_EM8300_IOCTL32) && defined(HAVE_COMPAT_IOCTL)
+	compat_ioctl: em8300_compat_ioctl,
+#endif
 };
 
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
@@ -762,7 +765,7 @@ struct pci_driver em8300_driver = {
 
 static void __exit em8300_exit(void)
 {
-#ifdef CONFIG_EM8300_IOCTL32
+#if defined(CONFIG_EM8300_IOCTL32) && !defined(HAVE_COMPAT_IOCTL)
 	em8300_ioctl32_exit();
 #endif
 
@@ -814,7 +817,7 @@ static int __init em8300_init(void)
 
 	em8300_postregister_driver();
 
-#ifdef CONFIG_EM8300_IOCTL32
+#if defined(CONFIG_EM8300_IOCTL32) && !defined(HAVE_COMPAT_IOCTL)
 	em8300_ioctl32_init();
 #endif
 

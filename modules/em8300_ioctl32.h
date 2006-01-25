@@ -21,7 +21,15 @@
 #ifndef EM8300_IOCTL32_H
 #define EM8300_IOCTL32_H
 
+#ifdef HAVE_COMPAT_IOCTL
+
+extern long em8300_compat_ioctl(struct file* filp, unsigned cmd, unsigned long arg);
+
+#else /* HAVE_COMPAT_IOCTL */
+
 extern void em8300_ioctl32_init(void);
 extern void em8300_ioctl32_exit(void);
+
+#endif /* HAVE_COMPAT_IOCTL */
 
 #endif /* EM8300_IOCTL32_H */

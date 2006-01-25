@@ -14,6 +14,14 @@
 	by reporting the problem, testing my patches and checking my
 	code.
 
+	* modules/Makefile,
+	  modules/em8300_ioctl32.c,
+	  modules/em8300_ioctl32.h,
+	  modules/em8300_main.c:
+	Fix support for 32-bit ioctls with 64-bit kernels for recent
+	kernels (>= 2.6.14), and support 32-bit ioctls for x86_64. Many
+	thanks to István Váradi who did all the work.
+
 2006-01-21  Ville Skyttä  <scop@users.sourceforge.net>
 	* configure.in:
 	Switch to GTK2 for the GUI utilities.

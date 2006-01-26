@@ -24,7 +24,7 @@ KERNEL_LOCATION := /lib/modules/$(shell uname -r)/build
 # If you are using external i2c modules, you should set
 # EM8300_I2C_LOCATION to the source directory of the modules.
 # Moreover, if the API of the modules is not properly guessed, you can
-# force it by setting EM8300_I2C_FORCE_API to OLD or NEW. (That is
+# force it by setting EM8300_I2C_FORCE_API to NEW. (That is
 # especially for using 2.8.x modules with 2.4.x kernels.)
 #export EM8300_I2C_LOCATION := /usr/src/modules/i2c
 #export EM8300_I2C_FORCE_API := NEW

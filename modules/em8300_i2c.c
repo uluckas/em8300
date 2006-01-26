@@ -77,8 +77,12 @@ static int em8300_getsda(void *data)
 
 static int em8300_i2c_lock_client(struct i2c_client *client)
 {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54) && !defined(EM8300_I2C_FORCE_OLD_API))
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,16)
+	if (!try_module_get(client->driver->driver.owner)) {
+#else
 	if (!try_module_get(client->driver->owner)) {
+#endif
 		printk(KERN_ERR "em8300_i2c: Unable to lock client module\n");
 		return -ENODEV;
 	}
@@ -129,8 +133,12 @@ static int em8300_i2c_unreg(struct i2c_client *client)
 	case I2C_DRIVERID_ADV717X:
 	case I2C_DRIVERID_BT865:
 		em->encoder = NULL;
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54) && !defined(EM8300_I2C_FORCE_OLD_API))
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,16)
+		module_put(client->driver->driver.owner);
+#else
 		module_put(client->driver->owner);
+#endif
 #endif
 		break;
 	}

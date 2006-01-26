@@ -199,12 +199,18 @@ struct adv717x_data_s {
 
 /* This is the driver that will be inserted */
 static struct i2c_driver adv717x_driver = {
-#if defined(EM8300_I2C_FORCE_NEW_API) || (LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54) && !defined(EM8300_I2C_FORCE_OLD_API))
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,16)
+	.driver = {
+		.name =		"adv717x",
+	},
+#else
+#if defined(EM8300_I2C_FORCE_NEW_API) || LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54)
 	.owner =		THIS_MODULE,
 #endif
-	.name =			"ADV717X video encoder driver",
-	.id =			I2C_DRIVERID_ADV717X,
+	.name =			"adv717x",
 	.flags =		I2C_DF_NOTIFY,
+#endif
+	.id =			I2C_DRIVERID_ADV717X,
 	.attach_adapter =	&adv717x_attach_adapter,
 	.detach_client =	&adv717x_detach_client,
 	.command =		&adv717x_command

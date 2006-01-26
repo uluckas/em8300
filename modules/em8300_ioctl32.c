@@ -63,7 +63,7 @@ static int get_em8300_microcode32(em8300_microcode_t *kp, em8300_microcode32_t *
 	return 0;
 }
 
-static int em8300_ioctl32_init(unsigned long arg, struct file* filp)
+static int em8300_do_ioctl32_init(unsigned long arg, struct file* filp)
 {
 	mm_segment_t old_fs = get_fs();
 	em8300_microcode_t karg;
@@ -90,7 +90,7 @@ long em8300_compat_ioctl(struct file* filp, unsigned cmd, unsigned long arg)
 {
 	switch(cmd) {
 	case EM8300_IOCTL32_INIT:
-		return em8300_ioctl32_init(arg, filp);
+		return em8300_do_ioctl32_init(arg, filp);
 	default:
 		return filp->f_op->ioctl(filp->f_dentry->d_inode, filp, cmd, arg);
 	}
@@ -104,7 +104,7 @@ int unregister_ioctl32_conversion(unsigned int cmd);
 static int do_em8300_ioctl(unsigned int fd, unsigned int cmd, unsigned long arg, struct file *filp)
 {
 	if (cmd==EM8300_IOCTL32_INIT) {
-		return em8300_ioctl32_init(arg, filp);
+		return em8300_do_ioctl32_init(arg, filp);
 	} else {
 		return filp->f_op->ioctl(filp->f_dentry->d_inode, filp, cmd, arg);
 	}

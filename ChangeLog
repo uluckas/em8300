@@ -1,3 +1,8 @@
+2006-01-26  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_ioctl32.c:
+	Fix a very annoying name clash between two
+	different em8300_ioctl32_init functions.
+
 2006-01-25  Nicolas Boullis  <nboullis@debian.org>
 	* include/linux/em8300.h,
 	  modules/Makefile,

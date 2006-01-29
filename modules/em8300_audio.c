@@ -28,7 +28,8 @@
 
 #include <asm/byteorder.h>
 
-#if 0
+#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
+
 int em8300_audio_calcbuffered(struct em8300_s *em);
 static int set_audiomode(struct em8300_s *em, int mode);
 
@@ -192,7 +193,9 @@ static void setup_mafifo(struct em8300_s *em)
 		em->mafifo->preprocess_cb = &preprocess_digital;
 	}
 }
+
 #endif
+
 int mpegaudio_command(struct em8300_s *em, int cmd)
 {
 	em8300_waitfor(em, ucregister(MA_Command), 0xffff, 0xffff);
@@ -202,7 +205,9 @@ int mpegaudio_command(struct em8300_s *em, int cmd)
 
 	return em8300_waitfor(em, ucregister(MA_Status), cmd, 0xffff);
 }
-#if 0
+
+#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
+
 static int audio_start(struct em8300_s *em)
 {
 	em->irqmask |= IRQSTATUS_AUDIO_FIFO;
@@ -218,7 +223,7 @@ static int audio_stop(struct em8300_s *em)
 	em->audio.enable_bits = 0;
 	return mpegaudio_command(em, MACOMMAND_STOP);
 }
-#endif
+
 static int set_speed(struct em8300_s *em, int speed)
 {
 	em->clockgen &= ~CLOCKGEN_SAMPFREQ_MASK;
@@ -247,7 +252,7 @@ static int set_speed(struct em8300_s *em, int speed)
 
 	return speed;
 }
-#if 0
+
 static int set_channels(struct em8300_s *em, int val)
 {
 	if (val > 2) val = 2;
@@ -517,7 +522,7 @@ int em8300_audio_release(struct em8300_s *em)
 	em8300_audio_flush(em);
 	return audio_stop(em);
 }
-#endif
+
 static int set_audiomode(struct em8300_s *em, int mode)
 {
 	em->audio_mode = mode;
@@ -556,7 +561,6 @@ static int set_audiomode(struct em8300_s *em, int mode)
 		em8300_setregblock(em, 2 * ucregister(Mute_Pattern), 0, 0x600);
 		printk(KERN_NOTICE "em8300_audio.o: Analog audio enabled\n");
 		break;
-/*
 	case EM8300_AUDIOMODE_DIGITALPCM:
 		em->pcm_mode = EM8300_AUDIOMODE_DIGITALPCM;
 
@@ -578,7 +582,6 @@ static int set_audiomode(struct em8300_s *em, int mode)
 		em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)em->mafifo->preprocess_buffer, em->mafifo->slotsize);
 		printk(KERN_NOTICE "em8300_audio.o: Digital AC3 audio enabled\n");
 		break;
-*/
 	}
 	return 0;
 }
@@ -589,7 +592,7 @@ int em8300_audio_setup(struct em8300_s *em)
 
 	em->audio.channels = 2;
 	em->audio.format = AFMT_S16_NE;
-	em->audio.slotsize = 0;
+	em->audio.slotsize = em->mafifo->slotsize;
 
 	em->clockgen = em->clockgen_tvmode;
 
@@ -597,7 +600,9 @@ int em8300_audio_setup(struct em8300_s *em)
 
 	set_audiomode(em, EM8300_AUDIOMODE_DEFAULT);
 
-	ret = 0;
+	ret = em8300_audio_flush(em);
+
+	setup_mafifo(em);
 
 	if (ret) {
 		printk(KERN_ERR "em8300_audio.o: Couldn't zero audio buffer\n");
@@ -613,7 +618,7 @@ int em8300_audio_setup(struct em8300_s *em)
 
 	return 0;
 }
-#if 0
+
 int em8300_audio_calcbuffered(struct em8300_s *em)
 {
 	int readptr, writeptr, bufsize, n;
@@ -656,4 +661,5 @@ int em8300_ioctl_getaudiomode(struct em8300_s *em, long int mode)
 		return -EFAULT;
 	return 0;
 }
+
 #endif

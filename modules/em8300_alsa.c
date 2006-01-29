@@ -20,7 +20,7 @@
 
 #include "em8300_alsa.h"
 
-#if 1
+#ifdef CONFIG_EM8300_AUDIO_ALSA
 
 #include <sound/driver.h>
 #include <sound/core.h>
@@ -118,6 +118,7 @@ static int snd_em8300_playback_open(snd_pcm_substream_t *substream)
 	else {
 		write_register(EM8300_AUDIO_RATE, 0x3a0);
 	}
+	write_ucregister(MA_Threshold, 6);
 
 	return 0;
 }

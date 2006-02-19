@@ -594,8 +594,6 @@ int em8300_audio_setup(struct em8300_s *em)
 	em->audio.format = AFMT_S16_NE;
 	em->audio.slotsize = em->mafifo->slotsize;
 
-	em->clockgen = em->clockgen_tvmode;
-
 	set_speed(em, 48000);
 
 	set_audiomode(em, EM8300_AUDIOMODE_DEFAULT);

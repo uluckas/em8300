@@ -670,6 +670,8 @@ static int init_em8300(struct em8300_s *em)
 		em->clockgen_overlaymode = CLOCKGEN_OVERLAYMODE_2;
 	}
 
+	em->clockgen = em->clockgen_tvmode;
+
 	pr_debug("em8300_main.o: activate_loopback: %d\n", activate_loopback);
 
 	return 0;

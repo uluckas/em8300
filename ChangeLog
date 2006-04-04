@@ -5,6 +5,11 @@
 	Add version information to the modules, when possible. Thanks to
 	Tommi Lundell who suggested this feature.
 
+	* modules/em8300_ucode.c:
+	(Hopefully) Fix automatic firmware loading for "recent" 2.4
+	kernels. Thanks to AM and Alonso y Eydis who both reported the
+	build failure.
+
 2006-03-28  Nicolas Boullis  <nboullis@debian.org>
 	* modules/README-modoptions:
 	Document the dsp_num option of the em8300 module. Thanks to

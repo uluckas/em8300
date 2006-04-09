@@ -1,7 +1,7 @@
 /* $Id$
  *
- * em8300_ioctl32.h -- compatibility layer for 32-bit ioctls on 64-bit kernels
- * Copyright (C) 2004 Nicolas Boullis <nboullis@debian.org>
+ * em8300_udev.h -- interface for udev
+ * Copyright (C) 2006 Nicolas Boullis <nboullis@debian.org>
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -18,18 +18,11 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef EM8300_IOCTL32_H
-#define EM8300_IOCTL32_H
+#ifndef EM8300_UDEV_H
+#define EM8300_UDEV_H
 
-#ifdef HAVE_COMPAT_IOCTL
+#include "em8300_registration.h"
 
-extern long em8300_compat_ioctl(struct file* filp, unsigned cmd, unsigned long arg);
+extern struct em8300_registrar_s em8300_udev_registrar;
 
-#else /* HAVE_COMPAT_IOCTL */
-
-extern void em8300_ioctl32_init(void);
-extern void em8300_ioctl32_exit(void);
-
-#endif /* HAVE_COMPAT_IOCTL */
-
-#endif /* EM8300_IOCTL32_H */
+#endif /* EM8300_UDEV_H */

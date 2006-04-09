@@ -259,10 +259,10 @@ struct em8300_s
 	
 	/* Sysfs */
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,46)
-	struct class_device classdev;
-	struct class_device classdev_mv;
-	struct class_device classdev_ma;
-	struct class_device classdev_sp;
+	struct class_device *classdev;
+	struct class_device *classdev_mv;
+	struct class_device *classdev_ma;
+	struct class_device *classdev_sp;
 #endif
 
 #ifdef CONFIG_EM8300_AUDIO_ALSA

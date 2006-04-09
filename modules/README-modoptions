@@ -10,6 +10,11 @@ General fixes:
 			  This now works with multiple cards, so you can
                           do use_bt865=0,1 if you have two cards and the
                           second uses a bt865.
+   dsp_num             -- set the /dev/dsp number to assign to the card.
+                          -1 for automatic (this is the default). If em8300
+                          is being loaded before your sound card module you
+                          can use this to force em8300 to use a more sensible
+                          dsp number.
 
  bt865:
    output_mode         -- select the output mode to use:

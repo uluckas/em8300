@@ -72,6 +72,9 @@ MODULE_LICENSE("GPL");
 #if EM8300_MAJOR != 0
 MODULE_ALIAS_CHARDEV_MAJOR(EM8300_MAJOR);
 #endif
+#ifdef MODULE_VERSION
+MODULE_VERSION(EM8300_VERSION);
+#endif
 
 EXPORT_NO_SYMBOLS;
 
@@ -534,6 +537,9 @@ struct file_operations em8300_fops = {
 	poll: em8300_poll,
 	open: em8300_io_open,
 	release: em8300_io_release,
+#if defined(CONFIG_EM8300_IOCTL32) && defined(HAVE_COMPAT_IOCTL)
+	compat_ioctl: em8300_compat_ioctl,
+#endif
 };
 
 #ifdef CONFIG_EM8300_AUDIO_OSS
@@ -772,7 +778,7 @@ static void __devexit em8300_remove(struct pci_dev *pci)
 	pci_disable_device(pci);
 }
 
-static struct pci_driver em8300_driver = {
+struct pci_driver em8300_driver = {
 	.name     = "Sigma Designs EM8300",
 	.id_table = em8300_ids,
 	.probe    = em8300_probe,
@@ -781,9 +787,11 @@ static struct pci_driver em8300_driver = {
 
 static void __exit em8300_exit(void)
 {
-#ifdef CONFIG_EM8300_IOCTL32
+#if defined(CONFIG_EM8300_IOCTL32) && !defined(HAVE_COMPAT_IOCTL)
 	em8300_ioctl32_exit();
 #endif
+
+	em8300_preunregister_driver();
 
 	pci_unregister_driver(&em8300_driver);
 
@@ -829,7 +837,9 @@ static int __init em8300_init(void)
 		goto err_init;
 	}
 
-#ifdef CONFIG_EM8300_IOCTL32
+	em8300_postregister_driver();
+
+#if defined(CONFIG_EM8300_IOCTL32) && !defined(HAVE_COMPAT_IOCTL)
 	em8300_ioctl32_init();
 #endif
 

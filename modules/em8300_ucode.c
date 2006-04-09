@@ -174,11 +174,19 @@ void em8300_require_ucode(struct em8300_s *em)
 	if (!em->ucodeloaded) {
 		const struct firmware *fw_entry = NULL;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,0)
 		if (request_firmware(&fw_entry, "em8300.bin", &em->dev->dev) != 0) {
 			printk(KERN_ALERT "%s: firmware %s is missing, cannot start.\n",
 			       em->dev->dev.bus_id, "em8300.bin");
 			return;
 		}
+#else
+		if (request_firmware(&fw_entry, "em8300.bin", em->dev->slot_name) != 0) {
+			printk(KERN_ALERT "%s: firmware %s is missing, cannot start.\n",
+			       em->dev->slot_name, "em8300.bin");
+			return;
+		}
+#endif
 		em8300_ucode_upload(em, fw_entry->data, fw_entry->size);
 
 		em8300_dicom_init(em);

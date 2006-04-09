@@ -24,7 +24,7 @@ KERNEL_LOCATION := /lib/modules/$(shell uname -r)/build
 # If you are using external i2c modules, you should set
 # EM8300_I2C_LOCATION to the source directory of the modules.
 # Moreover, if the API of the modules is not properly guessed, you can
-# force it by setting EM8300_I2C_FORCE_API to OLD or NEW. (That is
+# force it by setting EM8300_I2C_FORCE_API to NEW. (That is
 # especially for using 2.8.x modules with 2.4.x kernels.)
 #export EM8300_I2C_LOCATION := /usr/src/modules/i2c
 #export EM8300_I2C_FORCE_API := NEW
@@ -38,7 +38,7 @@ KERNEL_LOCATION := /lib/modules/$(shell uname -r)/build
 #   NONE        for none
 #export CONFIG_EM8300_AUDIO := OSSLIKE
 
-export EM8300_VERSION := "0.15.2-alsa"
+export EM8300_VERSION := "0.15.3-alsa"
 export EM8300_DIR := $(PWD)/..
 
 build:
@@ -72,6 +72,10 @@ BUILD_IOCTL32 := n
 
 ifeq ($(ARCH),sparc64)
 BUILD_IOCTL32 := $(CONFIG_SPARC32_COMPAT)
+endif
+
+ifeq ($(ARCH),x86_64)
+BUILD_IOCTL32 := $(CONFIG_IA32_EMULATION)
 endif
 
 ifndef CONFIG_EM8300_AUDIO
@@ -111,7 +115,8 @@ endif
 em8300-objs := em8300_main.o em8300_i2c.o em8300_audio.o em8300_fifo.o \
 		em8300_video.o em8300_misc.o em8300_dicom.o em8300_ucode.o \
 		em8300_ioctl.o em8300_spu.o em9010.o em8300_registration.o \
-		em8300_procfs.o em8300_devfs.o em8300_sysfs.o em8300_alsa.o
+		em8300_procfs.o em8300_devfs.o em8300_udev.o em8300_sysfs.o \
+		em8300_alsa.o
 ifeq ($(BUILD_IOCTL32),y)
 em8300-objs += em8300_ioctl32.o
 endif

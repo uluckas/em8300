@@ -1,3 +1,80 @@
+2006-04-09  Nicolas Boullis  <nboullis@debian.org>
+	* configure.in,
+	  modules/Makefile:
+	Release 0.15.3.
+
+2006-04-04  Nicolas Boullis  <nboullis@debian.org>
+	* modules/adv717x.c,
+	  modules/bt865.c,
+	  modules/em8300_main.c:
+	Add version information to the modules, when possible. Thanks to
+	Tommi Lundell who suggested this feature.
+
+	* modules/em8300_ucode.c:
+	(Hopefully) Fix automatic firmware loading for "recent" 2.4
+	kernels. Thanks to AM and Alonso y Eydis who both reported the
+	build failure.
+
+2006-03-28  Nicolas Boullis  <nboullis@debian.org>
+	* modules/README-modoptions:
+	Document the dsp_num option of the em8300 module. Thanks to
+	Brendon Higgins who wrote the description.
+
+2006-01-28  Nicolas Boullis  <nboullis@debian.org>
+	* modules/adv717x.c:
+	Completely nuke the progressive output modes.
+
+2006-01-26  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_ioctl32.c:
+	Fix a very annoying name clash between two
+	different em8300_ioctl32_init functions.
+
+	* modules/Makefile,
+	  modules/adv717x.c,
+	  modules/bt865.c,
+	  modules/em8300_i2c.c:
+	Make the driver compatible vith the i2c stack in 2.6.16
+	kernels. Thanks to Ville Skyttä for doing the hard work.
+
+2006-01-25  Nicolas Boullis  <nboullis@debian.org>
+	* include/linux/em8300.h,
+	  modules/Makefile,
+	  modules/em8300_devfs.c,
+	  modules/em8300_main.c,
+	  modules/em8300_procfs.c,
+	  modules/em8300_registration.c,
+	  modules/em8300_registration.h,
+	  modules/em8300_sysfs.c,
+	  modules/em8300_udev.c,
+	  modules/em8300_udev.h:
+	Fix support for recent versions of udev by using the good
+	functions. Many thanks to all those who helped make this possible
+	by reporting the problem, testing my patches and checking my
+	code.
+
+	* modules/Makefile,
+	  modules/em8300_ioctl32.c,
+	  modules/em8300_ioctl32.h,
+	  modules/em8300_main.c:
+	Fix support for 32-bit ioctls with 64-bit kernels for recent
+	kernels (>= 2.6.14), and support 32-bit ioctls for x86_64. Many
+	thanks to István Váradi who did all the work.
+
+2006-01-21  Ville Skyttä  <scop@users.sourceforge.net>
+	* configure.in:
+	Switch to GTK2 for the GUI utilities.
+
+	* m4/gtk.m4:
+	Removed.
+
+2005-12-17  Ville Skyttä  <scop@users.sourceforge.net>
+	* scripts/*:
+	Whitespace cleanup, no functional changes.
+
+2005-12-01  Ville Skyttä  <scop@users.sourceforge.net>
+	* Makefile.am:
+	Require automake >= 1.8 for $(mkdir_p).
+
 2005-11-23  Nicolas Boullis  <nboullis@debian.org>
 	* configure.in,
 	  modules/Makefile:

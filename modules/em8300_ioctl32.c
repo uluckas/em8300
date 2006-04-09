@@ -2,6 +2,7 @@
  *
  * em8300_ioctl32.c -- compatibility layer for 32-bit ioctls on 64-bit kernels
  * Copyright (C) 2004 Nicolas Boullis <nboullis@debian.org>
+ * Copyright (C) 2006 István Váradi <ivaradi@users.sourceforge.net>
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -46,9 +47,6 @@ typedef struct {
 
 #define EM8300_IOCTL32_INIT       _IOW('C',0,em8300_microcode32_t)
 
-int register_ioctl32_conversion(unsigned int cmd, int (*handler)(unsigned int, unsigned int, unsigned long, struct file *));
-int unregister_ioctl32_conversion(unsigned int cmd);
-
 static int get_em8300_microcode32(em8300_microcode_t *kp, em8300_microcode32_t *up)
 {
 	u32 tmp;
@@ -65,35 +63,51 @@ static int get_em8300_microcode32(em8300_microcode_t *kp, em8300_microcode32_t *
 	return 0;
 }
 
-static int do_em8300_ioctl(unsigned int fd, unsigned int cmd, unsigned long arg, struct file *filp)
+static int em8300_do_ioctl32_init(unsigned long arg, struct file* filp)
 {
 	mm_segment_t old_fs = get_fs();
 	em8300_microcode_t karg;
 	em8300_microcode32_t *up = (em8300_microcode32_t *)arg;
 	int err = 0;
 
-	/* First, convert the command. */
-	switch (cmd) {
-	case EM8300_IOCTL32_INIT: cmd = EM8300_IOCTL_INIT; break;
+	err = get_em8300_microcode32(&karg, up);
+
+	if (!err) {
+		set_fs(KERNEL_DS);
+		err = filp->f_op->ioctl(filp->f_dentry->d_inode, filp,
+					EM8300_IOCTL_INIT, (unsigned long)&karg);
+		set_fs(old_fs);
+
+		kfree(karg.ucode);
 	}
 
-	switch (cmd) {
-	case EM8300_IOCTL_INIT:
-		err = get_em8300_microcode32(&karg, up);
-		break;
-	};
-	if (err)
-		goto out;
-
-	set_fs(KERNEL_DS);
-	err = filp->f_op->ioctl(filp->f_dentry->d_inode, filp, cmd, (unsigned long)&karg);
-	set_fs(old_fs);
-
-	if (cmd == EM8300_IOCTL_INIT)
-		kfree(karg.ucode);
-
-out:
 	return err;
+}
+
+#ifdef HAVE_COMPAT_IOCTL
+
+long em8300_compat_ioctl(struct file* filp, unsigned cmd, unsigned long arg)
+{
+	switch(cmd) {
+	case EM8300_IOCTL32_INIT:
+		return em8300_do_ioctl32_init(arg, filp);
+	default:
+		return filp->f_op->ioctl(filp->f_dentry->d_inode, filp, cmd, arg);
+	}
+}
+
+#else /* HAVE_COMPAT_IOCTL */
+
+int register_ioctl32_conversion(unsigned int cmd, int (*handler)(unsigned int, unsigned int, unsigned long, struct file *));
+int unregister_ioctl32_conversion(unsigned int cmd);
+
+static int do_em8300_ioctl(unsigned int fd, unsigned int cmd, unsigned long arg, struct file *filp)
+{
+	if (cmd==EM8300_IOCTL32_INIT) {
+		return em8300_do_ioctl32_init(arg, filp);
+	} else {
+		return filp->f_op->ioctl(filp->f_dentry->d_inode, filp, cmd, arg);
+	}
 }
 
 void em8300_ioctl32_init(void) {
@@ -163,3 +177,5 @@ void em8300_ioctl32_exit(void) {
 	unregister_ioctl32_conversion(EM8300_IOCTL_VIDEO_GETSCR);
 	unregister_ioctl32_conversion(EM8300_IOCTL_VIDEO_SETSCR);
 }
+
+#endif /* HAVE_COMPAT_IOCTL */

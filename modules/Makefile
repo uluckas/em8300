@@ -28,7 +28,7 @@ KERNEL_LOCATION := /lib/modules/$(shell uname -r)/build
 # especially for using 2.8.x modules with 2.4.x kernels.)
 #export EM8300_I2C_LOCATION := /usr/src/modules/i2c
 #export EM8300_I2C_FORCE_API := NEW
-export EM8300_VERSION := "0.15.3"
+export EM8300_VERSION := "0.15.3.cvs"
 export EM8300_DIR := $(PWD)/..
 
 build:

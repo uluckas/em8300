@@ -3,6 +3,31 @@
 	  modules/Makefile:
 	New development version.
 
+	* include/linux/em8300.h,
+	  modules/EM8300.conf,
+	  modules/Makefile,
+	  modules/em8300_alsa.c,
+	  modules/em8300_alsa.h,
+	  modules/em8300_audio.c,
+	  modules/em8300_compat24.h,
+	  modules/em8300_devfs.c,
+	  modules/em8300_devfs.h,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_ioctl32.c,
+	  modules/em8300_ioctl32.h,
+	  modules/em8300_main.c,
+	  modules/em8300_misc.c,
+	  modules/em8300_procfs.c,
+	  modules/em8300_procfs.h,
+	  modules/em8300_registration.c,
+	  modules/em8300_registration.h,
+	  modules/em8300_sysfs.c,
+	  modules/em8300_sysfs.h,
+	  modules/em8300_ucode.c,
+	  modules/em8300_udev.c,
+	  modules/em8300_udev.h:
+	Merge the ALSA branch into MAIN.
+
 2006-04-09  Nicolas Boullis  <nboullis@debian.org>
 	* configure.in,
 	  modules/Makefile:

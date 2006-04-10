@@ -28,6 +28,16 @@ KERNEL_LOCATION := /lib/modules/$(shell uname -r)/build
 # especially for using 2.8.x modules with 2.4.x kernels.)
 #export EM8300_I2C_LOCATION := /usr/src/modules/i2c
 #export EM8300_I2C_FORCE_API := NEW
+
+# This Makefile will try to guess the best style of audio devices 
+# available to you. You can also force the style you prefer by forcing
+# the CONFIG_EM8300_AUDIO variable to:
+#   ALSA        for ALSA-style device
+#   OSS         for OSS-style device + OSS-like /dev/em8300_ma-* device
+#   OSSLIKE     for OSS-like /dev/em8300_ma-* device
+#   NONE        for none
+#export CONFIG_EM8300_AUDIO := OSSLIKE
+
 export EM8300_VERSION := "0.15.3.cvs"
 export EM8300_DIR := $(PWD)/..
 
@@ -68,13 +78,25 @@ ifeq ($(ARCH),x86_64)
 BUILD_IOCTL32 := $(CONFIG_IA32_EMULATION)
 endif
 
+ifndef CONFIG_EM8300_AUDIO
+ifneq ($(findstring _$(CONFIG_SND)_,_y_m_),)
+CONFIG_EM8300_AUDIO := ALSA
+else
+ifneq ($(findstring _$(CONFIG_SOUND)_,_y_m_),)
+CONFIG_EM8300_AUDIO := OSS
+else
+CONFIG_EM8300_AUDIO := OSSLIKE
+endif
+endif
+endif
+
 EXTRA_CFLAGS := -I$(EM8300_DIR)/include \
 		-DEM8300_VIDEOMODE_DEFAULT=EM8300_VIDEOMODE_PAL \
 		-DEM8300_AUDIOMODE_DEFAULT=EM8300_AUDIOMODE_ANALOG \
 		-DEM8300_VERSION=\"$(EM8300_VERSION)\" \
 		-DCONFIG_ADV717X_PIXELPORT16BIT -DCONFIG_ADV717X_PIXELPORTPAL \
 		-DCONFIG_EM8300_DICOMPAL -DCONFIG_EM8300_DICOMFIX \
-		-DCONFIG_EM8300_DICOMCTRL
+		-DCONFIG_EM8300_DICOMCTRL -DCONFIG_EM8300_AUDIO_$(CONFIG_EM8300_AUDIO)
 ifeq ($(BUILD_IOCTL32),y)
 EXTRA_CFLAGS += -DCONFIG_EM8300_IOCTL32=1
 endif
@@ -93,7 +115,8 @@ endif
 em8300-objs := em8300_main.o em8300_i2c.o em8300_audio.o em8300_fifo.o \
 		em8300_video.o em8300_misc.o em8300_dicom.o em8300_ucode.o \
 		em8300_ioctl.o em8300_spu.o em9010.o em8300_registration.o \
-		em8300_procfs.o em8300_devfs.o em8300_udev.o em8300_sysfs.o
+		em8300_procfs.o em8300_devfs.o em8300_udev.o em8300_sysfs.o \
+		em8300_alsa.o
 ifeq ($(BUILD_IOCTL32),y)
 em8300-objs += em8300_ioctl32.o
 endif

@@ -25,6 +25,7 @@
 #include "em8300_devfs.h"
 #include "em8300_udev.h"
 #include "em8300_sysfs.h"
+#include "em8300_alsa.h"
 
 static struct em8300_registrar_s *registrars[] =
 {
@@ -32,6 +33,7 @@ static struct em8300_registrar_s *registrars[] =
 	&em8300_devfs_registrar,
 	&em8300_udev_registrar,
 	&em8300_sysfs_registrar,
+	&em8300_alsa_registrar,
 	NULL
 };
 
@@ -105,5 +107,32 @@ void em8300_unregister_driver(void)
 	for (i = 0; registrars[i]; i++) {
 		if (registrars[i]->unregister_driver)
 			registrars[i]->unregister_driver();
+	}
+}
+
+void em8300_audio_interrupt(struct em8300_s *em)
+{
+	int i;
+	for (i = 0; registrars[i]; i++) {
+		if (registrars[i]->audio_interrupt)
+			registrars[i]->audio_interrupt(em);
+	}
+}
+
+void em8300_video_interrupt(struct em8300_s *em)
+{
+	int i;
+	for (i = 0; registrars[i]; i++) {
+		if (registrars[i]->video_interrupt)
+			registrars[i]->video_interrupt(em);
+	}
+}
+
+void em8300_vbl_interrupt(struct em8300_s *em)
+{
+	int i;
+	for (i = 0; registrars[i]; i++) {
+		if (registrars[i]->vbl_interrupt)
+			registrars[i]->vbl_interrupt(em);
 	}
 }

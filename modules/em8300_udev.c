@@ -108,6 +108,9 @@ struct em8300_registrar_s em8300_udev_registrar =
 	.unregister_card      = &em8300_udev_unregister_card,
 	.preunregister_driver = NULL,
 	.unregister_driver    = &em8300_udev_unregister_driver,
+	.audio_interrupt      = NULL,
+	.video_interrupt      = NULL,
+	.vbl_interrupt        = NULL,
 };
 
 #else /* LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,2) */
@@ -122,6 +125,9 @@ struct em8300_registrar_s em8300_udev_registrar =
 	.unregister_card      = NULL,
 	.preunregister_driver = NULL,
 	.unregister_driver    = NULL,
+	.audio_interrupt      = NULL,
+	.video_interrupt      = NULL,
+	.vbl_interrupt        = NULL,
 };
 
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,2) */

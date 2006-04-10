@@ -30,8 +30,9 @@ int em8300_waitfor(struct em8300_s *em, int reg, int val, int mask)
 		if ((readl(&em->mem[reg]) & mask) == val) {
 			return 0;
 		}
-		current->state = TASK_INTERRUPTIBLE;
-		schedule_timeout(HZ/100);
+//		current->state = TASK_INTERRUPTIBLE;
+//		schedule_timeout(HZ/100);
+		mdelay(10);
 	}
 
 	return -ETIME;
@@ -45,8 +46,9 @@ int em8300_waitfor_not(struct em8300_s *em, int reg, int val, int mask)
 		if ((readl(&em->mem[reg]) & mask) != val) {
 			return 0;
 		}
-		current->state = TASK_INTERRUPTIBLE;
-		schedule_timeout(HZ/100);
+//		current->state = TASK_INTERRUPTIBLE;
+//		schedule_timeout(HZ/100);
+		mdelay(10);
 	}
 
 	return -ETIME;

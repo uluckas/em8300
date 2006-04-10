@@ -171,6 +171,9 @@ struct em8300_registrar_s em8300_procfs_registrar =
 	.unregister_card      = &em8300_procfs_unregister_card,
 	.preunregister_driver = NULL,
 	.unregister_driver    = &em8300_procfs_unregister_driver,
+	.audio_interrupt      = NULL,
+	.video_interrupt      = NULL,
+	.vbl_interrupt        = NULL,
 };
 
 #else /* CONFIG_PROC_FS */
@@ -185,6 +188,9 @@ struct em8300_registrar_s em8300_procfs_registrar =
 	.unregister_card      = NULL,
 	.preunregister_driver = NULL,
 	.unregister_driver    = NULL,
+	.audio_interrupt      = NULL,
+	.video_interrupt      = NULL,
+	.vbl_interrupt        = NULL,
 };
 
 #endif /* CONFIG_PROC_FS */

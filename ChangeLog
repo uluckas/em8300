@@ -1,3 +1,7 @@
+2006-04-24  Ville Skyttä  <scop@users.sourceforge.net>
+	* Makefile.am:
+	Fix "make install" for firmwareless tarballs.
+
 2006-04-10  Nicolas Boullis  <nboullis@debian.org>
 	* configure.in,
 	  modules/Makefile:

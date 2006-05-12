@@ -18,7 +18,11 @@
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include <linux/config.h>
+#include <linux/version.h>
 #include <linux/module.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+#include <linux/moduleparam.h>
+#endif
 #include <linux/init.h>
 #include <linux/delay.h>
 #include <linux/errno.h>
@@ -36,7 +40,6 @@
 #include <linux/types.h>
 
 #include <linux/videodev.h>
-#include <linux/version.h>
 #include <asm/uaccess.h>
 
 #include <linux/i2c.h>
@@ -63,7 +66,11 @@ int pixelport_16bit[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
 int pixelport_16bit[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 MODULE_PARM(pixelport_16bit, "1-" __MODULE_STRING(EM8300_MAX) "i");
+#else
+module_param_array(pixelport_16bit, bool, NULL, 0444);
+#endif
 MODULE_PARM_DESC(pixelport_16bit, "Changes how the ADV717x expects its input data to be formatted. If the colours on the TV appear green, try changing this. Defaults to 1.");
 
 #ifdef CONFIG_ADV717X_PIXELPORTPAL
@@ -71,25 +78,71 @@ int pixelport_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
 int pixelport_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 MODULE_PARM(pixelport_other_pal, "1-" __MODULE_STRING(EM8300_MAX) "i");
+#else
+module_param_array(pixelport_other_pal, bool, NULL, 0444);
+#endif
 MODULE_PARM_DESC(pixelport_other_pal, "If this is set to 1, then the pixelport setting is swapped for PAL from the setting given with pixelport_16bit. Defaults to 1.");
 
 int pixeldata_adjust_ntsc[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 MODULE_PARM(pixeldata_adjust_ntsc, "1-" __MODULE_STRING(EM8300_MAX) "i");
+#else
+module_param_array(pixeldata_adjust_ntsc, int, NULL, 0444);
+#endif
 MODULE_PARM_DESC(pixeldata_adjust_ntsc, "If your red and blue colours are swapped in NTSC, try setting this to 0,1,2 or 3. Defaults to 1.");
 
 int pixeldata_adjust_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 MODULE_PARM(pixeldata_adjust_pal, "1-" __MODULE_STRING(EM8300_MAX) "i");
+#else
+module_param_array(pixeldata_adjust_pal, int, NULL, 0444);
+#endif
 MODULE_PARM_DESC(pixeldata_adjust_pal, "If your red and blue colours are swapped in PAL, try setting this to 0,1,2 or 3. Defaults to 1.");
 
-
 static int color_bars[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 MODULE_PARM(color_bars, "1-" __MODULE_STRING(EM8300_MAX) "i");
+#else
+module_param_array(color_bars, bool, NULL, 0444);
+#endif
 MODULE_PARM_DESC(color_bars, "If you set this to 1 a set of color bars will be displayed on your screen (used for testing if the chip is working). Defaults to 0.");
 
-static int output_mode_nr[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
+typedef enum {
+	MODE_COMPOSITE_SVIDEO,
+	MODE_SVIDEO,
+	MODE_COMPOSITE,
+	MODE_COMPOSITE_PSEUDO_SVIDEO,
+	MODE_PSEUDO_SVIDEO,
+	MODE_COMPOSITE_OVER_SVIDEO,
+	MODE_YUV,
+	MODE_RGB,
+	MODE_RGB_NOSYNC,
+	MODE_MAX
+} output_mode_t;
+
+struct output_conf_s {
+	int component;
+	int yuv;
+	int euroscart;
+	int progressive;
+	int sync_all;
+	int dacA;
+	int dacB;
+	int dacC;
+	int dacD;
+};
+
+#include "encoder_output_mode.h"
+
+static output_mode_t output_mode_nr[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = MODE_COMPOSITE_SVIDEO };
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 static char *output_mode[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = NULL };
 MODULE_PARM(output_mode, "1-" __MODULE_STRING(EM8300_MAX) "s");
+#else
+module_param_array_named(output_mode, output_mode_nr, output_mode_t, NULL, 0444);
+#endif
 MODULE_PARM_DESC(output_mode, "Specifies the output mode to use for the ADV717x video encoder. See the README-modoptions file for the list of mode names to use. Default is SVideo + composite (\"comp+svideo\").");
 
 
@@ -141,42 +194,16 @@ static int adv717x_attach_adapter(struct i2c_adapter *adapter);
 int adv717x_detach_client(struct i2c_client *client);
 int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg);
 
-typedef enum {
-	MODE_COMPOSITE_SVIDEO,
-	MODE_SVIDEO,
-	MODE_COMPOSITE,
-	MODE_COMPOSITE_PSEUDO_SVIDEO,
-	MODE_PSEUDO_SVIDEO,
-	MODE_COMPOSITE_OVER_SVIDEO,
-	MODE_YUV,
-	MODE_RGB,
-	MODE_RGB_NOSYNC,
-	MODE_MAX
-} OutputModes;
-
-typedef struct {
-	char const * name;
-	int component;
-	int yuv;
-	int euroscart;
-	int progressive;
-	int sync_all;
-	int dacA;
-	int dacB;
-	int dacC;
-	int dacD;
-} OutputModeInfo;
-
-OutputModeInfo ModeInfo[] = {
-	[ MODE_COMPOSITE_SVIDEO ] =		{ "comp+svideo" , 0, 0, 0, 0, 0, 1, 0, 0, 0 },
-	[ MODE_SVIDEO ] =			{ "svideo"      , 0, 0, 0, 0, 0, 1, 1, 0, 0 },
-	[ MODE_COMPOSITE ] =			{ "comp"        , 0, 0, 0, 0, 0, 1, 0, 1, 1 },
-	[ MODE_COMPOSITE_PSEUDO_SVIDEO ] =	{ "comp+psvideo", 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-	[ MODE_PSEUDO_SVIDEO ] =		{ "psvideo"     , 0, 0, 1, 0, 0, 1, 1, 0, 0 },
-	[ MODE_COMPOSITE_OVER_SVIDEO ] =	{ "composvideo" , 0, 0, 1, 0, 0, 1, 1, 1, 0 },
-	[ MODE_YUV ] =				{ "yuv"         , 1, 1, 0, 0, 0, 1, 0, 0, 0 },
-	[ MODE_RGB ] =				{ "rgbs"        , 1, 0, 0, 0, 1, 0, 0, 0, 0 },
-	[ MODE_RGB_NOSYNC ] =			{ "rgb"         , 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+static const mode_info_t mode_info[] = {
+	[ MODE_COMPOSITE_SVIDEO ] =		{ "comp+svideo" , { 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+	[ MODE_SVIDEO ] =			{ "svideo"      , { 0, 0, 0, 0, 0, 1, 1, 0, 0 } },
+	[ MODE_COMPOSITE ] =			{ "comp"        , { 0, 0, 0, 0, 0, 1, 0, 1, 1 } },
+	[ MODE_COMPOSITE_PSEUDO_SVIDEO ] =	{ "comp+psvideo", { 0, 0, 1, 0, 0, 1, 0, 0, 0 } },
+	[ MODE_PSEUDO_SVIDEO ] =		{ "psvideo"     , { 0, 0, 1, 0, 0, 1, 1, 0, 0 } },
+	[ MODE_COMPOSITE_OVER_SVIDEO ] =	{ "composvideo" , { 0, 0, 1, 0, 0, 1, 1, 1, 0 } },
+	[ MODE_YUV ] =				{ "yuv"         , { 1, 1, 0, 0, 0, 1, 0, 0, 0 } },
+	[ MODE_RGB ] =				{ "rgbs"        , { 1, 0, 0, 0, 1, 0, 0, 0, 0 } },
+	[ MODE_RGB_NOSYNC ] =			{ "rgb"         , { 1, 0, 0, 0, 0, 0, 0, 0, 0 } },
 };
 
 #define CHIP_ADV7175A 1
@@ -187,7 +214,7 @@ struct adv717x_data_s {
 	int mode;
 	int bars;
 	int enableoutput;
-	OutputModes out_mode;
+	output_mode_t out_mode;
 	int pp_pal;
 	int pp_ntsc;
 	int pd_adj_pal;
@@ -380,43 +407,43 @@ static int adv717x_update(struct i2c_client *client)
 	    case CHIP_ADV7175A:
 		/* ADV7175/6A component out: MR06 (register 0, bit 6) */
 		SET_REG(tmpconfig[ADV717X_REG_MR0], 6,
-				ModeInfo[data->out_mode].component);
+				mode_info[data->out_mode].conf.component);
 		/* ADV7175/6A YUV out: MR26 (register 13, bit 6) */
 		SET_REG(tmpconfig[ADV7175_REG_MR2], 6,
-				ModeInfo[data->out_mode].yuv);
+				mode_info[data->out_mode].conf.yuv);
 		/* ADV7175/6A EuroSCART: MR37 (register 18, bit 7) */
 		SET_REG(tmpconfig[ADV7175_REG_MR3], 7,
-			ModeInfo[data->out_mode].euroscart);
+			mode_info[data->out_mode].conf.euroscart);
 		/* ADV7175/6A RGB sync: MR05 (register 0, bit 5) */
 		SET_REG(tmpconfig[ADV717X_REG_MR0], 5,
-				ModeInfo[data->out_mode].sync_all);
+				mode_info[data->out_mode].conf.sync_all);
 		break;
 	    case CHIP_ADV7170:
 		/* ADV7170/1 component out: MR40 (register 4, bit 0) */
 		SET_REG(tmpconfig[ADV7170_REG_MR4], 0,
-				ModeInfo[data->out_mode].component);
+				mode_info[data->out_mode].conf.component);
 		/* ADV7170/1 YUV out: MR41 (register 4, bit 1) */
 		SET_REG(tmpconfig[ADV7170_REG_MR4], 1,
-				ModeInfo[data->out_mode].yuv);
+				mode_info[data->out_mode].conf.yuv);
 		/* ADV7170/1 EuroSCART: MR33 (register 3, bit 3) */
 		SET_REG(tmpconfig[ADV7170_REG_MR3], 3,
-			ModeInfo[data->out_mode].euroscart);
+			mode_info[data->out_mode].conf.euroscart);
 		/* ADV7170/1 RGB sync: MR42 (register 4, bit 2) */
 		SET_REG(tmpconfig[ADV7170_REG_MR4], 2,
-				ModeInfo[data->out_mode].sync_all);
+				mode_info[data->out_mode].conf.sync_all);
 		break;
 	}
 	/* ADV7170/1/5A/6A non-interlace: MR10 (register 1, bit 0) */
 	SET_REG(tmpconfig[ADV717X_REG_MR1], 0,
-			ModeInfo[data->out_mode].progressive);
+			mode_info[data->out_mode].conf.progressive);
 	/* ADV7170/1/5A/6A DAC A control: MR16 (register 1, bit 6) */
-	SET_REG(tmpconfig[ADV717X_REG_MR1], 6, ModeInfo[data->out_mode].dacA);
+	SET_REG(tmpconfig[ADV717X_REG_MR1], 6, mode_info[data->out_mode].conf.dacA);
 	/* ADV7170/1/5A/6A DAC B control: MR15 (register 1, bit 5) */
-	SET_REG(tmpconfig[ADV717X_REG_MR1], 5, ModeInfo[data->out_mode].dacB);
+	SET_REG(tmpconfig[ADV717X_REG_MR1], 5, mode_info[data->out_mode].conf.dacB);
 	/* ADV7170/1/5A/6A DAC C control: MR13 (register 1, bit 3) */
-	SET_REG(tmpconfig[ADV717X_REG_MR1], 3, ModeInfo[data->out_mode].dacC);
+	SET_REG(tmpconfig[ADV717X_REG_MR1], 3, mode_info[data->out_mode].conf.dacC);
 	/* ADV7170/1/5A/6A DAC D control: MR14 (register 1, bit 4) */
-	SET_REG(tmpconfig[ADV717X_REG_MR1], 4, ModeInfo[data->out_mode].dacD);
+	SET_REG(tmpconfig[ADV717X_REG_MR1], 4, mode_info[data->out_mode].conf.dacD);
 
 	if (!data->enableoutput) {
 		tmpconfig[ADV717X_REG_MR1] |= 0x7f;
@@ -683,18 +710,20 @@ int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
 
 int __init adv717x_init(void)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 	int i;
 	for (i=0; i < EM8300_MAX; i++)
 		if ((output_mode[i]) && (output_mode[i][0])) {
 			int j;
 			for (j=0; j < MODE_MAX; j++)
-				if (strcmp(output_mode[i], ModeInfo[j].name) == 0) {
+				if (strcmp(output_mode[i], mode_info[j].name) == 0) {
 					output_mode_nr[i] = j;
 					break;
 				}
 			if (j == MODE_MAX)
 				printk(KERN_WARNING "adv717x.o: Unknown output mode: %s\n", output_mode[i]);
 		}
+#endif /* ! CONFIG_MODULEPARAM */
 	//request_module("i2c-algo-bit");
 	return i2c_add_driver(&adv717x_driver);
 }

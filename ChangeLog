@@ -1,3 +1,12 @@
+2006-05-12  Nicolas Boullis  <nboullis@debian.org>
+	* modules/adv717x.c,
+	  modules/bt865.c,
+	  modules/em8300_main.c,
+	  modules/encoder_output_mode.h:
+	Convert the module arguments declarations from the old MODULE_PARM
+	interface to the (not so) new module_param one. The old interface
+	should not be supported anymore with 2.6.17 kernels.
+
 2006-04-24  Ville Skyttä  <scop@users.sourceforge.net>
 	* Makefile.am:
 	Fix "make install" for firmwareless tarballs.

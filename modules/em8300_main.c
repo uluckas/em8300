@@ -20,6 +20,9 @@
 #include <linux/config.h>
 #include <linux/version.h>
 #include <linux/module.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+#include <linux/moduleparam.h>
+#endif
 #include <linux/delay.h>
 #include <linux/init.h>
 #include <linux/errno.h>
@@ -78,8 +81,12 @@ MODULE_VERSION(EM8300_VERSION);
 
 EXPORT_NO_SYMBOLS;
 
-static unsigned int use_bt865[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
+static int use_bt865[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 MODULE_PARM(use_bt865, "1-" __MODULE_STRING(EM8300_MAX) "i");
+#else
+module_param_array(use_bt865, bool, NULL, 0444);
+#endif
 MODULE_PARM_DESC(use_bt865, "Set this to 1 if you have a bt865. It changes some internal register values. Defaults to 0.");
 
 /*
@@ -90,7 +97,11 @@ int dicom_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
 int dicom_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 MODULE_PARM(dicom_other_pal, "1-" __MODULE_STRING(EM8300_MAX) "i");
+#else
+module_param_array(dicom_other_pal, bool, NULL, 0444);
+#endif
 MODULE_PARM_DESC(dicom_other_pal, "If this is set, then some internal register values are swapped for PAL and NTSC. Defaults to 1.");
 
 #ifdef CONFIG_EM8300_DICOMFIX
@@ -98,7 +109,11 @@ int dicom_fix[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
 int dicom_fix[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 MODULE_PARM(dicom_fix, "1-" __MODULE_STRING(EM8300_MAX) "i");
+#else
+module_param_array(dicom_fix, bool, NULL, 0444);
+#endif
 MODULE_PARM_DESC(dicom_fix, "If this is set then some internal register values are changed. Fixes green screen problems for some. Defaults to 1.");
 
 #ifdef CONFIG_EM8300_DICOMCTRL
@@ -106,7 +121,11 @@ int dicom_control[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
 int dicom_control[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 MODULE_PARM(dicom_control, "1-" __MODULE_STRING(EM8300_MAX) "i");
+#else
+module_param_array(dicom_control, bool, NULL, 0444);
+#endif
 MODULE_PARM_DESC(dicom_control, "If this is set then some internal register values are changed. Fixes green screen problems for some. Defaults to 1.");
 
 #ifdef CONFIG_EM8300_UCODETIMEOUT
@@ -114,7 +133,11 @@ int bt865_ucode_timeout[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
 int bt865_ucode_timeout[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 MODULE_PARM(bt865_ucode_timeout, "1-" __MODULE_STRING(EM8300_MAX) "i");
+#else
+module_param_array(bt865_ucode_timeout, bool, NULL, 0444);
+#endif
 MODULE_PARM_DESC(bt865_ucode_timeout, "Set this to 1 if you have a bt865 and get timeouts when uploading the microcode. Defaults to 0.");
 
 #ifdef CONFIG_EM8300_LOOPBACK
@@ -122,11 +145,19 @@ int activate_loopback[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
 int activate_loopback[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 MODULE_PARM(activate_loopback, "1-" __MODULE_STRING(EM8300_MAX) "i");
+#else
+module_param_array(activate_loopback, bool, NULL, 0444);
+#endif
 MODULE_PARM_DESC(activate_loopback, "If you lose video after loading the modules or uploading the microcode set this to 1. Defaults to 0.");
 
 int major = EM8300_MAJOR;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 MODULE_PARM(major, "i");
+#else
+module_param(major, int, 0444);
+#endif
 MODULE_PARM_DESC(major, "Major number used for the devices. "
 		 "0 means automatically assigned. "
 		 "Defaults to " __MODULE_STRING(EM8300_MAJOR) ".");
@@ -137,7 +168,11 @@ static struct em8300_s em8300[EM8300_MAX];
 
 #ifdef CONFIG_EM8300_AUDIO_OSS
 int dsp_num[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 MODULE_PARM(dsp_num, "1-" __MODULE_STRING(EM8300_MAX) "i");
+#else
+module_param_array(dsp_num, int, NULL, 0444);
+#endif
 MODULE_PARM_DESC(dsp_num, "The /dev/dsp number to assign to the card. -1 for automatic (this is the default).");
 
 static int dsp_num_table[16];

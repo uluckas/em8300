@@ -3,6 +3,9 @@
 	Improve the ALSA support, by mimicking the functions in
 	pcm-indirect.h.
 
+	* modules/em8300_alsa.c:
+	Kill the old snd_magic stuff.
+
 2006-05-12  Nicolas Boullis  <nboullis@debian.org>
 	* modules/adv717x.c,
 	  modules/bt865.c,

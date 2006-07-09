@@ -33,16 +33,6 @@
 
 #include "em8300_reg.h"
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,9)
-#define snd_magic_kcalloc(type, extra, flags) (type *) kcalloc(1, sizeof(type) + extra, flags)
-#define snd_magic_kmalloc(type, extra, flags) (type *) kmalloc(sizeof(type) + extra, flags)
-#define snd_magic_cast(type, ptr, retval) (type *) ptr
-#define snd_magic_cast1(type, ptr, retval) snd_magic_cast(type, ptr, retval)
-#define snd_magic_kfree kfree
-#endif
-
-#define chip_t em8300_alsa_t
-
 typedef struct snd_em8300_pcm_indirect {
 	unsigned int hw_buffer_size;    /* Byte size of hardware buffer */
 	unsigned int hw_queue_size;     /* Max queue size of hw buffer (0 = buffer size) */
@@ -68,8 +58,6 @@ typedef struct {
 	struct semaphore lock;
 	snd_em8300_pcm_indirect_t indirect;
 } em8300_alsa_t;
-
-#define em8300_alsa_t_magic 0x11058300
 
 #define EM8300_ALSA_ANALOG_DEVICENUM 0
 #define EM8300_ALSA_DIGITAL_DEVICENUM 1
@@ -361,7 +349,7 @@ static snd_pcm_ops_t snd_em8300_playback_ops = {
 
 static void snd_em8300_pcm_analog_free(snd_pcm_t *pcm)
 {
-	em8300_alsa_t *em8300_alsa = snd_magic_cast(em8300_alsa_t, pcm->private_data, return);
+	em8300_alsa_t *em8300_alsa = (em8300_alsa_t *)(pcm->private_data);
 	em8300_alsa->pcm_analog = NULL;
 	snd_pcm_lib_preallocate_free_for_all(pcm);
 }
@@ -395,7 +383,7 @@ static int snd_em8300_pcm_analog(em8300_alsa_t *em8300_alsa)
 
 static void snd_em8300_pcm_digital_free(snd_pcm_t *pcm)
 {
-	em8300_alsa_t *em8300_alsa = snd_magic_cast(em8300_alsa_t, pcm->private_data, return);
+	em8300_alsa_t *em8300_alsa = (em8300_alsa_t *)(pcm->private_data);
 	em8300_alsa->pcm_digital = NULL;
 	snd_pcm_lib_preallocate_free_for_all(pcm);
 }
@@ -429,13 +417,13 @@ static int snd_em8300_pcm_digital(em8300_alsa_t *em8300_alsa)
 
 static int snd_em8300_free(em8300_alsa_t *em8300_alsa)
 {
-	snd_magic_kfree(em8300_alsa);
+	kfree(em8300_alsa);
 	return 0;
 }
 
 static int snd_em8300_dev_free(snd_device_t *device)
 {
-	em8300_alsa_t *em8300_alsa = snd_magic_cast(em8300_alsa_t, device->device_data, return -ENXIO);
+	em8300_alsa_t *em8300_alsa = (em8300_alsa_t *)(device->device_data);
 	return snd_em8300_free(em8300_alsa);
 }
 
@@ -450,7 +438,7 @@ static int snd_em8300_create(snd_card_t *card, struct em8300_s *em, em8300_alsa_
 	if (rem8300_alsa)
 		*rem8300_alsa = NULL;
 
-	em8300_alsa = snd_magic_kcalloc(em8300_alsa_t, 0, GFP_KERNEL);
+	em8300_alsa = (em8300_alsa_t *)kcalloc(1, sizeof(em8300_alsa_t), GFP_KERNEL);
 	if (em8300_alsa == NULL)
 		return -ENOMEM;
 
@@ -520,7 +508,7 @@ static void em8300_alsa_disable_card(struct em8300_s *em)
 void em8300_alsa_audio_interrupt(struct em8300_s *em)
 {
 	if (em->alsa_card) {
-		em8300_alsa_t *em8300_alsa = snd_magic_cast(em8300_alsa_t, em->alsa_card->private_data, return -ENXIO);
+		em8300_alsa_t *em8300_alsa = (em8300_alsa_t *)(em->alsa_card->private_data);
 		if (em8300_alsa->substream) {
 //			printk("calling snd_pcm_period_elapsed\n");
 			snd_pcm_period_elapsed(em8300_alsa->substream);

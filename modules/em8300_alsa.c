@@ -1,7 +1,7 @@
 /* $Id$
  *
  * em8300_alsa.c -- alsa interface to the audio part of the em8300 chip
- * Copyright (C) 2004 Nicolas Boullis <nboullis@debian.org>
+ * Copyright (C) 2004-2006 Nicolas Boullis <nboullis@debian.org>
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -43,6 +43,22 @@
 
 #define chip_t em8300_alsa_t
 
+typedef struct snd_em8300_pcm_indirect {
+	unsigned int hw_buffer_size;    /* Byte size of hardware buffer */
+	unsigned int hw_queue_size;     /* Max queue size of hw buffer (0 = buffer size) */
+	unsigned int hw_data;   /* Offset to next dst (or src) in hw ring buffer */
+	unsigned int hw_io;     /* Ring buffer hw pointer */
+	int hw_ready;           /* Bytes ready for play (or captured) in hw ring buffer */
+	unsigned int sw_buffer_size;    /* Byte size of software buffer */
+	unsigned int sw_data;   /* Offset to next dst (or src) in sw ring buffer */
+	unsigned int sw_io;     /* Current software pointer in bytes */
+	int sw_ready;           /* Bytes ready to be transferred to/from hw */
+	snd_pcm_uframes_t appl_ptr;     /* Last seen appl_ptr */
+} snd_em8300_pcm_indirect_t;
+
+typedef void (*snd_em8300_pcm_indirect_copy_t)(snd_pcm_substream_t *substream,
+					       snd_em8300_pcm_indirect_t *rec, size_t bytes);
+
 typedef struct {
 	struct em8300_s *em;
 	snd_card_t *card;
@@ -50,7 +66,7 @@ typedef struct {
 	snd_pcm_t *pcm_digital;
 	snd_pcm_substream_t *substream;
 	struct semaphore lock;
-	int volume[2];
+	snd_em8300_pcm_indirect_t indirect;
 } em8300_alsa_t;
 
 #define em8300_alsa_t_magic 0x11058300
@@ -58,12 +74,15 @@ typedef struct {
 #define EM8300_ALSA_ANALOG_DEVICENUM 0
 #define EM8300_ALSA_DIGITAL_DEVICENUM 1
 
+#define EM8300_BLOCK_SIZE 4096
+#define EM8300_MID_BUFFER_SIZE (1024*1024)
+
 static snd_pcm_hardware_t snd_em8300_playback_hw = {
 	.info = (
 		 SNDRV_PCM_INFO_MMAP |
 		 SNDRV_PCM_INFO_INTERLEAVED |
-		 //		 SNDRV_PCM_INFO_BLOCK_TRANSFER |
-		 //		 SNDRV_PCM_INFO_MMAP_VALID |
+//		 SNDRV_PCM_INFO_BLOCK_TRANSFER |
+		 SNDRV_PCM_INFO_MMAP_VALID |
 		 SNDRV_PCM_INFO_PAUSE |
 		 0),
 	.rates = SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000,
@@ -71,6 +90,11 @@ static snd_pcm_hardware_t snd_em8300_playback_hw = {
 	.rate_max = 48000,
 	.channels_min = 2,
 	.channels_max = 2,
+	.buffer_bytes_max = EM8300_MID_BUFFER_SIZE,
+	.period_bytes_min = EM8300_BLOCK_SIZE,
+	.period_bytes_max = EM8300_BLOCK_SIZE,
+	.periods_min = 2,
+	.periods_max = EM8300_MID_BUFFER_SIZE / EM8300_BLOCK_SIZE,
 };
 
 static int snd_em8300_playback_open(snd_pcm_substream_t *substream)
@@ -95,11 +119,6 @@ static int snd_em8300_playback_open(snd_pcm_substream_t *substream)
 		snd_em8300_playback_hw.formats = SNDRV_PCM_FMTBIT_S16_BE;
 	else
 		snd_em8300_playback_hw.formats = SNDRV_PCM_FMTBIT_IEC958_SUBFRAME_BE;
-	snd_em8300_playback_hw.periods_min = read_ucregister(MA_PCISize) / 3;
-	snd_em8300_playback_hw.periods_max = read_ucregister(MA_PCISize) / 3;
-	snd_em8300_playback_hw.period_bytes_min = 4096;
-	snd_em8300_playback_hw.period_bytes_max = 8192;
-	snd_em8300_playback_hw.buffer_bytes_max = snd_em8300_playback_hw.periods_max * snd_em8300_playback_hw.period_bytes_max;
 	runtime->hw = snd_em8300_playback_hw;
 
 //	printk("snd_em8300_playback_open called.\n");
@@ -128,7 +147,6 @@ static int snd_em8300_playback_close(snd_pcm_substream_t *substream)
 	em8300_alsa_t *em8300_alsa = snd_pcm_substream_chip(substream);
 
 	em8300_alsa->substream = NULL;
-//	To be continued.
 //	printk("snd_em8300_playback_close called.\n");
 	return 0;
 }
@@ -150,8 +168,6 @@ static int snd_em8300_pcm_prepare(snd_pcm_substream_t *substream)
 	em8300_alsa_t *em8300_alsa = snd_pcm_substream_chip(substream);
 	struct em8300_s *em = em8300_alsa->em;
 	snd_pcm_runtime_t *runtime = substream->runtime;
-	int i;
-	dma_addr_t phys;
 //	printk("snd_em8300_pcm_prepare called.\n");
 
 	em->clockgen &= ~CLOCKGEN_SAMPFREQ_MASK;
@@ -174,33 +190,36 @@ static int snd_em8300_pcm_prepare(snd_pcm_substream_t *substream)
 	}
 	em8300_clockgen_write(em, em->clockgen);
 
-	for (i = 0; i < runtime->periods; i++) {
-		phys = runtime->dma_addr + i * frames_to_bytes(runtime, runtime->period_size);
-		writel(phys >> 16, ((uint32_t *)ucregister_ptr(MA_PCIStart))+3*i);
-		writel(phys & 0xffff, ((uint32_t *)ucregister_ptr(MA_PCIStart))+3*i+1);
-		writel(frames_to_bytes(runtime, runtime->period_size), ((uint32_t *)ucregister_ptr(MA_PCIStart))+3*i+2);
-	}
+	memset(&em8300_alsa->indirect, 0, sizeof(em8300_alsa->indirect));
+	em8300_alsa->indirect.hw_buffer_size =
+		(read_ucregister(MA_BuffSize_Hi) << 16)
+		| read_ucregister(MA_BuffSize);
+	em8300_alsa->indirect.sw_buffer_size =
+		snd_pcm_lib_buffer_bytes(substream);
+
 	write_ucregister(MA_PCIRdPtr, ucregister(MA_PCIStart) - 0x1000);
-	write_ucregister(MA_PCIWrPtr, ucregister(MA_PCIStart) - 0x1000 + 3 * (runtime->periods - 1));
+	write_ucregister(MA_PCIWrPtr, ucregister(MA_PCIStart) - 0x1000);
 
 	return 0;
 }
+
+static int snd_em8300_pcm_ack(snd_pcm_substream_t *substream);
 
 static int snd_em8300_pcm_trigger(snd_pcm_substream_t *substream, int cmd)
 {
 	em8300_alsa_t *em8300_alsa = snd_pcm_substream_chip(substream);
 	struct em8300_s *em = em8300_alsa->em;
-	snd_pcm_runtime_t *runtime = substream->runtime;
+//	snd_pcm_runtime_t *runtime = substream->runtime;
 //	printk("snd_em8300_pcm_trigger(%d) called.\n", cmd);
 	switch (cmd) {
 	case SNDRV_PCM_TRIGGER_START:
+		em8300_alsa->indirect.hw_io =
+		em8300_alsa->indirect.hw_data =
+			((read_ucregister(MA_Rdptr_Hi) << 16)
+			| read_ucregister(MA_Rdptr)) & ~3;
+		snd_em8300_pcm_ack(substream);
 		em->irqmask |= IRQSTATUS_AUDIO_FIFO;
 		write_ucregister(Q_IrqMask, em->irqmask);
-		{
-			int readindex = ((int)read_ucregister(MA_PCIRdPtr) - (ucregister(MA_PCIStart) - 0x1000)) / 3;
-			int writeindex = (readindex + runtime->periods - 1) % runtime->periods;
-			write_ucregister(MA_PCIWrPtr, ucregister(MA_PCIStart) - 0x1000 + writeindex * 3);
-		}
 		mpegaudio_command(em, MACOMMAND_PLAY);
 		break;
 	case SNDRV_PCM_TRIGGER_STOP:
@@ -221,17 +240,112 @@ static int snd_em8300_pcm_trigger(snd_pcm_substream_t *substream, int cmd)
 }
 
 
-static snd_pcm_uframes_t snd_em8300_pcm_pointer(snd_pcm_substream_t *substream)
+static inline snd_pcm_uframes_t
+snd_em8300_pcm_indirect_playback_pointer(snd_pcm_substream_t *substream,
+					 snd_em8300_pcm_indirect_t *rec, unsigned int ptr)
 {
-	snd_pcm_runtime_t *runtime = substream->runtime;
-	em8300_alsa_t *em8300_alsa = snd_pcm_substream_chip(substream);
-	struct em8300_s *em = em8300_alsa->em;
-	int readindex = ((int)read_ucregister(MA_PCIRdPtr) - (ucregister(MA_PCIStart) - 0x1000)) / 3;
-	ssize_t pos = readindex * frames_to_bytes(runtime, runtime->period_size);
-//	printk("snd_em8300_pcm_pointer called.\n");
-	return bytes_to_frames(runtime, pos);
+	int bytes = ptr - rec->hw_io;
+	if (bytes < 0)
+		bytes += rec->hw_buffer_size;
+	rec->hw_io = ptr;
+	rec->hw_ready -= bytes;
+	rec->sw_io += bytes;
+	if (rec->sw_io >= rec->sw_buffer_size)
+		rec->sw_io -= rec->sw_buffer_size;
+	if (substream->ops->ack)
+		substream->ops->ack(substream);
+	return bytes_to_frames(substream->runtime, rec->sw_io);
 }
 
+static snd_pcm_uframes_t snd_em8300_pcm_pointer(snd_pcm_substream_t *substream)
+{
+//	snd_pcm_runtime_t *runtime = substream->runtime;
+	em8300_alsa_t *em8300_alsa = snd_pcm_substream_chip(substream);
+	struct em8300_s *em = em8300_alsa->em;
+	unsigned int hw_ptr =
+		((read_ucregister(MA_Rdptr_Hi) << 16)
+		 | read_ucregister(MA_Rdptr)) & ~3;
+//	snd_pcm_uframes_t ret = snd_pcm_indirect_playback_pointer(substream,
+//								  &em8300_alsa->indirect,
+//								  hw_ptr);
+//	printk("snd_em8300_pcm_pointer called: %d\n", ret);
+//	return ret;
+	return snd_em8300_pcm_indirect_playback_pointer(substream,
+							&em8300_alsa->indirect,
+							hw_ptr);
+}
+
+static void snd_em8300_pcm_trans_dma(snd_pcm_substream_t *substream,
+				     snd_em8300_pcm_indirect_t *rec,
+				     size_t bytes)
+{
+//	snd_pcm_runtime_t *runtime = substream->runtime;
+	em8300_alsa_t *em8300_alsa = snd_pcm_substream_chip(substream);
+	struct em8300_s *em = em8300_alsa->em;
+	int writeindex = ((int)read_ucregister(MA_PCIWrPtr) - (ucregister(MA_PCIStart) - 0x1000)) / 3;
+	int readindex = ((int)read_ucregister(MA_PCIRdPtr) - (ucregister(MA_PCIStart) - 0x1000)) / 3;
+	writel((unsigned long int)(substream->runtime->dma_addr + rec->sw_data) >> 16,
+	       ((uint32_t *)ucregister_ptr(MA_PCIStart))+3*writeindex);
+	writel((unsigned long int)(substream->runtime->dma_addr + rec->sw_data) & 0xffff,
+	       ((uint32_t *)ucregister_ptr(MA_PCIStart))+3*writeindex+1);
+	writel(bytes,
+	       ((uint32_t *)ucregister_ptr(MA_PCIStart))+3*writeindex+2);
+	writeindex += 1;
+	writeindex %= read_ucregister(MA_PCISize) / 3;
+//	printk("snd_em8300_pcm_trans_dma(%d) called.\n", bytes);
+	if (readindex != writeindex)
+		write_ucregister(MA_PCIWrPtr, ucregister(MA_PCIStart) - 0x1000 + writeindex * 3);
+	else
+		printk("snd_em8300_pcm_trans_dma failed.\n");
+}
+
+static inline void
+snd_em8300_pcm_indirect_playback_transfer(snd_pcm_substream_t *substream,
+					  snd_em8300_pcm_indirect_t *rec,
+					  snd_em8300_pcm_indirect_copy_t copy)
+{
+	snd_pcm_runtime_t *runtime = substream->runtime;
+	snd_pcm_uframes_t appl_ptr = runtime->control->appl_ptr;
+	snd_pcm_sframes_t diff = appl_ptr - rec->appl_ptr;
+	int qsize;
+
+	if (diff) {
+		if (diff < -(snd_pcm_sframes_t) (runtime->boundary / 2))
+			diff += runtime->boundary;
+		rec->sw_ready += (int)frames_to_bytes(runtime, diff);
+		rec->appl_ptr = appl_ptr;
+	}
+	qsize = rec->hw_queue_size ? rec->hw_queue_size : rec->hw_buffer_size;
+	while (rec->hw_ready < qsize - 4096 && rec->sw_ready > 0) {
+		unsigned int sw_to_end = rec->sw_buffer_size - rec->sw_data;
+		unsigned int bytes = qsize - rec->hw_ready;
+		if (rec->sw_ready < (int)bytes)
+			bytes = rec->sw_ready;
+		if (sw_to_end < bytes)
+			bytes = sw_to_end;
+		if (8192 < bytes)
+			bytes = 8192;
+		if (! bytes)
+			break;
+		copy(substream, rec, bytes);
+		rec->hw_data += bytes;
+		if (rec->hw_data == rec->hw_buffer_size)
+			rec->hw_data = 0;
+		rec->sw_data += bytes;
+		if (rec->sw_data == rec->sw_buffer_size)
+			rec->sw_data = 0;
+		rec->hw_ready += bytes;
+		rec->sw_ready -= bytes;
+	}
+}
+
+static int snd_em8300_pcm_ack(snd_pcm_substream_t *substream) {
+	em8300_alsa_t *em8300_alsa = snd_pcm_substream_chip(substream);
+//	printk("snd_em8300_pcm_ack called.\n");
+	snd_em8300_pcm_indirect_playback_transfer(substream, &em8300_alsa->indirect,
+						  snd_em8300_pcm_trans_dma);
+	return 0;
+}
 
 static snd_pcm_ops_t snd_em8300_playback_ops = {
 	.open =		snd_em8300_playback_open,
@@ -242,6 +356,7 @@ static snd_pcm_ops_t snd_em8300_playback_ops = {
 	.prepare =	snd_em8300_pcm_prepare,
 	.trigger =	snd_em8300_pcm_trigger,
 	.pointer =	snd_em8300_pcm_pointer,
+	.ack =		snd_em8300_pcm_ack,
 };
 
 static void snd_em8300_pcm_analog_free(snd_pcm_t *pcm)
@@ -272,8 +387,8 @@ static int snd_em8300_pcm_analog(em8300_alsa_t *em8300_alsa)
 
 	snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
 					      snd_dma_pci_data(em->dev),
-					      (read_ucregister(MA_PCISize) / 3) * 32768,
-					      (read_ucregister(MA_PCISize) / 3) * 32768);
+					      0,
+					      EM8300_MID_BUFFER_SIZE);
 
 	return 0;
 }
@@ -306,8 +421,8 @@ static int snd_em8300_pcm_digital(em8300_alsa_t *em8300_alsa)
 
 	snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
 					      snd_dma_pci_data(em->dev),
-					      (read_ucregister(MA_PCISize) / 3) * 32768,
-					      (read_ucregister(MA_PCISize) / 3) * 32768);
+					      0,
+					      EM8300_MID_BUFFER_SIZE);
 
 	return 0;
 }
@@ -404,11 +519,6 @@ static void em8300_alsa_disable_card(struct em8300_s *em)
 
 void em8300_alsa_audio_interrupt(struct em8300_s *em)
 {
-	int readindex = ((int)read_ucregister(MA_PCIRdPtr) - (ucregister(MA_PCIStart) - 0x1000)) / 3;
-	int writeindex = ((int)read_ucregister(MA_PCIWrPtr) - (ucregister(MA_PCIStart) - 0x1000)) / 3;
-	//	printk("em8300_alsa: interrupt with readindex=%d and writeindex=%d\n", readindex, writeindex);
-	writeindex = (readindex + (read_ucregister(MA_PCISize)/3) - 1) % (read_ucregister(MA_PCISize)/3);
-	write_ucregister(MA_PCIWrPtr, ucregister(MA_PCIStart) - 0x1000 + writeindex * 3);
 	if (em->alsa_card) {
 		em8300_alsa_t *em8300_alsa = snd_magic_cast(em8300_alsa_t, em->alsa_card->private_data, return -ENXIO);
 		if (em8300_alsa->substream) {

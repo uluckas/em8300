@@ -71,5 +71,4 @@ AC_OUTPUT([
 	dhc/Makefile
 	em8300setup/Makefile
 	scripts/Makefile
-	scripts/microcode_upload.pl
 ])

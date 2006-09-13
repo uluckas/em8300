@@ -19,9 +19,10 @@
 */
 #include <linux/config.h>
 #include "em8300_devfs.h"
-#include <linux/devfs_fs_kernel.h>
 
 #ifdef CONFIG_DEVFS_FS
+
+#include <linux/devfs_fs_kernel.h>
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,70)
 devfs_handle_t em8300_handle[EM8300_MAX*4];

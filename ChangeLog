@@ -11,6 +11,12 @@
 	Choose the audio driver (ALSA or OSS) at load-time and on a
 	per-card basis.
 
+	* modules/em8300_devfs.c,
+	  modules/em8300_main.c:
+	Only include linux/devfs_fs_kernel.h if CONFIG_DEVFS_FS is
+	defined. This should fix compilation issues with 2.6.18(rc)
+	kernels.
+
 2006-08-23  Ville Skyttä  <scop@users.sourceforge.net>
 	* scripts/microcode_upload.pl.in,
 	  scripts/Makefile.am,

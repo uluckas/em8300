@@ -38,7 +38,6 @@
 #include <linux/string.h>
 #include <linux/time.h>
 #include <linux/poll.h>
-#include <linux/devfs_fs_kernel.h>
 #include <asm/io.h>
 #include <asm/pgtable.h>
 #include <asm/page.h>

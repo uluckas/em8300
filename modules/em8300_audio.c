@@ -28,8 +28,6 @@
 
 #include <asm/byteorder.h>
 
-#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
-
 int em8300_audio_calcbuffered(struct em8300_s *em);
 static int set_audiomode(struct em8300_s *em, int mode);
 
@@ -194,8 +192,6 @@ static void setup_mafifo(struct em8300_s *em)
 	}
 }
 
-#endif
-
 int mpegaudio_command(struct em8300_s *em, int cmd)
 {
 	em8300_waitfor(em, ucregister(MA_Command), 0xffff, 0xffff);
@@ -205,8 +201,6 @@ int mpegaudio_command(struct em8300_s *em, int cmd)
 
 	return em8300_waitfor(em, ucregister(MA_Status), cmd, 0xffff);
 }
-
-#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
 
 static int audio_start(struct em8300_s *em)
 {
@@ -659,5 +653,3 @@ int em8300_ioctl_getaudiomode(struct em8300_s *em, long int mode)
 		return -EFAULT;
 	return 0;
 }
-
-#endif

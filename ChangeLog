@@ -1,3 +1,16 @@
+2006-09-13  Nicolas Boullis  <nboullis@debian.org>
+	* include/linux/em8300.h,
+	  modules/Makefile,
+	  modules/em8300_alsa.c,
+	  modules/em8300_audio.c,
+	  modules/em8300_devfs.c,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_main.c,
+	  modules/em8300_ucode.c,
+	  modules/em8300_udev.c:
+	Choose the audio driver (ALSA or OSS) at load-time and on a
+	per-card basis.
+
 2006-08-23  Ville Skyttä  <scop@users.sourceforge.net>
 	* scripts/microcode_upload.pl.in,
 	  scripts/Makefile.am,

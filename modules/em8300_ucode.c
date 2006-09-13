@@ -169,6 +169,16 @@ void em8300_ucode_upload(struct em8300_s *em, void *ucode, int ucode_size)
 #include "em8300_fifo.h"
 #include "em8300_registration.h"
 
+typedef enum {
+	AUDIO_DRIVER_NONE,
+	AUDIO_DRIVER_OSSLIKE,
+	AUDIO_DRIVER_OSS,
+	AUDIO_DRIVER_ALSA,
+	AUDIO_DRIVER_MAX
+} audio_driver_t;
+
+extern audio_driver_t audio_driver_nr[EM8300_MAX];
+
 void em8300_require_ucode(struct em8300_s *em)
 {
 	if (!em->ucodeloaded) {
@@ -198,11 +208,11 @@ void em8300_require_ucode(struct em8300_s *em)
 		if (em->mvfifo) {
 			em8300_fifo_free(em->mvfifo);
 		}
-#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
-		if (em->mafifo) {
-			em8300_fifo_free(em->mafifo);
-		}
-#endif
+		if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
+		    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
+			if (em->mafifo) {
+				em8300_fifo_free(em->mafifo);
+			}
 		if (em->spfifo) {
 			em8300_fifo_free(em->spfifo);
 		}
@@ -211,29 +221,29 @@ void em8300_require_ucode(struct em8300_s *em)
 			return;
 		}
 
-#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
-		if (!(em->mafifo = em8300_fifo_alloc())) {
-			return;
-		}
-#endif
+		if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
+		    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
+			if (!(em->mafifo = em8300_fifo_alloc())) {
+				return;
+			}
 
 		if (!(em->spfifo = em8300_fifo_alloc())) {
 			return;
 		}
 
 		em8300_fifo_init(em,em->mvfifo, MV_PCIStart, MV_PCIWrPtr, MV_PCIRdPtr, MV_PCISize, 0x900, FIFOTYPE_VIDEO);
-#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
-		em8300_fifo_init(em,em->mafifo, MA_PCIStart, MA_PCIWrPtr, MA_PCIRdPtr, MA_PCISize, 0x1000, FIFOTYPE_AUDIO);
-#endif
+		if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
+		    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
+			em8300_fifo_init(em,em->mafifo, MA_PCIStart, MA_PCIWrPtr, MA_PCIRdPtr, MA_PCISize, 0x1000, FIFOTYPE_AUDIO);
 		//	em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x1000, FIFOTYPE_VIDEO);
 		em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x800, FIFOTYPE_VIDEO);
 		em8300_spu_init(em);
 
-#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
-		if (em8300_audio_setup(em)) {
-			return;
-		}
-#endif
+		if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
+		    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
+			if (em8300_audio_setup(em)) {
+				return;
+			}
 
 		em8300_ioctl_enable_videoout(em, 1);
 

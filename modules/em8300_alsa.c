@@ -20,7 +20,7 @@
 
 #include "em8300_alsa.h"
 
-#ifdef CONFIG_EM8300_AUDIO_ALSA
+#if defined(CONFIG_SND) || defined(CONFIG_SND_MODULE)
 
 #include <sound/driver.h>
 #include <sound/core.h>
@@ -32,6 +32,16 @@
 #include <asm/semaphore.h>
 
 #include "em8300_reg.h"
+
+typedef enum {
+	AUDIO_DRIVER_NONE,
+	AUDIO_DRIVER_OSSLIKE,
+	AUDIO_DRIVER_OSS,
+	AUDIO_DRIVER_ALSA,
+	AUDIO_DRIVER_MAX
+} audio_driver_t;
+
+extern audio_driver_t audio_driver_nr[EM8300_MAX];
 
 typedef struct snd_em8300_pcm_indirect {
 	unsigned int hw_buffer_size;    /* Byte size of hardware buffer */
@@ -464,6 +474,9 @@ static void em8300_alsa_enable_card(struct em8300_s *em)
 	em8300_alsa_t *em8300_alsa;
 	int err;
 
+	if (audio_driver_nr[em->card_nr] != AUDIO_DRIVER_ALSA)
+		return;
+
 	em->alsa_card = NULL;
 
 	card = snd_card_new(-1, NULL, THIS_MODULE, 0);
@@ -501,12 +514,18 @@ static void em8300_alsa_enable_card(struct em8300_s *em)
 
 static void em8300_alsa_disable_card(struct em8300_s *em)
 {
+	if (audio_driver_nr[em->card_nr] != AUDIO_DRIVER_ALSA)
+		return;
+
 	if (em->alsa_card)
 		snd_card_free(em->alsa_card);
 }
 
 void em8300_alsa_audio_interrupt(struct em8300_s *em)
 {
+	if (audio_driver_nr[em->card_nr] != AUDIO_DRIVER_ALSA)
+		return;
+
 	if (em->alsa_card) {
 		em8300_alsa_t *em8300_alsa = (em8300_alsa_t *)(em->alsa_card->private_data);
 		if (em8300_alsa->substream) {

@@ -30,6 +30,16 @@
 #include "em8300_registration.h"
 #include "em8300_compat24.h"
 
+typedef enum {
+	AUDIO_DRIVER_NONE,
+	AUDIO_DRIVER_OSSLIKE,
+	AUDIO_DRIVER_OSS,
+	AUDIO_DRIVER_ALSA,
+	AUDIO_DRIVER_MAX
+} audio_driver_t;
+
+extern audio_driver_t audio_driver_nr[EM8300_MAX];
+
 int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 {
 	em8300_register_t reg;
@@ -203,23 +213,26 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 				return -EFAULT;
 		}
 		break;
-#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
 	case _IOC_NR(EM8300_IOCTL_GET_AUDIOMODE):
-		em8300_require_ucode(em);
+		if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
+		    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS)) {
+			em8300_require_ucode(em);
 
-		if (!em->ucodeloaded) {
-			return -ENOTTY;
-		}
+			if (!em->ucodeloaded) {
+				return -ENOTTY;
+			}
 
-		if (_IOC_DIR(cmd) & _IOC_WRITE) {
-			get_user(val, (int *) arg);
-			em8300_ioctl_setaudiomode(em, val);
+			if (_IOC_DIR(cmd) & _IOC_WRITE) {
+				get_user(val, (int *) arg);
+				em8300_ioctl_setaudiomode(em, val);
+			}
+			if (_IOC_DIR(cmd) & _IOC_READ) {
+				em8300_ioctl_getaudiomode(em, arg);
+			}
+			break;
 		}
-		if (_IOC_DIR(cmd) & _IOC_READ) {
-			em8300_ioctl_getaudiomode(em, arg);
-		}
-		break;
-#endif
+		else
+			return -EINVAL;
 	case _IOC_NR(EM8300_IOCTL_SET_SPUMODE):
 		em8300_require_ucode(em);
 
@@ -419,10 +432,12 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 				return -ENOSYS;
 			case EM8300_SUBDEVICE_VIDEO:
 				return em8300_video_flush(em);
-#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
 			case EM8300_SUBDEVICE_AUDIO:
-				return em8300_audio_flush(em);
-#endif
+				if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
+				    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
+					return em8300_audio_flush(em);
+				else
+					return -EINVAL;
 			case EM8300_SUBDEVICE_SUBPICTURE:
 				return -ENOSYS;
 			default:
@@ -470,11 +485,11 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc)
 	if (em->mvfifo) {
 		em8300_fifo_free(em->mvfifo);
 	}
-#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
-	if (em->mafifo) {
-		em8300_fifo_free(em->mafifo);
-	}
-#endif
+	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
+	    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
+		if (em->mafifo) {
+			em8300_fifo_free(em->mafifo);
+		}
 	if (em->spfifo) {
 		em8300_fifo_free(em->spfifo);
 	}
@@ -483,29 +498,29 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc)
 		return -ENOMEM;
 	}
 
-#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
-	if (!(em->mafifo = em8300_fifo_alloc())) {
-		return -ENOMEM;
-	}
-#endif
+	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
+	    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
+		if (!(em->mafifo = em8300_fifo_alloc())) {
+			return -ENOMEM;
+		}
 
 	if (!(em->spfifo = em8300_fifo_alloc())) {
 		return -ENOMEM;
 	}
 
 	em8300_fifo_init(em,em->mvfifo, MV_PCIStart, MV_PCIWrPtr, MV_PCIRdPtr, MV_PCISize, 0x900, FIFOTYPE_VIDEO);
-#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
-	em8300_fifo_init(em,em->mafifo, MA_PCIStart, MA_PCIWrPtr, MA_PCIRdPtr, MA_PCISize, 0x1000, FIFOTYPE_AUDIO);
-#endif
+	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
+	    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
+		em8300_fifo_init(em,em->mafifo, MA_PCIStart, MA_PCIWrPtr, MA_PCIRdPtr, MA_PCISize, 0x1000, FIFOTYPE_AUDIO);
 	//	em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x1000, FIFOTYPE_VIDEO);
 	em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x800, FIFOTYPE_VIDEO);
 	em8300_spu_init(em);
 
-#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
-	if ((ret = em8300_audio_setup(em))) {
-		return ret;
-	}
-#endif
+	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
+	    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
+		if ((ret = em8300_audio_setup(em))) {
+			return ret;
+		}
 
 	em8300_ioctl_enable_videoout(em, 1);
 
@@ -526,15 +541,13 @@ int em8300_ioctl_getstatus(struct em8300_s *em, char *usermsg)
 	struct timeval tv;
 	long tdiff, frames, scr, picpts;
 	char mvfstatus[128];
-#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
 	char mafstatus[128];
-#endif
 	char spfstatus[128];
 
 	em8300_fifo_statusmsg(em->mvfifo, mvfstatus);
-#if defined(CONFIG_EM8300_AUDIO_OSS) || defined(CONFIG_EM8300_AUDIO_OSSLIKE)
-	em8300_fifo_statusmsg(em->mafifo, mafstatus);
-#endif
+	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
+	    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
+		em8300_fifo_statusmsg(em->mafifo, mafstatus);
 	em8300_fifo_statusmsg(em->spfifo, spfstatus);
 
 	frames = (read_ucregister(MV_FrameCntHi) << 16) | read_ucregister(MV_FrameCntLo);

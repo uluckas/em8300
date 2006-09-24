@@ -1,5 +1,10 @@
-2006-09-20  Ville Skyttä  <scop@users.sourceforge.net>
+2006-09-24  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_alsa.c,
+	  modules/em8300_main.c:
+	Add new alsa_index and alsa_id parameters to choose the ALSA index
+	number and id string.
 
+2006-09-20  Ville Skyttä  <scop@users.sourceforge.net>
 	* Makefile.am:
 	Include modules/EM8300.conf in tarball, make EXTRA_DIST
 	more readable.

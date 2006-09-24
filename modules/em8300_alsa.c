@@ -42,6 +42,8 @@ typedef enum {
 } audio_driver_t;
 
 extern audio_driver_t audio_driver_nr[EM8300_MAX];
+extern int alsa_index[EM8300_MAX];
+extern char *alsa_id[EM8300_MAX];
 
 typedef struct snd_em8300_pcm_indirect {
 	unsigned int hw_buffer_size;    /* Byte size of hardware buffer */
@@ -479,7 +481,7 @@ static void em8300_alsa_enable_card(struct em8300_s *em)
 
 	em->alsa_card = NULL;
 
-	card = snd_card_new(-1, NULL, THIS_MODULE, 0);
+	card = snd_card_new(alsa_index[em->card_nr], alsa_id[em->card_nr], THIS_MODULE, 0);
 	if (card == NULL)
 		return;
 

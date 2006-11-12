@@ -20,7 +20,7 @@
 #include <linux/config.h>
 #include <linux/version.h>
 #include <linux/module.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,10)
 #include <linux/moduleparam.h>
 #endif
 #include <linux/init.h>
@@ -66,7 +66,7 @@ int pixelport_16bit[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
 int pixelport_16bit[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(pixelport_16bit, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
 module_param_array(pixelport_16bit, bool, NULL, 0444);
@@ -78,7 +78,7 @@ int pixelport_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
 int pixelport_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(pixelport_other_pal, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
 module_param_array(pixelport_other_pal, bool, NULL, 0444);
@@ -86,7 +86,7 @@ module_param_array(pixelport_other_pal, bool, NULL, 0444);
 MODULE_PARM_DESC(pixelport_other_pal, "If this is set to 1, then the pixelport setting is swapped for PAL from the setting given with pixelport_16bit. Defaults to 1.");
 
 int pixeldata_adjust_ntsc[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(pixeldata_adjust_ntsc, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
 module_param_array(pixeldata_adjust_ntsc, int, NULL, 0444);
@@ -94,7 +94,7 @@ module_param_array(pixeldata_adjust_ntsc, int, NULL, 0444);
 MODULE_PARM_DESC(pixeldata_adjust_ntsc, "If your red and blue colours are swapped in NTSC, try setting this to 0,1,2 or 3. Defaults to 1.");
 
 int pixeldata_adjust_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(pixeldata_adjust_pal, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
 module_param_array(pixeldata_adjust_pal, int, NULL, 0444);
@@ -102,7 +102,7 @@ module_param_array(pixeldata_adjust_pal, int, NULL, 0444);
 MODULE_PARM_DESC(pixeldata_adjust_pal, "If your red and blue colours are swapped in PAL, try setting this to 0,1,2 or 3. Defaults to 1.");
 
 static int color_bars[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(color_bars, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
 module_param_array(color_bars, bool, NULL, 0444);
@@ -137,7 +137,7 @@ struct output_conf_s {
 #include "encoder_output_mode.h"
 
 static output_mode_t output_mode_nr[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = MODE_COMPOSITE_SVIDEO };
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 static char *output_mode[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = NULL };
 MODULE_PARM(output_mode, "1-" __MODULE_STRING(EM8300_MAX) "s");
 #else

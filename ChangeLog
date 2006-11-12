@@ -1,3 +1,10 @@
+2006-11-12  Nicolas Boullis  <nboullis@debian.org>
+	* modules/adv717x.c,
+	  modules/bt865.c,
+	  modules/em8300_main.c:
+	The module_param_array function changed incompatibly in 2.6.10;
+	revert to the old MODULE_PARM function for older kernels.
+
 2006-09-24  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_alsa.c,
 	  modules/em8300_main.c:

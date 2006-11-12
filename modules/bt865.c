@@ -24,7 +24,7 @@
 
 #include <linux/version.h>
 #include <linux/module.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,10)
 #include <linux/moduleparam.h>
 #endif
 #include <linux/init.h>
@@ -63,7 +63,7 @@ MODULE_VERSION(EM8300_VERSION);
 EXPORT_NO_SYMBOLS;
 
 static int color_bars[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(color_bars, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
 module_param_array(color_bars, bool, NULL, 0444);
@@ -83,7 +83,7 @@ struct output_conf_s {
 
 static output_mode_t output_mode_nr[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = MODE_COMPOSITE_SVIDEO };
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 static char *output_mode[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = NULL };
 MODULE_PARM(output_mode, "1-" __MODULE_STRING(EM8300_MAX) "s");
 #else

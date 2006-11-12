@@ -20,7 +20,7 @@
 #include <linux/config.h>
 #include <linux/version.h>
 #include <linux/module.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,10)
 #include <linux/moduleparam.h>
 #endif
 #include <linux/delay.h>
@@ -81,7 +81,7 @@ MODULE_VERSION(EM8300_VERSION);
 EXPORT_NO_SYMBOLS;
 
 static int use_bt865[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(use_bt865, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
 module_param_array(use_bt865, bool, NULL, 0444);
@@ -96,7 +96,7 @@ int dicom_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
 int dicom_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(dicom_other_pal, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
 module_param_array(dicom_other_pal, bool, NULL, 0444);
@@ -108,7 +108,7 @@ int dicom_fix[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
 int dicom_fix[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(dicom_fix, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
 module_param_array(dicom_fix, bool, NULL, 0444);
@@ -120,7 +120,7 @@ int dicom_control[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
 int dicom_control[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(dicom_control, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
 module_param_array(dicom_control, bool, NULL, 0444);
@@ -132,7 +132,7 @@ int bt865_ucode_timeout[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
 int bt865_ucode_timeout[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(bt865_ucode_timeout, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
 module_param_array(bt865_ucode_timeout, bool, NULL, 0444);
@@ -144,7 +144,7 @@ int activate_loopback[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
 #else
 int activate_loopback[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(activate_loopback, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
 module_param_array(activate_loopback, bool, NULL, 0444);
@@ -152,7 +152,7 @@ module_param_array(activate_loopback, bool, NULL, 0444);
 MODULE_PARM_DESC(activate_loopback, "If you lose video after loading the modules or uploading the microcode set this to 1. Defaults to 0.");
 
 int major = EM8300_MAJOR;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(major, "i");
 #else
 module_param(major, int, 0444);
@@ -187,7 +187,7 @@ audio_driver_t audio_driver_nr[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = AUDIO_DR
 #else
 audio_driver_t audio_driver_nr[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = AUDIO_DRIVER_OSSLIKE };
 #endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 static char *audio_driver[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = NULL };
 MODULE_PARM(audio_driver, "1-" __MODULE_STRING(EM8300_MAX) "s");
 #else
@@ -217,7 +217,7 @@ MODULE_PARM_DESC(audio_driver, "The audio driver to use (none, osslike, oss, or 
 
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
 int dsp_num[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(dsp_num, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
 module_param_array(dsp_num, int, NULL, 0444);
@@ -229,7 +229,7 @@ static int dsp_num_table[16];
 
 #if defined(CONFIG_SND) || defined(CONFIG_SND_MODULE)
 char *alsa_id[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = NULL };
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(alsa_id, "1-" __MODULE_STRING(EM8300_MAX) "s");
 #else
 module_param_array(alsa_id, charp, NULL, 0444);
@@ -237,7 +237,7 @@ module_param_array(alsa_id, charp, NULL, 0444);
 MODULE_PARM_DESC(alsa_id, "ID string for the audio part of the EM8330 chip (ALSA).");
 
 int alsa_index[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(alsa_index, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
 module_param_array(alsa_index, int, NULL, 0444);

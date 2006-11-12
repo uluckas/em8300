@@ -31,29 +31,39 @@ KERNEL_LOCATION := /lib/modules/$(shell uname -r)/build
 
 export EM8300_VERSION := "0.15.3.cvs"
 export EM8300_DIR := $(PWD)/..
+export INSTALL_MOD_DIR=em8300
 
 build:
 	$(MAKE) -C $(KERNEL_LOCATION) SUBDIRS=$(PWD) modules
 
+ifeq ($(strip $(shell echo -e '\0043if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,51)\n1\n\0043else\n0\n\0043endif' | $(CPP) -imacros $(KERNEL_LOCATION)/include/linux/version.h -P - )),1)
+
 clean:
-	-rm -f *.o *.ko *.mod.c .*.cmd .*.o.flags
+	-rm -f *.o .*.o.flags
 
 KERNVER := $(shell $(CPP) -dM $(KERNEL_LOCATION)/include/linux/version.h | sed -ne 's/^\#define[[:space:]]\+UTS_RELEASE[[:space:]]\+"\(.*\)"$$/\1/p')
-MODINST := em8300
 
-# Test if the kernel if older than 2.5.51
-ifeq ($(shell echo $(KERNVER) | sed -e 's/^\([[:digit:]]\+\)\.\([[:digit:]]\+\)\.\([[:digit:]]\+\).*/\1 * 65536 + \2 * 256 + \3 < 2 * 65536 + 5 * 256 + 51/' | xargs expr),1)
 MODULES := adv717x.o bt865.o em8300.o
-else
-MODULES := adv717x.ko bt865.ko em8300.ko
-endif
 
-install: $(MODULES)
-	install -d $(DESTDIR)/lib/modules/$(KERNVER)/$(MODINST)
-	install $(MODULES) $(DESTDIR)/lib/modules/$(KERNVER)/$(MODINST)
+install:
+	install -d $(DESTDIR)/lib/modules/$(KERNVER)/$(INSTALL_MOD_DIR)
+	install -m 644 $(MODULES) $(DESTDIR)/lib/modules/$(KERNVER)/$(INSTALL_MOD_DIR)
 
 uninstall:
-	rm -rf /lib/modules/$(KERNVER)/$(MODINST)
+	rm -rf $(DESTDIR)/lib/modules/$(KERNVER)/$(INSTALL_MOD_DIR)
+
+else
+
+clean:
+	$(MAKE) -C $(KERNEL_LOCATION) SUBDIRS=$(PWD) clean
+
+install:
+	$(MAKE) -C $(KERNEL_LOCATION) SUBDIRS=$(PWD) INSTALL_MOD_PATH=$(DESTDIR) modules_install
+
+uninstall:
+	rm -rf $(DESTDIR)/lib/modules/$(shell cat $(KERNEL_LOCATION)/.kernelrelease 2> /dev/null || cat $(KERNEL_LOCATION)/include/config/kernel.release 2> /dev/null)/$(INSTALL_MOD_DIR)
+
+endif
 
 .PHONY: build clean install uninstall
 

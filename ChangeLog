@@ -5,6 +5,10 @@
 	The module_param_array function changed incompatibly in 2.6.10;
 	revert to the old MODULE_PARM function for older kernels.
 
+	* modules/Makefile:
+	Partial rewrite of the Makefile to avoid hackish reading of kernel
+	version.
+
 2006-09-24  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_alsa.c,
 	  modules/em8300_main.c:

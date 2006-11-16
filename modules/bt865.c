@@ -1004,7 +1004,7 @@ int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg)
 
 int __init bt865_init(void)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 	int i;
 	for (i=0; i < EM8300_MAX; i++)
 		if ((output_mode[i]) && (output_mode[i][0])) {

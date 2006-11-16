@@ -17,6 +17,12 @@
 	kcalloc was not defined in older kernel versions; use
 	kmalloc+memset instead.
 
+	* modules/adv717x.c,
+	  modules/bt865.c,
+	  modules/em8300_main.c:
+	Fully revert the MODULE_PARM change for kernels between 2.6.0 and
+	2.6.10.
+
 2006-11-12  Nicolas Boullis  <nboullis@debian.org>
 	* modules/adv717x.c,
 	  modules/bt865.c,

@@ -916,7 +916,7 @@ static void __exit em8300_exit(void)
 static int __init em8300_init(void)
 {
 	int err;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 	int i;
 	for (i=0; i < EM8300_MAX; i++)
 		if ((audio_driver[i]) && (audio_driver[i][0])) {

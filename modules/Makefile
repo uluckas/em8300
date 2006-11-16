@@ -117,10 +117,20 @@ obj-m += em8300.o
 # The following hack tests for old kernels (2.4 and old 2.5).
 ifneq ($(TOPDIR),$(shell /bin/pwd))
 
+EXTRA_CFLAGS += -include $(TOPDIR)/include/linux/config.h
+
 include $(TOPDIR)/Rules.make
 
 em8300.o: $(em8300-objs)
 	$(LD) $(LDFLAGS) $(LDFLAGS_MODULE) -r -o $@ $(em8300-objs)
+
+else
+
+ifeq ($(shell expr $(VERSION) \* 10000 + $(PATCHLEVEL) \* 100 + $(SUBLEVEL) \< 20615),1)
+
+EXTRA_CFLAGS += -include $(TOPDIR)/include/linux/config.h
+
+endif
 
 endif
 

@@ -1,3 +1,15 @@
+2006-11-16  Nicolas Boullis  <nboullis@debian.org>
+	* modules/Makefile,
+	  modules/adv717x.c,
+	  modules/em8300_devfs.c,
+	  modules/em8300_main.c,
+	  modules/em8300_procfs.c,
+	  modules/em8300_registration.h:
+	Since 2.6.15, there is no need to #include linux/config.h and this
+	file is due to be gone in 2.6.19. Don't include it anymore from
+	the individual files. For older kernels, include it from the
+	Makefile.
+
 2006-11-12  Nicolas Boullis  <nboullis@debian.org>
 	* modules/adv717x.c,
 	  modules/bt865.c,

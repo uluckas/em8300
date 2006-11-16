@@ -13,6 +13,10 @@
 	* modules/em8300_alsa.c:
 	chip_t is needed for old versions of ALSA; define it.
 
+	* modules/em8300_alsa.c:
+	kcalloc was not defined in older kernel versions; use
+	kmalloc+memset instead.
+
 2006-11-12  Nicolas Boullis  <nboullis@debian.org>
 	* modules/adv717x.c,
 	  modules/bt865.c,

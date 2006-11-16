@@ -452,9 +452,11 @@ static int snd_em8300_create(snd_card_t *card, struct em8300_s *em, em8300_alsa_
 	if (rem8300_alsa)
 		*rem8300_alsa = NULL;
 
-	em8300_alsa = (em8300_alsa_t *)kcalloc(1, sizeof(em8300_alsa_t), GFP_KERNEL);
+	em8300_alsa = (em8300_alsa_t *)kmalloc(sizeof(em8300_alsa_t), GFP_KERNEL);
 	if (em8300_alsa == NULL)
 		return -ENOMEM;
+
+	memset(em8300_alsa, 0, sizeof(em8300_alsa_t));
 
 	init_MUTEX(&em8300_alsa->lock);
 

@@ -10,6 +10,9 @@
 	the individual files. For older kernels, include it from the
 	Makefile.
 
+	* modules/em8300_alsa.c:
+	chip_t is needed for old versions of ALSA; define it.
+
 2006-11-12  Nicolas Boullis  <nboullis@debian.org>
 	* modules/adv717x.c,
 	  modules/bt865.c,

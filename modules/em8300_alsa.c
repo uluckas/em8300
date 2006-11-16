@@ -71,6 +71,8 @@ typedef struct {
 	snd_em8300_pcm_indirect_t indirect;
 } em8300_alsa_t;
 
+#define chip_t em8300_alsa_t
+
 #define EM8300_ALSA_ANALOG_DEVICENUM 0
 #define EM8300_ALSA_DIGITAL_DEVICENUM 1
 

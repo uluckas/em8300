@@ -30,11 +30,11 @@ KERNEL_LOCATION := /lib/modules/$(shell uname -r)/build
 #export EM8300_I2C_FORCE_API := NEW
 
 export EM8300_VERSION := "0.15.3.cvs"
-export EM8300_DIR := $(PWD)/..
+export EM8300_DIR := $(CURDIR)/..
 export INSTALL_MOD_DIR=em8300
 
 build:
-	$(MAKE) -C $(KERNEL_LOCATION) SUBDIRS=$(PWD) modules
+	$(MAKE) -C $(KERNEL_LOCATION) SUBDIRS=$(CURDIR) modules
 
 ifeq ($(strip $(shell echo -e '\0043if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,51)\n1\n\0043else\n0\n\0043endif' | $(CPP) -imacros $(KERNEL_LOCATION)/include/linux/version.h -P - )),1)
 
@@ -55,10 +55,10 @@ uninstall:
 else
 
 clean:
-	$(MAKE) -C $(KERNEL_LOCATION) SUBDIRS=$(PWD) clean
+	$(MAKE) -C $(KERNEL_LOCATION) SUBDIRS=$(CURDIR) clean
 
 install:
-	$(MAKE) -C $(KERNEL_LOCATION) SUBDIRS=$(PWD) INSTALL_MOD_PATH=$(DESTDIR) modules_install
+	$(MAKE) -C $(KERNEL_LOCATION) SUBDIRS=$(CURDIR) INSTALL_MOD_PATH=$(DESTDIR) modules_install
 
 uninstall:
 	rm -rf $(DESTDIR)/lib/modules/$(shell cat $(KERNEL_LOCATION)/.kernelrelease 2> /dev/null || cat $(KERNEL_LOCATION)/include/config/kernel.release 2> /dev/null)/$(INSTALL_MOD_DIR)

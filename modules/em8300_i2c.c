@@ -184,7 +184,6 @@ int em8300_i2c_init(struct em8300_s *em)
 	em->i2c_data_1.setscl = &em8300_setscl;
 	em->i2c_data_1.getsda = &em8300_getsda;
 	em->i2c_data_1.getscl = &em8300_getscl;
-	em->i2c_data_1.mdelay = 10;
 	em->i2c_data_1.udelay = 10;
 	em->i2c_data_1.timeout = 100;
 
@@ -218,7 +217,6 @@ int em8300_i2c_init(struct em8300_s *em)
 	em->i2c_data_2.setscl = &em8300_setscl;
 	em->i2c_data_2.getsda = &em8300_getsda;
 	em->i2c_data_2.getscl = &em8300_getscl;
-	em->i2c_data_2.mdelay = 10;
 	em->i2c_data_2.udelay = 10;
 	em->i2c_data_2.timeout = 100;
 

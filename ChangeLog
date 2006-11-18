@@ -1,3 +1,9 @@
+2006-11-18  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_i2c.c:
+	The mdelay field of the i2c_algo_bit_data struct has apparently
+	been unused since before 2.4.0 and will be gone in 2.6.19. Don't
+	set it at all.
+
 2006-11-16  Nicolas Boullis  <nboullis@debian.org>
 	* modules/Makefile,
 	  modules/adv717x.c,

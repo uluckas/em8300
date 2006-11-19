@@ -1,6 +1,7 @@
 AUTOMAKE_OPTIONS = 1.8
 
 firmwaredir = @FIRMWARE_DIR@
+alsadir = @ALSA_DIR@
 
 EXTRA_DIST = \
 	$(srcdir)/modules/EM8300.conf \
@@ -30,3 +31,5 @@ debug:
 install-data-local:
 	test -z "$(firmwaredir)" || $(mkdir_p) "$(DESTDIR)$(firmwaredir)"
 	test ! -f $(top_srcdir)/modules/em8300.uc || $(INSTALL_DATA) $(top_srcdir)/modules/em8300.uc "$(DESTDIR)$(firmwaredir)/em8300.bin"
+	test -z "$(alsadir)" || $(mkdir_p) "$(DESTDIR)$(alsadir)/cards"
+	test -z "$(alsadir)" || $(INSTALL_DATA) $(top_srcdir)/modules/EM8300.conf "$(DESTDIR)$(alsadir)/cards/EM8300.conf"

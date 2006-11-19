@@ -1,3 +1,9 @@
+2006-11-19  Nicolas Boullis  <nboullis@debian.org>
+	* Makefile.am:
+	  configure.in:
+	Install the ALSA configuration file, and make its location
+	configurable.
+
 2006-11-18  Ville Skyttä  <scop@users.sourceforge.net>
 	* modules/Makefile:
 	Use $(CURDIR) instead of $(PWD) to fix build when current working

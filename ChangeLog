@@ -4,6 +4,9 @@
 	Install the ALSA configuration file, and make its location
 	configurable.
 
+	* Makefile.am:
+	Fix uninstalling.
+
 2006-11-18  Ville Skyttä  <scop@users.sourceforge.net>
 	* modules/Makefile:
 	Use $(CURDIR) instead of $(PWD) to fix build when current working

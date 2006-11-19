@@ -33,3 +33,7 @@ install-data-local:
 	test ! -f $(top_srcdir)/modules/em8300.uc || $(INSTALL_DATA) $(top_srcdir)/modules/em8300.uc "$(DESTDIR)$(firmwaredir)/em8300.bin"
 	test -z "$(alsadir)" || $(mkdir_p) "$(DESTDIR)$(alsadir)/cards"
 	test -z "$(alsadir)" || $(INSTALL_DATA) $(top_srcdir)/modules/EM8300.conf "$(DESTDIR)$(alsadir)/cards/EM8300.conf"
+
+uninstall-local:
+	rm -f "$(DESTDIR)$(firmwaredir)/em8300.bin"
+	rm -f "$(DESTDIR)$(alsadir)/cards/EM8300.conf"

@@ -1,3 +1,10 @@
+2006-11-21  Ville Skyttä  <scop@users.sourceforge.net>
+	* dhc/dhc.desktop,
+	  overlay/autocal.desktop,
+	  overlay/dxr3view.desktop:
+	Bring desktop entry categories up to date with current
+	freedesktop.org menu specification.
+
 2006-11-19  Nicolas Boullis  <nboullis@debian.org>
 	* Makefile.am:
 	  configure.in:

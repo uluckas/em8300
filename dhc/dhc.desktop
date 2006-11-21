@@ -6,4 +6,4 @@ Icon=dhc
 Terminal=false
 Type=Application
 Encoding=UTF-8
-Categories=Application;Settings;HardwareSettings;System;GTK;
+Categories=System;Settings;HardwareSettings;GTK;

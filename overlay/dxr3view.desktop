@@ -5,4 +5,4 @@ Exec=dxr3view
 Terminal=false
 Type=Application
 Encoding=UTF-8
-Categories=Application;AudioVideo;GTK;
+Categories=AudioVideo;Video;GTK;

@@ -4,6 +4,11 @@
 	slightly in 2.6.19. Change the em8300_irq function
 	accordingly. Thanks to Adam for noticing.
 
+	* modules/em8300_main.c:
+	Fix a stupid mistake in a call to pr_debug where a full array was
+	given to print instead of a single element. Thanks to Adam for
+	noticing.
+
 2006-11-21  Ville Skyttä  <scop@users.sourceforge.net>
 	* dhc/dhc.desktop,
 	  overlay/autocal.desktop,

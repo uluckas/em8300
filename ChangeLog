@@ -1,3 +1,9 @@
+2006-11-19  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_main.c:
+	The prototype of the function that request_irq expects will change
+	slightly in 2.6.19. Change the em8300_irq function
+	accordingly. Thanks to Adam for noticing.
+
 2006-11-21  Ville Skyttä  <scop@users.sourceforge.net>
 	* dhc/dhc.desktop,
 	  overlay/autocal.desktop,

@@ -9,6 +9,10 @@
 	given to print instead of a single element. Thanks to Adam for
 	noticing.
 
+	* modules/Makefile:
+	Use "printf" rather than "echo -e", as the latter may be
+	unavailable with some shells.
+
 2006-11-21  Ville Skyttä  <scop@users.sourceforge.net>
 	* dhc/dhc.desktop,
 	  overlay/autocal.desktop,

@@ -1,4 +1,10 @@
-2006-11-19  Nicolas Boullis  <nboullis@debian.org>
+2006-11-23  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_main.c:
+	Fix a stupid mistake (misplaced comma) I did while changing the
+	prototype of the em8300_irq function for 2.6.19 kernels. Thanks to
+	Adam and Sebastian Frei.
+
+2006-11-22  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	The prototype of the function that request_irq expects will change
 	slightly in 2.6.19. Change the em8300_irq function

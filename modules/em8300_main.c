@@ -261,9 +261,9 @@ static struct pci_device_id em8300_ids[] = {
 
 MODULE_DEVICE_TABLE(pci, em8300_ids);
 
-static irqreturn_t em8300_irq(int irq, void *dev_id,
+static irqreturn_t em8300_irq(int irq, void *dev_id
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,19)
-			      struct pt_regs * regs
+			      , struct pt_regs * regs
 #endif
 			      )
 {

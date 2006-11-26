@@ -63,10 +63,31 @@ AC_ARG_WITH(firmware-dir,
 AC_SUBST(FIRMWARE_DIR)
 AC_DEFINE_UNQUOTED(FIRMWARE_DIR, "$FIRMWARE_DIR", [Define the default path for the firmware.])
 
-ALSA_DIR='${datarootdir}/alsa'
 AC_ARG_WITH(alsa-dir,
-  [AS_HELP_STRING([--with-alsa-dir=DIR],[ALSA configuration directory [DATAROOTDIR/alsa]])], 
-  [if test "x$withval" != xyes; then ALSA_DIR="$withval"; fi])
+  [AS_HELP_STRING([--with-alsa-dir=DIR],[ALSA configuration directory [searched]])], 
+  [],
+  [with_alsa_dir=search])
+
+ALSA_DIR=
+AS_IF([test "x$with_alsa_dir" != xno],
+  AS_IF([test "x$with_alsa_dir" = xyes || test "x$with_alsa_dir" = xsearch],
+    [AC_MSG_CHECKING([for alsa configuration directory])
+     for dir in /usr/local/share/alsa /usr/share/alsa /etc/alsa; do
+       if test -f "${dir}/alsa.conf"; then
+         ALSA_DIR="$dir"
+	 break
+       fi
+     done
+     if test "x$ALSA_DIR" = x; then
+       AC_MSG_RESULT([not found])
+     else
+       AC_MSG_RESULT([$ALSA_DIR])
+     fi
+     if test "x$ALSA_DIR" = x && test "x$with_alsa_dir" = xyes; then
+       AC_MSG_FAILURE(
+         [--with-alsa-dir was given but configuration directory was not found])
+     fi],
+    [ALSA_DIR="$with_alsa_dir"]))
 AC_SUBST(ALSA_DIR)
 
 AC_OUTPUT([

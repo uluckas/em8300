@@ -29,7 +29,7 @@ KERNEL_LOCATION := /lib/modules/$(shell uname -r)/build
 #export EM8300_I2C_LOCATION := /usr/src/modules/i2c
 #export EM8300_I2C_FORCE_API := NEW
 
-export EM8300_VERSION := "0.16.0"
+export EM8300_VERSION := "0.16.0.cvs"
 export EM8300_DIR := $(CURDIR)/..
 export INSTALL_MOD_DIR=em8300
 

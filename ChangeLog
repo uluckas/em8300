@@ -3,6 +3,10 @@
 	Search the alsa.conf file to find the proper location for the
 	EM8300.conf configuration file.
 
+	* Makefile.am:
+	Only uninstall EM8300.conf if $(alsadir) is set (that is if
+	EM8300.conf was installed).
+
 2006-11-26  Nicolas Boullis  <nboullis@debian.org>
 	* configure.in,
 	  modules/Makefile:

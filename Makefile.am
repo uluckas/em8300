@@ -36,4 +36,4 @@ install-data-local:
 
 uninstall-local:
 	rm -f "$(DESTDIR)$(firmwaredir)/em8300.bin"
-	rm -f "$(DESTDIR)$(alsadir)/cards/EM8300.conf"
+	test -z "$(alsadir)" || rm -f "$(DESTDIR)$(alsadir)/cards/EM8300.conf"

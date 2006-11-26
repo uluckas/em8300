@@ -1,3 +1,8 @@
+2006-11-26  Nicolas Boullis  <nboullis@debian.org>
+	* configure.in,
+	  modules/Makefile:
+	Release 0.16.0.
+
 2006-11-23  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Fix a stupid mistake (misplaced comma) I did while changing the

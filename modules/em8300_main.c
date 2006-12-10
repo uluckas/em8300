@@ -233,7 +233,7 @@ MODULE_PARM(alsa_id, "1-" __MODULE_STRING(EM8300_MAX) "s");
 #else
 module_param_array(alsa_id, charp, NULL, 0444);
 #endif
-MODULE_PARM_DESC(alsa_id, "ID string for the audio part of the EM8330 chip (ALSA).");
+MODULE_PARM_DESC(alsa_id, "ID string for the audio part of the EM8300 chip (ALSA).");
 
 int alsa_index[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
@@ -241,7 +241,7 @@ MODULE_PARM(alsa_index, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
 module_param_array(alsa_index, int, NULL, 0444);
 #endif
-MODULE_PARM_DESC(alsa_index, "Index value for the audio part of the EM8330 chip (ALSA).");
+MODULE_PARM_DESC(alsa_index, "Index value for the audio part of the EM8300 chip (ALSA).");
 #endif
 
 /* structure to keep track of the memory that has been allocated by

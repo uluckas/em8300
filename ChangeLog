@@ -3,6 +3,10 @@
 	Fix the documentation string for the alsa_id and alsa_index module
 	options. Thanks to Brendon Higgins for the patch.
 
+	* modules/README-modoptions:
+	Improve the README-modoptions documentation. Thanks to Brendon
+	Higgins for the patch.
+
 2006-11-27  Nicolas Boullis  <nboullis@debian.org>
 	* configure.in:
 	Search the alsa.conf file to find the proper location for the

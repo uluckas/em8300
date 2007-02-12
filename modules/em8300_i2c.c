@@ -269,19 +269,19 @@ void em8300_clockgen_write(struct em8300_s *em, int abyte)
 static void I2C_clk(struct em8300_s *em, int level)
 {
 	writel(0x1000 | (level ? 0x10 : 0), &em->mem[em->i2c_pin_reg]);
-	udelay(1);
+	udelay(10);
 }
 
 static void I2C_data(struct em8300_s *em, int level)
 {
 	writel(0x800 | (level ? 0x8 : 0), &em->mem[em->i2c_pin_reg]);
-	udelay(1);
+	udelay(10);
 }
 
 static void I2C_drivedata(struct em8300_s *em, int level)
 {
 	writel(0x800 | (level ? 0x8 : 0), &em->mem[em->i2c_oe_reg]);
-	udelay(1);
+	udelay(10);
 }
 
 #define I2C_read_data ((readl(&em->mem[em->i2c_pin_reg]) & 0x800) ? 1 : 0)

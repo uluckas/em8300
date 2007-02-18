@@ -419,7 +419,8 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 		em8300[card].nonblock[2] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
 		em8300_video_open(em);
 
-		em8300_ioctl_enable_videoout(em, 1);
+		if (!em->overlay_enabled)
+			em8300_ioctl_enable_videoout(em, 1);
 
 		em8300_video_setplaymode(em, EM8300_PLAYMODE_PLAY);
 		break;
@@ -621,7 +622,8 @@ int em8300_io_release(struct inode* inode, struct file *filp)
 		break;
 	case EM8300_SUBDEVICE_VIDEO:
 		em8300_video_release(em);
-		em8300_ioctl_enable_videoout(em, 0);
+		if (!em->overlay_enabled)
+			em8300_ioctl_enable_videoout(em, 0);
 		break;
 	case EM8300_SUBDEVICE_SUBPICTURE:
 		em8300_spu_release(em);    /* Do we need this one ? */

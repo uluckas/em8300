@@ -1,3 +1,9 @@
+2007-02-18  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_i2c.c:
+	Use i2c_del_adapter instead of i2c_bit_del_bus for kernels 2.6.0
+	and above, to fix compatibility with 2.6.20 kernels. Thanks to
+	David van Vyfeyken for the patch.
+
 2007-02-12  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_i2c.c:
 	Slow down the comunications with the em9010 chip, so that it does

@@ -245,8 +245,13 @@ void em8300_i2c_exit(struct em8300_s *em)
 	/* unregister i2c_bus */
 	kfree(em->i2c_data_1.data);
 	kfree(em->i2c_data_2.data);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+	i2c_del_adapter(&em->i2c_ops_1);
+	i2c_del_adapter(&em->i2c_ops_2);
+#else
 	i2c_bit_del_bus(&em->i2c_ops_1);
 	i2c_bit_del_bus(&em->i2c_ops_2);
+#endif
 }
 
 void em8300_clockgen_write(struct em8300_s *em, int abyte)

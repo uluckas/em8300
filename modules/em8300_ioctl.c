@@ -522,7 +522,7 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc)
 			return ret;
 		}
 
-	em8300_ioctl_enable_videoout(em, 1);
+	em8300_ioctl_enable_videoout(em, 0);
 
 #if ! ( defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE) )
 	if (!em->ucodeloaded)
@@ -598,13 +598,18 @@ int em8300_ioctl_setvideomode(struct em8300_s *em, int mode)
 	return 0;
 }
 
+extern int stop_video[EM8300_MAX];
+
 void em8300_ioctl_enable_videoout(struct em8300_s *em, int mode)
 {
 	em8300_dicom_disable(em);
 
 	if (em->encoder) {
-		em->encoder->driver->command(em->encoder, ENCODER_CMD_ENABLEOUTPUT, (void *)(long int)mode);
+		em->encoder->driver->command(em->encoder,
+					     ENCODER_CMD_ENABLEOUTPUT,
+					     (void *)(long int)(stop_video[em->card_nr]?mode:1));
 	}
+
 	em8300_dicom_enable(em);
 }
 

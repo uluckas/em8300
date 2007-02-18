@@ -4,6 +4,14 @@
 	and above, to fix compatibility with 2.6.20 kernels. Thanks to
 	David van Vyfeyken for the patch.
 
+	* modules/em8300_ioctl.c,
+	  modules/em8300_main.c,
+	  modules/em8300_ucode.c,
+	  modules/em8300_video.c:
+	Add a parameter to choose between no video output and black video
+	output when there is nothing to display (black video output by
+	default).
+
 2007-02-12  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_i2c.c:
 	Slow down the comunications with the em9010 chip, so that it does

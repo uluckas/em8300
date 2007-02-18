@@ -244,6 +244,15 @@ module_param_array(alsa_index, int, NULL, 0444);
 MODULE_PARM_DESC(alsa_index, "Index value for the audio part of the EM8300 chip (ALSA).");
 #endif
 
+int stop_video[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
+MODULE_PARM(stop_video, "1-" __MODULE_STRING(EM8300_MAX) "i");
+#else
+module_param_array(stop_video, bool, NULL, 0444);
+#endif
+MODULE_PARM_DESC(stop_video, "Set this to 1 if you want to stop video output instead of black when there is nothing to display. Defaults to 0.");
+
+
 /* structure to keep track of the memory that has been allocated by
    the user via mmap() */
 struct memory_info

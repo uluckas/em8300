@@ -60,6 +60,8 @@ int em8300_video_setplaymode(struct em8300_s *em, int mode)
 			em->video_ptsfifo_ptr = 0;
 			em->video_offset = 0;
 			mpegvideo_command(em, MVCOMMAND_STOP);
+			mpegvideo_command(em, MVCOMMAND_DISPLAYBUFINFO);
+			em8300_dicom_fill_dispbuffers(em, 0, 0, em->dbuf_info.xsize, em->dbuf_info.ysize, 0x00000000, 0x80808080 );
 			break;
 		case EM8300_PLAYMODE_PLAY:
 			em->video_pts = 0;

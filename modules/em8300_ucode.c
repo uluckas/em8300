@@ -245,7 +245,7 @@ void em8300_require_ucode(struct em8300_s *em)
 				return;
 			}
 
-		em8300_ioctl_enable_videoout(em, 1);
+		em8300_ioctl_enable_videoout(em, 0);
 
 		em->ucodeloaded = 1;
 

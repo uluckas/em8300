@@ -32,6 +32,8 @@ General fixes:
                           em8300 is being loaded before your sound card module
                           you can use this to force em8300 to use a more
                           sensible dsp number.
+   stop_video          -- set to 1 if you want to stop video output instead of
+                          outputting black when there's nothing to display
 
  bt865:
    output_mode         -- select the output mode to use:

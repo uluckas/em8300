@@ -14,12 +14,12 @@ General fixes:
                           device files, or 0 for automatic assignment. Usually
                           devices use 121, which is officially reserved for
                           "LOCAL/EXPERIMENTAL USE", since em8300 has not been
-                          assigned any offical device number. If you are
+                          assigned any official device number. If you are
                           already using device major number 121 for some other
                           device you'll have to change this.
    audio_driver        -- select the audio driver to use:
      alsa              -- use the ALSA audio interface. ALSA is the official
-                          Linux audio sytsem.
+                          Linux audio system.
      oss               -- use the OSS audio interface. OSS is the deprecated
                           Linux audio system.
      osslike           -- use an interface similar to OSS that does not use

@@ -200,6 +200,9 @@ int em8300_i2c_init(struct em8300_s *em)
 	em->i2c_ops_1.algo_data = &em->i2c_data_1;
 	em->i2c_ops_1.client_register = em8300_i2c_reg;
 	em->i2c_ops_1.client_unregister = em8300_i2c_unreg;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+	em->i2c_ops_1.dev.parent = &em->dev->dev;
+#endif
 
 	i2c_set_adapdata(&em->i2c_ops_1, (void *)em);
 
@@ -233,6 +236,9 @@ int em8300_i2c_init(struct em8300_s *em)
 	em->i2c_ops_2.algo_data = &em->i2c_data_2;
 	em->i2c_ops_2.client_register = em8300_i2c_reg;
 	em->i2c_ops_2.client_unregister = em8300_i2c_unreg;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+	em->i2c_ops_2.dev.parent = &em->dev->dev;
+#endif
 
 	i2c_set_adapdata(&em->i2c_ops_2, (void *)em);
 

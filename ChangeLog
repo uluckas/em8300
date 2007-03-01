@@ -1,4 +1,10 @@
 2007-03-01  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_i2c.c:
+	Set the em8300 device as the parent device for its two i2c
+	busses. This is cleaner and avoids a warning. Thanks to Martin
+	Dauskardt for telling me about this warning.
+
+2007-03-01  Nicolas Boullis  <nboullis@debian.org>
 	* configure.in,
 	  modules/Makefile:
 	New development version.

@@ -57,6 +57,7 @@
 #include <linux/em8300.h>
 #include "em8300_fifo.h"
 #include "em8300_registration.h"
+#include "em8300_params.h"
 
 #ifdef CONFIG_EM8300_IOCTL32
 #include "em8300_ioctl32.h"
@@ -79,179 +80,13 @@ MODULE_VERSION(EM8300_VERSION);
 
 EXPORT_NO_SYMBOLS;
 
-static int use_bt865[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
-MODULE_PARM(use_bt865, "1-" __MODULE_STRING(EM8300_MAX) "i");
-#else
-module_param_array(use_bt865, bool, NULL, 0444);
-#endif
-MODULE_PARM_DESC(use_bt865, "Set this to 1 if you have a bt865. It changes some internal register values. Defaults to 0.");
-
-/*
- * Module params by Jonas Birmé (birme@jpl.nu)
- */
-#ifdef CONFIG_EM8300_DICOMPAL
-int dicom_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
-#else
-int dicom_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
-MODULE_PARM(dicom_other_pal, "1-" __MODULE_STRING(EM8300_MAX) "i");
-#else
-module_param_array(dicom_other_pal, bool, NULL, 0444);
-#endif
-MODULE_PARM_DESC(dicom_other_pal, "If this is set, then some internal register values are swapped for PAL and NTSC. Defaults to 1.");
-
-#ifdef CONFIG_EM8300_DICOMFIX
-int dicom_fix[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
-#else
-int dicom_fix[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
-MODULE_PARM(dicom_fix, "1-" __MODULE_STRING(EM8300_MAX) "i");
-#else
-module_param_array(dicom_fix, bool, NULL, 0444);
-#endif
-MODULE_PARM_DESC(dicom_fix, "If this is set then some internal register values are changed. Fixes green screen problems for some. Defaults to 1.");
-
-#ifdef CONFIG_EM8300_DICOMCTRL
-int dicom_control[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
-#else
-int dicom_control[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
-MODULE_PARM(dicom_control, "1-" __MODULE_STRING(EM8300_MAX) "i");
-#else
-module_param_array(dicom_control, bool, NULL, 0444);
-#endif
-MODULE_PARM_DESC(dicom_control, "If this is set then some internal register values are changed. Fixes green screen problems for some. Defaults to 1.");
-
-#ifdef CONFIG_EM8300_UCODETIMEOUT
-int bt865_ucode_timeout[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
-#else
-int bt865_ucode_timeout[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
-MODULE_PARM(bt865_ucode_timeout, "1-" __MODULE_STRING(EM8300_MAX) "i");
-#else
-module_param_array(bt865_ucode_timeout, bool, NULL, 0444);
-#endif
-MODULE_PARM_DESC(bt865_ucode_timeout, "Set this to 1 if you have a bt865 and get timeouts when uploading the microcode. Defaults to 0.");
-
-#ifdef CONFIG_EM8300_LOOPBACK
-int activate_loopback[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
-#else
-int activate_loopback[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
-MODULE_PARM(activate_loopback, "1-" __MODULE_STRING(EM8300_MAX) "i");
-#else
-module_param_array(activate_loopback, bool, NULL, 0444);
-#endif
-MODULE_PARM_DESC(activate_loopback, "If you lose video after loading the modules or uploading the microcode set this to 1. Defaults to 0.");
-
-int major = EM8300_MAJOR;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
-MODULE_PARM(major, "i");
-#else
-module_param(major, int, 0444);
-#endif
-MODULE_PARM_DESC(major, "Major number used for the devices. "
-		 "0 means automatically assigned. "
-		 "Defaults to " __MODULE_STRING(EM8300_MAJOR) ".");
-
 static int em8300_cards,clients;
 
 static struct em8300_s em8300[EM8300_MAX];
 
-typedef enum {
-	AUDIO_DRIVER_NONE,
-	AUDIO_DRIVER_OSSLIKE,
-	AUDIO_DRIVER_OSS,
-	AUDIO_DRIVER_ALSA,
-	AUDIO_DRIVER_MAX
-} audio_driver_t;
-
-static const char * const audio_driver_name[] = {
-	[ AUDIO_DRIVER_NONE ] = "none",
-	[ AUDIO_DRIVER_OSSLIKE ] = "osslike",
-	[ AUDIO_DRIVER_OSS ] = "oss",
-	[ AUDIO_DRIVER_ALSA ] = "alsa",
-};
-
-#if defined(CONFIG_SND) || defined(CONFIG_SND_MODULE)
-audio_driver_t audio_driver_nr[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = AUDIO_DRIVER_ALSA };
-#elif defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
-audio_driver_t audio_driver_nr[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = AUDIO_DRIVER_OSS };
-#else
-audio_driver_t audio_driver_nr[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = AUDIO_DRIVER_OSSLIKE };
-#endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
-static char *audio_driver[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = NULL };
-MODULE_PARM(audio_driver, "1-" __MODULE_STRING(EM8300_MAX) "s");
-#else
-static int param_set_audio_driver_t(const char *val, struct kernel_param *kp)
-{
-	if (val) {
-		int i;
-		for (i=0; i < AUDIO_DRIVER_MAX; i++)
-			if (strcmp(val, audio_driver_name[i]) == 0) {
-				*(audio_driver_t *)kp->arg = i;
-				return 0;
-			}
-	}
-	printk(KERN_ERR "%s: audio_driver parameter expected\n",
-	       kp->name);
-	return -EINVAL;
-}
-
-static int param_get_audio_driver_t(char *buffer, struct kernel_param *kp)
-{
-	return sprintf(buffer, "%s", audio_driver_name[*(audio_driver_t *)kp->arg]);
-}
-
-module_param_array_named(audio_driver, audio_driver_nr, audio_driver_t, NULL, 0444);
-#endif
-MODULE_PARM_DESC(audio_driver, "The audio driver to use (none, osslike, oss, or alsa).");
-
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
-int dsp_num[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
-MODULE_PARM(dsp_num, "1-" __MODULE_STRING(EM8300_MAX) "i");
-#else
-module_param_array(dsp_num, int, NULL, 0444);
-#endif
-MODULE_PARM_DESC(dsp_num, "The /dev/dsp number to assign to the card. -1 for automatic (this is the default).");
-
 static int dsp_num_table[16];
 #endif
-
-#if defined(CONFIG_SND) || defined(CONFIG_SND_MODULE)
-char *alsa_id[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = NULL };
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
-MODULE_PARM(alsa_id, "1-" __MODULE_STRING(EM8300_MAX) "s");
-#else
-module_param_array(alsa_id, charp, NULL, 0444);
-#endif
-MODULE_PARM_DESC(alsa_id, "ID string for the audio part of the EM8300 chip (ALSA).");
-
-int alsa_index[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
-MODULE_PARM(alsa_index, "1-" __MODULE_STRING(EM8300_MAX) "i");
-#else
-module_param_array(alsa_index, int, NULL, 0444);
-#endif
-MODULE_PARM_DESC(alsa_index, "Index value for the audio part of the EM8300 chip (ALSA).");
-#endif
-
-int stop_video[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
-MODULE_PARM(stop_video, "1-" __MODULE_STRING(EM8300_MAX) "i");
-#else
-module_param_array(stop_video, bool, NULL, 0444);
-#endif
-MODULE_PARM_DESC(stop_video, "Set this to 1 if you want to stop video output instead of black when there is nothing to display. Defaults to 0.");
-
 
 /* structure to keep track of the memory that has been allocated by
    the user via mmap() */
@@ -931,20 +766,8 @@ static void __exit em8300_exit(void)
 static int __init em8300_init(void)
 {
 	int err;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
-	int i;
-	for (i=0; i < EM8300_MAX; i++)
-		if ((audio_driver[i]) && (audio_driver[i][0])) {
-			int j;
-			for (j=0; j < AUDIO_DRIVER_MAX; j++)
-				if (strcmp(audio_driver[i], audio_driver_name[j]) == 0) {
-					audio_driver_nr[i] = j;
-					break;
-				}
-			if (j == AUDIO_DRIVER_MAX)
-				printk(KERN_WARNING "em8300.o: Unknown audio driver: %s\n", audio_driver[i]);
-		}
-#endif /* ! CONFIG_MODULEPARAM */
+
+	em8300_params_init();
 
 	//memset(&em8300, 0, sizeof(em8300) * EM8300_MAX);
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)

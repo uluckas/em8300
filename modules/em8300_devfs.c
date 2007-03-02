@@ -23,21 +23,13 @@
 
 #include <linux/devfs_fs_kernel.h>
 
+#include "em8300_params.h"
+
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,70)
 devfs_handle_t em8300_handle[EM8300_MAX*4];
 #endif
 
 extern struct file_operations em8300_fops;
-
-typedef enum {
-	AUDIO_DRIVER_NONE,
-	AUDIO_DRIVER_OSSLIKE,
-	AUDIO_DRIVER_OSS,
-	AUDIO_DRIVER_ALSA,
-	AUDIO_DRIVER_MAX
-} audio_driver_t;
-
-extern audio_driver_t audio_driver_nr[EM8300_MAX];
 
 static void em8300_devfs_register_card(struct em8300_s *em)
 {

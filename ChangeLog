@@ -1,3 +1,18 @@
+2007-03-02  Nicolas Boullis  <nboullis@debian.org>
+	* modules/Makefile,
+	  modules/em8300_alsa.c,
+	  modules/em8300_devfs.c,
+	  modules/em8300_dicom.c,
+	  modules/em8300_ioctl.c,
+	  modules/em8300_main.c,
+	  modules/em8300_params.c,
+	  modules/em8300_params.h,
+	  modules/em8300_ucode.c,
+	  modules/em8300_udev.c,
+	  modules/em8300_video.c:
+	Split the module parameters out of em8300_main.c and into a new
+	file, to make em8300_main.c shorter.
+
 2007-03-01  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_i2c.c:
 	Set the em8300 device as the parent device for its two i2c

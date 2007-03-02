@@ -33,17 +33,7 @@
 
 #include "em8300_reg.h"
 
-typedef enum {
-	AUDIO_DRIVER_NONE,
-	AUDIO_DRIVER_OSSLIKE,
-	AUDIO_DRIVER_OSS,
-	AUDIO_DRIVER_ALSA,
-	AUDIO_DRIVER_MAX
-} audio_driver_t;
-
-extern audio_driver_t audio_driver_nr[EM8300_MAX];
-extern int alsa_index[EM8300_MAX];
-extern char *alsa_id[EM8300_MAX];
+#include "em8300_params.h"
 
 typedef struct snd_em8300_pcm_indirect {
 	unsigned int hw_buffer_size;    /* Byte size of hardware buffer */

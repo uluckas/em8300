@@ -29,16 +29,7 @@
 
 #include "em8300_registration.h"
 #include "em8300_compat24.h"
-
-typedef enum {
-	AUDIO_DRIVER_NONE,
-	AUDIO_DRIVER_OSSLIKE,
-	AUDIO_DRIVER_OSS,
-	AUDIO_DRIVER_ALSA,
-	AUDIO_DRIVER_MAX
-} audio_driver_t;
-
-extern audio_driver_t audio_driver_nr[EM8300_MAX];
+#include "em8300_params.h"
 
 int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 {
@@ -597,8 +588,6 @@ int em8300_ioctl_setvideomode(struct em8300_s *em, int mode)
 
 	return 0;
 }
-
-extern int stop_video[EM8300_MAX];
 
 void em8300_ioctl_enable_videoout(struct em8300_s *em, int mode)
 {

@@ -20,9 +20,7 @@
 #include "em8300_reg.h"
 #include <linux/em8300.h>
 
-extern int dicom_other_pal[EM8300_MAX];
-extern int dicom_fix[EM8300_MAX];
-extern int dicom_control[EM8300_MAX];
+#include "em8300_params.h"
 
 struct dicom_tvmode {
 	int vertsize;

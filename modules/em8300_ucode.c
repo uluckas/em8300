@@ -168,16 +168,7 @@ void em8300_ucode_upload(struct em8300_s *em, void *ucode, int ucode_size)
 #include <linux/firmware.h>
 #include "em8300_fifo.h"
 #include "em8300_registration.h"
-
-typedef enum {
-	AUDIO_DRIVER_NONE,
-	AUDIO_DRIVER_OSSLIKE,
-	AUDIO_DRIVER_OSS,
-	AUDIO_DRIVER_ALSA,
-	AUDIO_DRIVER_MAX
-} audio_driver_t;
-
-extern audio_driver_t audio_driver_nr[EM8300_MAX];
+#include "em8300_params.h"
 
 void em8300_require_ucode(struct em8300_s *em)
 {

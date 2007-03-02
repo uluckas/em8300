@@ -28,8 +28,7 @@
 #include <linux/soundcard.h>
 
 #include "em8300_compat24.h"
-
-extern int bt865_ucode_timeout[EM8300_MAX];
+#include "em8300_params.h"
 
 static int mpegvideo_command(struct em8300_s *em, int cmd)
 {

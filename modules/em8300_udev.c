@@ -34,15 +34,7 @@
 #define class_destroy class_simple_destroy
 #endif
 
-typedef enum {
-	AUDIO_DRIVER_NONE,
-	AUDIO_DRIVER_OSSLIKE,
-	AUDIO_DRIVER_OSS,
-	AUDIO_DRIVER_ALSA,
-	AUDIO_DRIVER_MAX
-} audio_driver_t;
-
-extern audio_driver_t audio_driver_nr[EM8300_MAX];
+#include "em8300_params.h"
 
 struct class *em8300_class;
 

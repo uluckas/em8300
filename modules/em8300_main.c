@@ -637,6 +637,7 @@ static int init_em8300(struct em8300_s *em)
 	}
 
 	em->clockgen = em->clockgen_tvmode;
+	em8300_clockgen_write(em, em->clockgen);
 
 	pr_debug("em8300_main.o: activate_loopback: %d\n", activate_loopback[em->card_nr]);
 
@@ -651,6 +652,7 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	int result;
 
 	em = &em8300[em8300_cards];
+	memset(em, 0, sizeof(struct em8300_s));
 	em->dev = dev;
 	em->card_nr = em8300_cards;
 	em->adr = dev->resource[0].start;

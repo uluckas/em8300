@@ -1,3 +1,9 @@
+2007-03-03  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_main.c:
+	Add some missing initialization. Thanks to Jan Kandziora for
+	telling me about the problem he was experiencing, and for finding
+	out a workaround.
+
 2007-03-02  Nicolas Boullis  <nboullis@debian.org>
 	* modules/Makefile,
 	  modules/em8300_alsa.c,

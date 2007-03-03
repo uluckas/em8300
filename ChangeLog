@@ -4,6 +4,9 @@
 	telling me about the problem he was experiencing, and for finding
 	out a workaround.
 
+	* include/linux/em8300.h:
+	Include all the headers required by include/linux/em8300.h.
+
 2007-03-02  Nicolas Boullis  <nboullis@debian.org>
 	* modules/Makefile,
 	  modules/em8300_alsa.c,

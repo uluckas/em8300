@@ -198,6 +198,14 @@ typedef struct {
 #define EM8300_LOGNAME "em8300"
 extern int major;
 
+#include <linux/version.h>
+#include <linux/types.h> /* ulong, uint32_t */
+#include <linux/i2c.h> /* struct i2c_adapter */
+#include <linux/i2c-algo-bit.h> /* struct i2c_algo_bit_data */
+#include <linux/time.h> /* struct timeval */
+#include <linux/wait.h> /* wait_queue_head_t */
+#include <linux/list.h> /* struct list_head */
+
 #if defined(CONFIG_SND) || defined(CONFIG_SND_MODULE)
 #include <sound/driver.h>
 #include <sound/core.h>

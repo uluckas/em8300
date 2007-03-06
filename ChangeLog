@@ -4,6 +4,20 @@
 	required by the #included include/linux/em8300.h, and add
 	forgotten ones.
 
+	* include/linux/em8300.h,
+	  modules/Makefile,
+	  modules/adv717x.c,
+	  modules/em8300_eeprom.c,
+	  modules/em8300_eeprom.h,
+	  modules/em8300_main.c,
+	  modules/em8300_procfs.c,
+	  modules/em8300_sysfs.c,
+	  modules/encoder.h:
+	Implement some preliminary hardware detection. It will not yet
+	autodetect the optimal module parameters for any given board but
+	will hopefully help gather enough data to make that autodetection
+	possible.
+
 2007-03-03  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Add some missing initialization. Thanks to Jan Kandziora for

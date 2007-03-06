@@ -394,6 +394,9 @@ struct em8300_s
 	struct list_head  memory;
 #endif	
 
+	/* Checksum for the on-board eeprom */
+	u8 *eeprom_checksum;
+
 	/* To support different options for different cards */
 	unsigned int card_nr;
 };

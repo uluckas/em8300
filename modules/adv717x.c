@@ -696,6 +696,15 @@ int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
 		data->enableoutput = (long int) arg;
 		adv717x_update(client);
 		break;
+	case ENCODER_CMD_GETCONFIG:
+	{
+		struct em8300_s *em = i2c_get_adapdata(client->adapter);
+		((int *)arg)[0] = pixelport_16bit[em->card_nr];
+		((int *)arg)[1] = pixelport_other_pal[em->card_nr];
+		((int *)arg)[2] = pixeldata_adjust_ntsc[em->card_nr];
+		((int *)arg)[3] = pixeldata_adjust_pal[em->card_nr];
+		break;
+	}
 	default:
 		return -EINVAL;
 		break;

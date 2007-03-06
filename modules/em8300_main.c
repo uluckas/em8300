@@ -58,6 +58,7 @@
 #include "em8300_fifo.h"
 #include "em8300_registration.h"
 #include "em8300_params.h"
+#include "em8300_eeprom.h"
 
 #ifdef CONFIG_EM8300_IOCTL32
 #include "em8300_ioctl32.h"
@@ -167,6 +168,7 @@ static void release_em8300(struct em8300_s *em)
 	}
 #endif
 
+	em8300_eeprom_checksum_deinit(em);
 	em8300_i2c_exit(em);
 
 	write_ucregister(Q_IrqMask, 0);
@@ -627,6 +629,7 @@ static int init_em8300(struct em8300_s *em)
 	pr_info("em8300_main.o: Chip revision: %d\n", em->chip_revision);
 	pr_debug("em8300_main.o: use_bt865: %d\n", use_bt865[em->card_nr]);
 	em8300_i2c_init(em);
+	em8300_eeprom_checksum_init(em);
 
 	if (activate_loopback[em->card_nr] == 0) {
 		em->clockgen_tvmode = CLOCKGEN_TVMODE_1;

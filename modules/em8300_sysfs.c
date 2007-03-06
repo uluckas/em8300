@@ -26,6 +26,11 @@
 #include <linux/device.h>
 #include <linux/pci.h>
 
+#include "em8300_params.h"
+#include "em8300_eeprom.h"
+#include "em8300_reg.h"
+#include "encoder.h"
+
 extern struct pci_driver em8300_driver;
 
 static ssize_t show_version(struct device_driver *dd, char *buf)
@@ -35,6 +40,190 @@ static ssize_t show_version(struct device_driver *dd, char *buf)
 
 static DRIVER_ATTR(version, S_IRUGO, show_version, NULL);
 
+static ssize_t show_model(struct device *dev, struct device_attribute *attr, char  *buf)
+{
+	struct em8300_s *em = dev_get_drvdata(dev);
+	ssize_t len = 0;
+	char *encoder_name = NULL;
+	u8 *tmp;
+	int i;
+
+	len += sprintf(buf + len,
+		       "\n**** Detected data ****\n\n");
+
+/* General information */
+	len += sprintf(buf + len,
+		       "PCI revision: %d\n",
+		       em->pci_revision);
+	len += sprintf(buf + len,
+		       "Chip revision: %d\n",
+		       em->chip_revision);
+
+/* Video encoder */
+	switch (em->encoder_type) {
+	case ENCODER_BT865:
+		encoder_name = "BT865";
+		break;
+	case ENCODER_ADV7170:
+		encoder_name = "ADV7170";
+		break;
+	case ENCODER_ADV7175:
+		encoder_name = "ADV7175A";
+		break;
+	}
+	if (encoder_name) {
+		len += sprintf(buf + len,
+			       "Video encoder: %s at address 0x%02x on %s\n",
+			       encoder_name, em->encoder->addr,
+			       em->encoder->adapter->name);
+	}
+	else {
+		len += sprintf(buf + len,
+			       "No known video encoder found.\n");
+	}
+
+/* EEPROM data */
+	if ((tmp = kmalloc(256, GFP_KERNEL)) != NULL) {
+		if (!em8300_eeprom_read(em, tmp)) {
+			len += sprintf(buf + len, "EEPROM data:");
+			for (i=0; i<256; i++) {
+				if (i%32 == 0)
+					len += sprintf(buf + len, "\n\t");
+				len += sprintf(buf + len, "%02x", tmp[i]);
+			}
+			len += sprintf(buf + len, "\n");
+		}
+		kfree(tmp);
+	}
+	if (em->eeprom_checksum) {
+		len += sprintf(buf + len, "EEPROM checksum: ");
+		for (i=0; i<16; i++) {
+			len += sprintf(buf + len, "%02x",
+				       em->eeprom_checksum[i]);
+		}
+		len += sprintf(buf + len, "\n");
+	}
+
+	if (em->chip_revision == 2)
+		len += sprintf(buf + len,
+			       "read_register(0x1c08) = 0x%02x\n",
+			       read_register(0x1c08));
+
+	len += sprintf(buf + len,
+		       "\n**** Current configuration ****\n\n");
+
+/* Configuration */
+	len += sprintf(buf + len,
+		       "em8300.ko options:");
+	len += sprintf(buf + len,
+		       ((em->chip_revision == 2)
+			&&((0x60 & read_register(0x1c08)) == 0x60)) ?
+		       " use_bt865=%d" :
+		       " [use_bt865=%d]",
+		       use_bt865[em->card_nr]);
+	len += sprintf(buf + len,
+		       " dicom_other_pal=%d",
+		       dicom_other_pal[em->card_nr]);
+	len += sprintf(buf + len,
+		       " dicom_fix=%d",
+		       dicom_fix[em->card_nr]);
+	len += sprintf(buf + len,
+		       " dicom_control=%d",
+		       dicom_control[em->card_nr]);
+	len += sprintf(buf + len,
+		       ((em->encoder_type != ENCODER_ADV7170)
+			&&(em->encoder_type != ENCODER_ADV7175)) ?
+		       " bt865_ucode_timeout=%d" :
+		       " [bt865_ucode_timeout=%d]",
+		       bt865_ucode_timeout[em->card_nr]);
+	len += sprintf(buf + len,
+		       " activate_loopback=%d",
+		       activate_loopback[em->card_nr]);
+	len += sprintf(buf + len, "\n");
+
+	switch (em->encoder_type) {
+	case ENCODER_ADV7170:
+	case ENCODER_ADV7175:
+	{
+		int data[4];
+		if (em->encoder->driver->command(em->encoder,
+						 ENCODER_CMD_GETCONFIG,
+						 (void *) data) == 0) {
+			len += sprintf(buf + len,
+				       "adv717x.ko options:");
+			len += sprintf(buf + len,
+				       " pixelport_16bit=%d",
+				       data[0]);
+			len += sprintf(buf + len,
+				       " pixelport_other_pal=%d",
+				       data[1]);
+			len += sprintf(buf + len,
+				       " pixeldata_adjust_ntsc=%d",
+				       data[2]);
+			len += sprintf(buf + len,
+				       " pixeldata_adjust_pal=%d",
+				       data[3]);
+			len += sprintf(buf + len, "\n");
+		} else {
+			len += sprintf(buf + len,
+				       "*The adv717x.ko module is too old to report its configuration.*\n"
+				       "*Please rebuild and load the new module.*\n");
+		}
+		break;
+	}
+	}
+
+	len += sprintf(buf + len,
+		       "\n**** Form ****\n\n");
+
+	len += sprintf(buf + len,
+		       "PAL video output\n"
+		       " [ ] works fine\n"
+		       " [ ] does not work (please describe problem)\n"
+		       " [ ] was not tried\n"
+		       "\n"
+		       "NTSC video output\n"
+		       " [ ] works fine\n"
+		       " [ ] does not work (please describe problem)\n"
+		       " [ ] was not tried\n"
+		       "\n"
+		       "video pathrough and overlay\n"
+		       " [ ] work fine\n"
+		       " [ ] do not work (please describe problem)\n"
+		       " [ ] were not tried\n"
+		       "\n");
+	len += sprintf(buf + len,
+		       "changing the use_bt865 option\n"
+		       " [ ] makes no difference\n"
+		       " [ ] breaks something (please describe problem)\n"
+		       " [ ] was not tried\n"
+		       "\n"
+		       "changing the bt865_ucode_timeout option\n"
+		       " [ ] makes no difference\n"
+		       " [ ] breaks something (please describe problem)\n"
+		       " [ ] was not tried\n"
+		       "\n"
+		       "changing the activate_loopback option\n"
+		       " [ ] makes no difference\n"
+		       " [ ] breaks something (please describe problem)\n"
+		       " [ ] was not tried\n"
+		       "\n"
+		       "changing the dicom_fix option\n"
+		       " [ ] makes no difference\n"
+		       " [ ] breaks something (please describe problem)\n"
+		       " [ ] was not tried\n");
+
+	len += sprintf(buf + len,
+		       "\n**** The END ****\n\n");
+
+	len += sprintf(buf + len,
+		       "Please fill in the form above and send everything to dxr3-devel@lists.sourceforge.net\n\n");
+
+	return len;
+}
+
+static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
+
 static void em8300_sysfs_postregister_driver(void)
 {
 	driver_create_file(&em8300_driver.driver, &driver_attr_version);
@@ -42,10 +231,12 @@ static void em8300_sysfs_postregister_driver(void)
 
 static void em8300_sysfs_register_card(struct em8300_s *em)
 {
+	device_create_file(&em->dev->dev, &dev_attr_model);
 }
 
 static void em8300_sysfs_unregister_card(struct em8300_s *em)
 {
+	device_remove_file(&em->dev->dev, &dev_attr_model);
 }
 
 static void em8300_sysfs_preunregister_driver(void)

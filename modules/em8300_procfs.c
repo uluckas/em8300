@@ -22,6 +22,7 @@
 #include <asm/io.h>
 #include "em8300_procfs.h"
 #include "em8300_reg.h"
+#include "em8300_eeprom.h"
 
 #ifdef CONFIG_PROC_FS
 
@@ -72,6 +73,30 @@ static int em8300_proc_read(char *page, char **start, off_t off, int count, int 
 		       encoder_name, em->encoder->addr,
 		       em->encoder->adapter->name);
  encoder_done:
+	{
+		u8 *buf;
+		int i;
+		if ((buf = kmalloc(256, GFP_KERNEL)) != NULL) {
+			if (!em8300_eeprom_read(em, buf)) {
+				len += sprintf(page + len, "EEPROM data:");
+				for (i=0; i<256; i++) {
+					if (i%32 == 0)
+						len += sprintf(page + len, "\n\t");
+					len += sprintf(page + len, "%02x", buf[i]);
+				}
+				len += sprintf(page + len, "\n");
+			}
+			kfree(buf);
+		}
+		if (em->eeprom_checksum) {
+			len += sprintf(page + len, "EEPROM checksum: ");
+			for (i=0; i<16; i++) {
+				len += sprintf(page + len, "%02x", em->eeprom_checksum[i]);
+			}
+			len += sprintf(page + len, "\n");
+		}
+	}
+
 	len += sprintf(page + len,
 		       "Memory mapped at address range 0x%0lx->0x%0lx%s\n",
 		       (unsigned long int) em->mem,

@@ -1,3 +1,9 @@
+2007-03-06  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_params.c:
+	Remove the #includes that are now useless as they were only
+	required by the #included include/linux/em8300.h, and add
+	forgotten ones.
+
 2007-03-03  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Add some missing initialization. Thanks to Jan Kandziora for

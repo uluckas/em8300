@@ -19,9 +19,9 @@
  */
 
 #include "em8300_params.h"
-#include <linux/i2c.h>
-#include <linux/i2c-algo-bit.h>
 #include <linux/em8300.h>
+#include <linux/module.h>
+#include <linux/string.h>
 
 int use_bt865[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)

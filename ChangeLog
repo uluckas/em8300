@@ -1,3 +1,8 @@
+2007-03-09  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_sysfs.c:
+	Fix the prototype of the show_model function for kernels older
+	than 2.6.13.
+
 2007-03-06  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_params.c:
 	Remove the #includes that are now useless as they were only

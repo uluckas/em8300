@@ -29,11 +29,24 @@
 #include <linux/em8300.h>
 #include <linux/pci.h>
 #include <linux/stringify.h>
+#include <linux/version.h>
 #include <asm/semaphore.h>
 
 #include "em8300_reg.h"
 
 #include "em8300_params.h"
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,16)
+#define snd_card_t struct snd_card
+#define snd_pcm_t struct snd_pcm
+#define snd_pcm_substream_t struct snd_pcm_substream
+#define snd_pcm_hardware_t struct snd_pcm_hardware
+#define snd_pcm_runtime_t struct snd_pcm_runtime
+#define snd_pcm_hw_params_t struct snd_pcm_hw_params
+#define snd_pcm_ops_t struct snd_pcm_ops
+#define snd_device_t struct snd_device
+#define snd_device_ops_t struct snd_device_ops
+#endif
 
 typedef struct snd_em8300_pcm_indirect {
 	unsigned int hw_buffer_size;    /* Byte size of hardware buffer */

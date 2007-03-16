@@ -24,6 +24,11 @@
 #include <linux/crypto.h>
 #include <linux/slab.h>
 
+#if !defined(CONFIG_CRYPTO_MD5) && !defined(CONFIG_CRYPTO_MD5_MODULE)
+#warning CONFIG_CRYPTO_MD5 is missing.
+#warning Full hardware detection (and autoconfiguration) will be impossible.
+#endif
+
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,13)
 static inline void *crypto_tfm_ctx(struct crypto_tfm *tfm)
 {
@@ -56,6 +61,7 @@ int em8300_eeprom_read(struct em8300_s *em, u8 *data)
 
 int em8300_eeprom_checksum_init(struct em8300_s *em)
 {
+#if defined(CONFIG_CRYPTO) && !defined(CONFIG_CRYPTO_MODULE)
 	u8 *buf;
 	int err;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,19)
@@ -108,6 +114,9 @@ int em8300_eeprom_checksum_init(struct em8300_s *em)
 	kfree(buf);
 
 	return err;
+#else
+	return -5;
+#endif
 }
 
 void em8300_eeprom_checksum_deinit(struct em8300_s *em)

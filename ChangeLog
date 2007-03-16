@@ -8,6 +8,10 @@
 	Fix compatibility with linux kernel 2.6.21 by using the new
 	crypto_hash functions. Thanks to "nyk" who spotted the problem.
 
+	* modules/em8300_eeprom.c:
+	Make it possible again to use the em8300 driver without
+	CONFIG_CRYPTO (although in degraded mode).
+
 2007-03-09  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_sysfs.c:
 	Fix the prototype of the show_model function for kernels older

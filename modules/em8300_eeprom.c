@@ -58,6 +58,9 @@ int em8300_eeprom_checksum_init(struct em8300_s *em)
 {
 	u8 *buf;
 	int err;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,19)
+	struct crypto_hash *hash;
+#endif
 	struct crypto_tfm *tfm;
 
 	buf = kmalloc(256, GFP_KERNEL);
@@ -68,11 +71,20 @@ int em8300_eeprom_checksum_init(struct em8300_s *em)
 	if (err != 0)
 		goto cleanup;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,19)
+	hash = crypto_alloc_hash("md5", 0, CRYPTO_ALG_ASYNC);
+	if (hash == NULL) {
+		err = -5;
+		goto cleanup;
+	}
+	tfm = crypto_hash_tfm(hash);
+#else
 	tfm = crypto_alloc_tfm("md5", 0);
 	if (tfm == NULL) {
 		err = -5;
 		goto cleanup;
 	}
+#endif
 
 	em->eeprom_checksum = kmalloc(16, GFP_KERNEL);
 	if (em->eeprom_checksum == NULL) {
@@ -86,7 +98,11 @@ int em8300_eeprom_checksum_init(struct em8300_s *em)
 					      buf, 128);
 	tfm->__crt_alg->cra_digest.dia_final(crypto_tfm_ctx(tfm),
 					     em->eeprom_checksum);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,19)
+	crypto_free_hash(hash);
+#else
 	crypto_free_tfm(tfm);
+#endif
 
  cleanup:
 	kfree(buf);

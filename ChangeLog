@@ -4,6 +4,10 @@
 	Fix compatibility with ALSA in linux kernel 2.6.21. Thanks to
 	Ville Skyttä who spotted the problem.
 
+	* modules/em8300_eeprom.c:
+	Fix compatibility with linux kernel 2.6.21 by using the new
+	crypto_hash functions. Thanks to "nyk" who spotted the problem.
+
 2007-03-09  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_sysfs.c:
 	Fix the prototype of the show_model function for kernels older

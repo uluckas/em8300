@@ -23,17 +23,25 @@
 #include <linux/i2c.h>
 #include <linux/crypto.h>
 #include <linux/slab.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,10)
+#include <linux/scatterlist.h>
+#else
+#include <asm/scatterlist.h>
+
+static inline void sg_init_one(struct scatterlist *sg, void *buf,
+			       unsigned int buflen)
+{
+	memset(sg, 0, sizeof(*sg));
+
+	sg->page = virt_to_page(buf);
+	sg->offset = ((long)buf & ~PAGE_MASK);
+	sg->length = 128;
+}
+#endif
 
 #if !defined(CONFIG_CRYPTO_MD5) && !defined(CONFIG_CRYPTO_MD5_MODULE)
 #warning CONFIG_CRYPTO_MD5 is missing.
 #warning Full hardware detection (and autoconfiguration) will be impossible.
-#endif
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,13)
-static inline void *crypto_tfm_ctx(struct crypto_tfm *tfm)
-{
-	return (void *)&tfm[1];
-}
 #endif
 
 int em8300_eeprom_read(struct em8300_s *em, u8 *data)
@@ -61,13 +69,9 @@ int em8300_eeprom_read(struct em8300_s *em, u8 *data)
 
 int em8300_eeprom_checksum_init(struct em8300_s *em)
 {
-#if defined(CONFIG_CRYPTO) && !defined(CONFIG_CRYPTO_MODULE)
+#if defined(CONFIG_CRYPTO) || defined(CONFIG_CRYPTO_MODULE)
 	u8 *buf;
 	int err;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,19)
-	struct crypto_hash *hash;
-#endif
-	struct crypto_tfm *tfm;
 
 	buf = kmalloc(256, GFP_KERNEL);
 	if (buf == NULL)
@@ -75,42 +79,64 @@ int em8300_eeprom_checksum_init(struct em8300_s *em)
 
 	err = em8300_eeprom_read(em, buf);
 	if (err != 0)
-		goto cleanup;
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,19)
-	hash = crypto_alloc_hash("md5", 0, CRYPTO_ALG_ASYNC);
-	if (hash == NULL) {
-		err = -5;
-		goto cleanup;
-	}
-	tfm = crypto_hash_tfm(hash);
-#else
-	tfm = crypto_alloc_tfm("md5", 0);
-	if (tfm == NULL) {
-		err = -5;
-		goto cleanup;
-	}
-#endif
+		goto cleanup1;
 
 	em->eeprom_checksum = kmalloc(16, GFP_KERNEL);
 	if (em->eeprom_checksum == NULL) {
 		err = -ENOMEM;
-		goto cleanup;
+		goto cleanup2;
 	}
 
-	BUG_ON(crypto_tfm_alg_type(tfm) != CRYPTO_ALG_TYPE_DIGEST);
-	tfm->__crt_alg->cra_digest.dia_init(crypto_tfm_ctx(tfm));
-	tfm->__crt_alg->cra_digest.dia_update(crypto_tfm_ctx(tfm),
-					      buf, 128);
-	tfm->__crt_alg->cra_digest.dia_final(crypto_tfm_ctx(tfm),
-					     em->eeprom_checksum);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,19)
-	crypto_free_hash(hash);
+	{
+		struct crypto_hash *tfm;
+		struct hash_desc desc;
+		struct scatterlist tmp;
+
+		tfm = crypto_alloc_hash("md5", 0, CRYPTO_ALG_ASYNC);
+		if (tfm == NULL) {
+			err = -5;
+			goto cleanup2;
+		}
+
+		desc.tfm = tfm;
+		desc.flags = 0;
+		sg_init_one(&tmp, buf, 256);
+
+		err = crypto_hash_digest(&desc, &tmp, 128, em->eeprom_checksum);
+
+		crypto_free_hash(tfm);
+
+		if (err != 0)
+			goto cleanup2;
+	}
 #else
-	crypto_free_tfm(tfm);
+	{
+		struct crypto_tfm *tfm;
+		struct scatterlist tmp;
+
+		tfm = crypto_alloc_tfm("md5", 0);
+		if (tfm == NULL) {
+			err = -5;
+			goto cleanup2;
+		}
+
+		sg_init_one(&tmp, buf, 128);
+
+		crypto_digest_digest(tfm, &tmp, 1, em->eeprom_checksum);
+
+		crypto_free_tfm(tfm);
+	}
 #endif
 
- cleanup:
+	kfree(buf);
+
+	return 0;
+
+ cleanup2:
+	kfree(em->eeprom_checksum);
+
+ cleanup1:
 	kfree(buf);
 
 	return err;

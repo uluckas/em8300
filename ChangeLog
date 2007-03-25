@@ -1,3 +1,9 @@
+2007-03-24  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_eeprom.c:
+	Rewrite the checksumming code, using the sg_init_one function, to
+	make it cleaner. Thanks to Herbert Xu who hinted me about the
+	sg_set_buf function.
+
 2007-03-16  Nicolas Boullis  <nboullis@debian.org>
 	* include/linux/em8300.h,
 	  modules/em8300_alsa.c:

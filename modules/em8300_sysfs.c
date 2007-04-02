@@ -118,32 +118,31 @@ static ssize_t show_model(struct device *dev,
 
 /* Configuration */
 	len += sprintf(buf + len,
-		       "em8300.ko options:");
+		       "em8300.ko options:\n");
 	len += sprintf(buf + len,
 		       ((em->chip_revision == 2)
 			&&((0x60 & read_register(0x1c08)) == 0x60)) ?
-		       " use_bt865=%d" :
-		       " [use_bt865=%d]",
+		       "  use_bt865=%d\n" :
+		       "  [use_bt865=%d]\n",
 		       use_bt865[em->card_nr]);
 	len += sprintf(buf + len,
-		       " dicom_other_pal=%d",
+		       "  dicom_other_pal=%d\n",
 		       dicom_other_pal[em->card_nr]);
 	len += sprintf(buf + len,
-		       " dicom_fix=%d",
+		       "  dicom_fix=%d\n",
 		       dicom_fix[em->card_nr]);
 	len += sprintf(buf + len,
-		       " dicom_control=%d",
+		       "  dicom_control=%d\n",
 		       dicom_control[em->card_nr]);
 	len += sprintf(buf + len,
 		       ((em->encoder_type != ENCODER_ADV7170)
 			&&(em->encoder_type != ENCODER_ADV7175)) ?
-		       " bt865_ucode_timeout=%d" :
-		       " [bt865_ucode_timeout=%d]",
+		       "  bt865_ucode_timeout=%d\n" :
+		       "  [bt865_ucode_timeout=%d]\n",
 		       bt865_ucode_timeout[em->card_nr]);
 	len += sprintf(buf + len,
-		       " activate_loopback=%d",
+		       "  activate_loopback=%d\n",
 		       activate_loopback[em->card_nr]);
-	len += sprintf(buf + len, "\n");
 
 	switch (em->encoder_type) {
 	case ENCODER_ADV7170:
@@ -154,20 +153,19 @@ static ssize_t show_model(struct device *dev,
 						 ENCODER_CMD_GETCONFIG,
 						 (void *) data) == 0) {
 			len += sprintf(buf + len,
-				       "adv717x.ko options:");
+				       "adv717x.ko options:\n");
 			len += sprintf(buf + len,
-				       " pixelport_16bit=%d",
+				       "  pixelport_16bit=%d\n",
 				       data[0]);
 			len += sprintf(buf + len,
-				       " pixelport_other_pal=%d",
+				       "  pixelport_other_pal=%d\n",
 				       data[1]);
 			len += sprintf(buf + len,
-				       " pixeldata_adjust_ntsc=%d",
+				       "  pixeldata_adjust_ntsc=%d\n",
 				       data[2]);
 			len += sprintf(buf + len,
-				       " pixeldata_adjust_pal=%d",
+				       "  pixeldata_adjust_pal=%d\n",
 				       data[3]);
-			len += sprintf(buf + len, "\n");
 		} else {
 			len += sprintf(buf + len,
 				       "*The adv717x.ko module is too old to report its configuration.*\n"
@@ -215,13 +213,20 @@ static ssize_t show_model(struct device *dev,
 		       "changing the dicom_fix option\n"
 		       " [ ] makes no difference\n"
 		       " [ ] breaks something (please describe problem)\n"
-		       " [ ] was not tried\n");
+		       " [ ] was not tried\n\n");
+	len += sprintf(buf + len,
+		       "[optional] card model:\n"
+		       "(something like \"CT7260\" for DXR3 boards or "
+		       "\"ASSY: 53-000569-02\" for H+ board;\n"
+		       " both written on the PCB; not always available.)\n");
 
 	len += sprintf(buf + len,
 		       "\n**** The END ****\n\n");
 
 	len += sprintf(buf + len,
-		       "Please fill in the form above and send everything to dxr3-devel@lists.sourceforge.net\n\n");
+		       "Please fill in the form above and send everything to\n"
+		       "  dxr3\055poll\100lists\056sourceforge\056net\n"
+		       "with \"model\" as the subject.\n\n");
 
 	return len;
 }

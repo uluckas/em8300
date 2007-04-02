@@ -1,3 +1,8 @@
+2007-04-02  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_sysfs.c:
+	Reformat the "model" sysfs file and change the target
+	mailing-list.
+
 2007-03-24  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_eeprom.c:
 	Rewrite the checksumming code, using the sg_init_one function, to

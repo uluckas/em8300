@@ -1,3 +1,7 @@
+2007-04-04  Ville Skyttä  <scop@users.sourceforge.net>
+	* modules/em8300_sysfs.c:
+	Spelling fix in "model" file contents.
+
 2007-04-02  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_sysfs.c:
 	Reformat the "model" sysfs file and change the target

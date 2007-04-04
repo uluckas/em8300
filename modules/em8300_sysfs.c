@@ -189,7 +189,7 @@ static ssize_t show_model(struct device *dev,
 		       " [ ] does not work (please describe problem)\n"
 		       " [ ] was not tried\n"
 		       "\n"
-		       "video pathrough and overlay\n"
+		       "video passthrough and overlay\n"
 		       " [ ] work fine\n"
 		       " [ ] do not work (please describe problem)\n"
 		       " [ ] were not tried\n"

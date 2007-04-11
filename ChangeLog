@@ -1,3 +1,8 @@
+2007-04-11  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_sysfs.c:
+	Improve the "model" sysfs file, considering that the dicom_fix and
+	dicom_control options only do something for bt865-based cards.
+
 2007-04-04  Ville Skyttä  <scop@users.sourceforge.net>
 	* modules/em8300_sysfs.c:
 	Spelling fix in "model" file contents.

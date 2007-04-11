@@ -129,10 +129,14 @@ static ssize_t show_model(struct device *dev,
 		       "  dicom_other_pal=%d\n",
 		       dicom_other_pal[em->card_nr]);
 	len += sprintf(buf + len,
-		       "  dicom_fix=%d\n",
+		       (em->encoder_type != ENCODER_BT865) ?
+		       "  dicom_fix=%d\n" :
+		       "  [dicom_fix=%d]\n",
 		       dicom_fix[em->card_nr]);
 	len += sprintf(buf + len,
-		       "  dicom_control=%d\n",
+		       (em->encoder_type != ENCODER_BT865) ?
+		       "  dicom_control=%d\n" :
+		       "  [dicom_control=%d]\n",
 		       dicom_control[em->card_nr]);
 	len += sprintf(buf + len,
 		       ((em->encoder_type != ENCODER_ADV7170)
@@ -210,10 +214,16 @@ static ssize_t show_model(struct device *dev,
 		       " [ ] breaks something (please describe problem)\n"
 		       " [ ] was not tried\n"
 		       "\n"
+		       "changing the dicom_other_pal option (for PAL mode)\n"
+		       " [ ] makes no difference\n"
+		       " [ ] breaks something (please describe problem)\n"
+		       " [ ] was not tried\n"
+		       "\n"
 		       "changing the dicom_fix option\n"
 		       " [ ] makes no difference\n"
 		       " [ ] breaks something (please describe problem)\n"
-		       " [ ] was not tried\n\n");
+		       " [ ] was not tried\n"
+		       "\n");
 	len += sprintf(buf + len,
 		       "[optional] card model:\n"
 		       "(something like \"CT7260\" for DXR3 boards or "

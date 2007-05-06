@@ -1,3 +1,8 @@
+2007-05-06  Nicolas Boullis  <nboullis@debian.org>
+	* configure.in,
+	  modules/Makefile:
+	Release 0.16.2.
+
 2007-04-11  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_sysfs.c:
 	Improve the "model" sysfs file, considering that the dicom_fix and

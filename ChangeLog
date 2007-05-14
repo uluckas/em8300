@@ -1,4 +1,12 @@
 2007-05-14  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_main.c:
+	Use pci_register_driver instead pci_module_init since the latter
+	is removed in linux 2.6.22. Thanks to Adam who noticed the problem
+	with linux 2.6.21-git5. The only expected change in behavior is
+	that the module won't fail to load with linux 2.4 kernels if no
+	em8300-based board is present.
+
+2007-05-14  Nicolas Boullis  <nboullis@debian.org>
 	* configure.in,
 	  modules/Makefile:
 	New development version.

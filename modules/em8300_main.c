@@ -800,10 +800,8 @@ static int __init em8300_init(void)
 		}
 	}
 
-	if ((err = pci_module_init(&em8300_driver)) < 0) {
-#ifdef MODULE
-		printk(KERN_ERR "Sigmadesigns EM8300 not found or device busy\n");
-#endif
+	if ((err = pci_register_driver(&em8300_driver)) < 0) {
+		printk(KERN_ERR "em8300: unable to register PCI driver\n");
 		goto err_init;
 	}
 

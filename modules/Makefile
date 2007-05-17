@@ -36,7 +36,7 @@ export INSTALL_MOD_DIR=em8300
 build:
 	$(MAKE) -C $(KERNEL_LOCATION) SUBDIRS=$(CURDIR) modules
 
-ifeq ($(strip $(shell printf '\0043if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,51)\n1\n\0043else\n0\n\0043endif\n' | $(CPP) -imacros $(KERNEL_LOCATION)/include/linux/version.h -P - )),1)
+ifeq ($(strip $(shell printf '\043if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,51)\n1\n\043else\n0\n\043endif\n' | $(CPP) -imacros $(KERNEL_LOCATION)/include/linux/version.h -P - )),1)
 
 clean:
 	-rm -f *.o .*.o.flags

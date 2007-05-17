@@ -1,3 +1,8 @@
+2007-05-17  Nicolas Boullis  <nboullis@debian.org>
+	* modules/Makefile:
+	Fix a bug in the detection of pre-2.5.51 linux kernels. Thanks to
+	Gabor Z. Papp for pointing out the problem.
+
 2007-05-14  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_main.c:
 	Use pci_register_driver instead pci_module_init since the latter

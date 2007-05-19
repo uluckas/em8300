@@ -149,7 +149,7 @@ static int em8300_i2c_unreg(struct i2c_client *client)
 /* ----------------------------------------------------------------------- */
 /* I2C functions							   */
 /* ----------------------------------------------------------------------- */
-int em8300_i2c_init(struct em8300_s *em)
+int em8300_i2c_init1(struct em8300_s *em)
 {
 	int ret;
 	struct private_data_s *pdata;
@@ -175,42 +175,6 @@ int em8300_i2c_init(struct em8300_s *em)
 	writel(0x0100, &em->mem[em->i2c_pin_reg]);
 	writel(0x0101, &em->mem[em->i2c_pin_reg]);
 	writel(0x0808, &em->mem[em->i2c_pin_reg]);
-
-	/*
-	  Setup info structure for bus 1
-	*/
-
-	em->i2c_data_1.setsda = &em8300_setsda;
-	em->i2c_data_1.setscl = &em8300_setscl;
-	em->i2c_data_1.getsda = &em8300_getsda;
-	em->i2c_data_1.getscl = &em8300_getscl;
-	em->i2c_data_1.udelay = 10;
-	em->i2c_data_1.timeout = 100;
-
-	pdata = kmalloc(sizeof(struct private_data_s),GFP_KERNEL);
-	pdata->clk = 0x10;
-	pdata->data = 0x8;
-	pdata->em = em;
-
-	em->i2c_data_1.data = pdata;
-
-	strcpy(em->i2c_ops_1.name, "EM8300 I2C bus 1");
-	em->i2c_ops_1.id = I2C_HW_B_EM8300;
-	em->i2c_ops_1.algo = NULL;
-	em->i2c_ops_1.algo_data = &em->i2c_data_1;
-	em->i2c_ops_1.client_register = em8300_i2c_reg;
-	em->i2c_ops_1.client_unregister = em8300_i2c_unreg;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
-	em->i2c_ops_1.dev.parent = &em->dev->dev;
-#endif
-
-	i2c_set_adapdata(&em->i2c_ops_1, (void *)em);
-
-	ret = i2c_bit_add_bus(&em->i2c_ops_1);
-
-	if (ret) {
-		return ret;
-	}
 
 	/*
 	  Setup info structure for bus 2
@@ -243,6 +207,45 @@ int em8300_i2c_init(struct em8300_s *em)
 	i2c_set_adapdata(&em->i2c_ops_2, (void *)em);
 
 	ret = i2c_bit_add_bus(&em->i2c_ops_2);
+	return ret;
+}
+
+int em8300_i2c_init2(struct em8300_s *em)
+{
+	int ret;
+	struct private_data_s *pdata;
+
+	/*
+	  Setup info structure for bus 1
+	*/
+
+	em->i2c_data_1.setsda = &em8300_setsda;
+	em->i2c_data_1.setscl = &em8300_setscl;
+	em->i2c_data_1.getsda = &em8300_getsda;
+	em->i2c_data_1.getscl = &em8300_getscl;
+	em->i2c_data_1.udelay = 10;
+	em->i2c_data_1.timeout = 100;
+
+	pdata = kmalloc(sizeof(struct private_data_s),GFP_KERNEL);
+	pdata->clk = 0x10;
+	pdata->data = 0x8;
+	pdata->em = em;
+
+	em->i2c_data_1.data = pdata;
+
+	strcpy(em->i2c_ops_1.name, "EM8300 I2C bus 1");
+	em->i2c_ops_1.id = I2C_HW_B_EM8300;
+	em->i2c_ops_1.algo = NULL;
+	em->i2c_ops_1.algo_data = &em->i2c_data_1;
+	em->i2c_ops_1.client_register = em8300_i2c_reg;
+	em->i2c_ops_1.client_unregister = em8300_i2c_unreg;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+	em->i2c_ops_1.dev.parent = &em->dev->dev;
+#endif
+
+	i2c_set_adapdata(&em->i2c_ops_1, (void *)em);
+
+	ret = i2c_bit_add_bus(&em->i2c_ops_1);
 	return ret;
 }
 

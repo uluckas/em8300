@@ -135,6 +135,7 @@ int em8300_eeprom_checksum_init(struct em8300_s *em)
 
  cleanup2:
 	kfree(em->eeprom_checksum);
+	em->eeprom_checksum = NULL;
 
  cleanup1:
 	kfree(buf);

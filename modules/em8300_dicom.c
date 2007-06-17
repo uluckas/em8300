@@ -160,14 +160,31 @@ int em8300_dicom_update(struct em8300_s *em)
 				em->overlay_frame_height, em->overlay_a[EM9010_ATTRIBUTE_XOFFSET],
 				em->overlay_a[EM9010_ATTRIBUTE_YOFFSET], em->overlay_a[EM9010_ATTRIBUTE_XCORR], em->overlay_double_y);
 	} else {
-		write_ucregister(DICOM_FrameTop, tvmodematrix[em->video_mode].vertoffset);
-		write_ucregister(DICOM_FrameBottom, tvmodematrix[em->video_mode].vertoffset + tvmodematrix[em->video_mode].vertsize - 1);
-		write_ucregister(DICOM_FrameLeft, tvmodematrix[em->video_mode].horizoffset);
-		write_ucregister(DICOM_FrameRight, tvmodematrix[em->video_mode].horizoffset + tvmodematrix[em->video_mode].horizsize - 1);
-		write_ucregister(DICOM_VisibleTop, tvmodematrix[em->video_mode].vertoffset);
-		write_ucregister(DICOM_VisibleBottom, tvmodematrix[em->video_mode].vertoffset + tvmodematrix[em->video_mode].vertsize - 1);
-		write_ucregister(DICOM_VisibleLeft, tvmodematrix[em->video_mode].horizoffset);
-		write_ucregister(DICOM_VisibleRight, tvmodematrix[em->video_mode].horizoffset + tvmodematrix[em->video_mode].horizsize - 1);
+		int f_vs, f_hs, f_vo, f_ho;
+		int v_vs, v_hs, v_vo, v_ho;
+
+		v_vs = f_vs = tvmodematrix[em->video_mode].vertsize;
+		v_hs = f_hs = tvmodematrix[em->video_mode].horizsize;
+		v_vo = f_vo = tvmodematrix[em->video_mode].vertoffset;
+		v_ho = f_ho = tvmodematrix[em->video_mode].horizoffset;
+
+		f_vo += (100 - em->zoom) * f_vs / 200;
+		f_ho += (100 - em->zoom) * f_hs / 200;
+		v_vo += (100 - em->zoom) * v_vs / 200;
+		v_ho += (100 - em->zoom) * v_hs / 200;
+		f_vs = em->zoom * f_vs / 100;
+		f_hs = em->zoom * f_hs / 100;
+		v_vs = em->zoom * v_vs / 100;
+		v_hs = em->zoom * v_hs / 100;
+
+		write_ucregister(DICOM_FrameTop, f_vo);
+		write_ucregister(DICOM_FrameBottom, f_vo + f_vs - 1);
+		write_ucregister(DICOM_FrameLeft, f_ho);
+		write_ucregister(DICOM_FrameRight, f_ho + f_hs - 1);
+		write_ucregister(DICOM_VisibleTop, v_vo);
+		write_ucregister(DICOM_VisibleBottom, v_vo + v_vs - 1);
+		write_ucregister(DICOM_VisibleLeft, v_ho);
+		write_ucregister(DICOM_VisibleRight,v_ho + v_hs - 1);
 	}
 
 	if (em->aspect_ratio == EM8300_ASPECTRATIO_16_9) {

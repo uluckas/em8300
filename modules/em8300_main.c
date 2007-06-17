@@ -643,6 +643,8 @@ static int init_em8300(struct em8300_s *em)
 	em->clockgen = em->clockgen_tvmode;
 	em8300_clockgen_write(em, em->clockgen);
 
+	em->zoom=100;
+
 	pr_debug("em8300_main.o: activate_loopback: %d\n", activate_loopback[em->card_nr]);
 
 	return 0;

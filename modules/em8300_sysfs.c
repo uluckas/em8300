@@ -243,6 +243,36 @@ static ssize_t show_model(struct device *dev,
 
 static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
 
+static ssize_t show_zoom(struct device *dev,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,13)
+			 struct device_attribute *attr,
+#endif
+			 char  *buf)
+{
+	struct em8300_s *em = dev_get_drvdata(dev);
+	return sprintf(buf, "%d%%\n", em->zoom);
+}
+
+static ssize_t store_zoom(struct device *dev,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,13)
+			  struct device_attribute *attr,
+#endif
+			  const char  *buf,
+			  size_t count)
+{
+	struct em8300_s *em = dev_get_drvdata(dev);
+	int z;
+	if (sscanf(buf, "%d", &z)) {
+		if ((z > 0) && (z <= 100)) {
+			em->zoom = z;
+			em8300_dicom_update(em);
+		}
+	}
+	return count;
+}
+
+static DEVICE_ATTR(zoom, S_IRUGO|S_IWUSR, show_zoom, store_zoom);
+
 static void em8300_sysfs_postregister_driver(void)
 {
 	driver_create_file(&em8300_driver.driver, &driver_attr_version);
@@ -251,11 +281,13 @@ static void em8300_sysfs_postregister_driver(void)
 static void em8300_sysfs_register_card(struct em8300_s *em)
 {
 	device_create_file(&em->dev->dev, &dev_attr_model);
+	device_create_file(&em->dev->dev, &dev_attr_zoom);
 }
 
 static void em8300_sysfs_unregister_card(struct em8300_s *em)
 {
 	device_remove_file(&em->dev->dev, &dev_attr_model);
+	device_remove_file(&em->dev->dev, &dev_attr_zoom);
 }
 
 static void em8300_sysfs_preunregister_driver(void)

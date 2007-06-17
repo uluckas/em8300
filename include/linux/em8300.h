@@ -349,6 +349,7 @@ struct em8300_s
 	int video_mode;
 	int video_playmode;
 	int aspect_ratio;
+	int zoom;
 	uint32_t video_pts;
 	uint32_t video_lastpts;
 	int video_ptsvalid,video_offset,video_count;

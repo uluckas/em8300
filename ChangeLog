@@ -1,4 +1,13 @@
 2007-06-18  Nicolas Boullis  <nboullis@debian.org>
+	* include/linux/em8300.h,
+	  modules/em8300_dicom.c,
+	  modules/em8300_main.c,
+	  modules/em8300_sysfs.c:
+	Add a new "zoom" sysfs file for those who consider the output
+	image is too large. Feedback is welcome, especially if some values
+	cause screen flicker or wrong colors.
+
+2007-06-18  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_eeprom.c:
 	Fix a bug that is triggered when the kernel is configured with
 	CONFIG_CRYPTO but without CONFIG_CRYPTO_MD5.

@@ -8,7 +8,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/ioctl.h>
-
+#include <gtk/gtk.h>
+#include <errno.h>
 
 // X stuff (XOpenDisplay)
 #include <X11/Xlib.h>
@@ -57,7 +58,20 @@ int main( int   argc,
 
     if(!(dev=fopen("/dev/em8300-0", "r")))
         {
-	    perror("Error opening /dev/em8300-0 for reading");
+	    const gchar *errstr = g_strerror(errno);
+	    perror("Could not open /dev/em8300-0 for reading");
+	    AllBlackButClose();
+	    gtk_init(&argc, &argv);
+	    GtkWidget *dialog = gtk_message_dialog_new(
+		NULL, 0, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
+		"Could not open EM8300 device for reading.\n\n"
+		"Make sure the hardware is present, modules are "
+		"loaded, and you have read permissions to the "
+		"device.\n\nThe error was: /dev/em8300-0: %s", errstr);
+	    gtk_window_set_title(GTK_WINDOW(dialog),
+		"Autocal: Exiting with error");
+	    gtk_dialog_run(GTK_DIALOG(dialog));
+	    gtk_widget_destroy(dialog);
 	    _exit(-1);
         }
 

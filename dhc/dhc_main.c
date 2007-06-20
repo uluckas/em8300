@@ -51,7 +51,18 @@ int main (int argc, char *argv[])
 	// Open em8300 device
 	if((dev=open(EM_DEV, O_WRONLY))==-1)
 	{
-		perror("Error opening " EM_DEV " for writing");
+		const gchar *errstr = g_strerror(errno);
+		perror("Could not open " EM_DEV " for writing");
+		GtkWidget *dialog = gtk_message_dialog_new(
+			NULL, 0, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
+			"Could not open EM8300 device for writing.\n\n"
+			"Make sure the hardware is present, modules are "
+			"loaded, and you have write permissions to the "
+			"device.\n\nThe error was: " EM_DEV ": %s", errstr);
+		gtk_window_set_title(GTK_WINDOW(dialog),
+			"DHC: Exiting with error");
+		gtk_dialog_run(GTK_DIALOG(dialog));
+		gtk_widget_destroy(dialog);
 		_exit(-1);
 	}
 
@@ -63,7 +74,16 @@ int main (int argc, char *argv[])
 
 	if (ioctl(dev, EM8300_IOCTL_GETBCS, &bcs)==-1)
 	{
-		perror("Failed getting BCS values...exiting");
+		const gchar *errstr = g_strerror(errno);
+		perror("Could not get B/C/S values, exiting");
+		GtkWidget *dialog = gtk_message_dialog_new(
+			NULL, 0, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
+			"Could not get EM8300 brightness/contrast/saturation "
+			"values.\n\nThe error was: %s", errstr);
+		gtk_window_set_title(GTK_WINDOW(dialog),
+			"DHC: Exiting with error");
+		gtk_dialog_run(GTK_DIALOG(dialog));
+		gtk_widget_destroy(dialog);
 		_exit(1);
 	}
 	

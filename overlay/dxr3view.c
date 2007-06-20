@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <gdk/gdkkeysyms.h>
 #include <string.h>     /* For memcpy */
+#include <errno.h>
 
 #include <linux/em8300.h>
 #include "overlay.h"
@@ -141,9 +142,21 @@ int main( int argc, char *argv[] )
 	Screen *xscrn;
 	Display *dpy;
 	
-	
+	gtk_init (&argc, &argv);
+
 	if (!(dev = fopen("/dev/em8300-0", "r"))) {
-		perror("Error opening /dev/em8300-0 for reading");
+		const gchar *errstr = g_strerror(errno);
+		perror("Could not open /dev/em8300-0 for reading");
+		GtkWidget *dialog = gtk_message_dialog_new(
+			NULL, 0, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
+			"Could not open EM8300 device for reading.\n\n"
+			"Make sure the hardware is present, modules are "
+			"loaded, and you have read permissions to the "
+			"device.\n\nThe error was: /dev/em8300-0: %s", errstr);
+		gtk_window_set_title(GTK_WINDOW(dialog),
+			"DXR3view: Exiting with error");
+		gtk_dialog_run(GTK_DIALOG(dialog));
+		gtk_widget_destroy(dialog);
 		exit(-1);
 	}
 	g.ov = overlay_init(dev);
@@ -173,7 +186,6 @@ int main( int argc, char *argv[] )
 		g.ratiolist[0] = g.ratio;
 	}	
 
-        gtk_init (&argc, &argv);
 	gdk_rgb_init();
 	
 	/* Setup Overlay */	

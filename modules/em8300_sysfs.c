@@ -187,43 +187,55 @@ static ssize_t show_model(struct device *dev,
 		       " [ ] works fine\n"
 		       " [ ] does not work (please describe problem)\n"
 		       " [ ] was not tried\n"
-		       "\n"
+		       "\n");
+	len += sprintf(buf + len,
 		       "NTSC video output\n"
 		       " [ ] works fine\n"
 		       " [ ] does not work (please describe problem)\n"
 		       " [ ] was not tried\n"
-		       "\n"
+		       "\n");
+	len += sprintf(buf + len,
 		       "video passthrough and overlay\n"
 		       " [ ] work fine\n"
 		       " [ ] do not work (please describe problem)\n"
 		       " [ ] were not tried\n"
 		       "\n");
 	len += sprintf(buf + len,
-		       "changing the use_bt865 option\n"
+		       "%schanging the use_bt865 option (use_bt865=%s)\n"
 		       " [ ] makes no difference\n"
 		       " [ ] breaks something (please describe problem)\n"
 		       " [ ] was not tried\n"
-		       "\n"
-		       "changing the bt865_ucode_timeout option\n"
+		       "\n",
+		       ((em->chip_revision == 2)&&((0x60 & read_register(0x1c08)) == 0x60))?"[important] ":"",
+		       use_bt865[em->card_nr]?"off":"on");
+	if ((em->encoder_type != ENCODER_ADV7170)&&(em->encoder_type != ENCODER_ADV7175))
+		len += sprintf(buf + len,
+			       "changing the bt865_ucode_timeout option (bt865_ucode_timeout=%s)\n"
+			       " [ ] makes no difference\n"
+			       " [ ] breaks something (please describe problem)\n"
+			       " [ ] was not tried\n"
+			       "\n", bt865_ucode_timeout[em->card_nr]?"off":"on");
+	len += sprintf(buf + len,
+		       "changing the activate_loopback option (activate_loopback=%s)\n"
+		       "(relevant even if you only use video out)\n"
 		       " [ ] makes no difference\n"
 		       " [ ] breaks something (please describe problem)\n"
 		       " [ ] was not tried\n"
-		       "\n"
-		       "changing the activate_loopback option\n"
+		       "\n", activate_loopback[em->card_nr]?"off":"on");
+	len += sprintf(buf + len,
+		       "changing the dicom_other_pal option (dicom_other_pal=%s)\n"
+		       "(only relevant for PAL mode)\n"
 		       " [ ] makes no difference\n"
 		       " [ ] breaks something (please describe problem)\n"
 		       " [ ] was not tried\n"
-		       "\n"
-		       "changing the dicom_other_pal option (for PAL mode)\n"
-		       " [ ] makes no difference\n"
-		       " [ ] breaks something (please describe problem)\n"
-		       " [ ] was not tried\n"
-		       "\n"
-		       "changing the dicom_fix option\n"
-		       " [ ] makes no difference\n"
-		       " [ ] breaks something (please describe problem)\n"
-		       " [ ] was not tried\n"
-		       "\n");
+		       "\n", dicom_other_pal[em->card_nr]?"off":"on");
+	if (em->encoder_type != ENCODER_BT865)
+		len += sprintf(buf + len,
+			       "[important] changing the dicom_fix option (dicom_fix=%s)\n"
+			       " [ ] makes no difference\n"
+			       " [ ] breaks something (please describe problem)\n"
+			       " [ ] was not tried\n"
+			       "\n", dicom_fix[em->card_nr]?"off":"on");
 	len += sprintf(buf + len,
 		       "[optional] card model:\n"
 		       "(something like \"CT7260\" for DXR3 boards or "

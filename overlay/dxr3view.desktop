@@ -1,8 +1,9 @@
 [Desktop Entry]
+Version=1.0
 Name=DXR3view
 Comment=DXR3/Hollywood Plus overlay viewer
 Exec=dxr3view
 Terminal=false
 Type=Application
-Encoding=UTF-8
 Categories=AudioVideo;Video;GTK;
+StartupWMClass=dxr3view

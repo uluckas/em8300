@@ -1,8 +1,9 @@
 [Desktop Entry]
+Version=1.0
 Name=DXR3/Hollywood+ Calibration
 Comment=DXR3/Hollywood Plus automatic calibration
 Exec=autocal
 Terminal=false
 Type=Application
-Encoding=UTF-8
 Categories=System;Settings;HardwareSettings;GTK;
+StartupWMClass=autocal

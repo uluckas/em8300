@@ -1,5 +1,11 @@
-2007-07-17  Ville Skyttä  <scop@users.sourceforge.net>
+2007-08-03  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_sysfs.c:
+	Calling the command function of the adv717x driver from the em8300
+	module with a pointer to the stack apparently was not a good
+	idea. Use a kmallocated buffer instead. Thanks to Antoine Pardigon
+	who reported the problem.
 
+2007-07-17  Ville Skyttä  <scop@users.sourceforge.net>
 	* dhc/dhc.desktop,
 	  overlay/autocal.desktop,
 	  overlay/dxr3view.desktop:

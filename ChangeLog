@@ -1,3 +1,8 @@
+2007-08-07  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_eeprom.c:
+	Fix cleanup in case of a failure to allocate 16 bytes for
+	em->eeprom_checksum.
+
 2007-08-03  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_sysfs.c:
 	Calling the command function of the adv717x driver from the em8300

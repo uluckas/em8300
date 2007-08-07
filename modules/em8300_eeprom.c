@@ -84,7 +84,7 @@ int em8300_eeprom_checksum_init(struct em8300_s *em)
 	em->eeprom_checksum = kmalloc(16, GFP_KERNEL);
 	if (em->eeprom_checksum == NULL) {
 		err = -ENOMEM;
-		goto cleanup2;
+		goto cleanup1;
 	}
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,19)

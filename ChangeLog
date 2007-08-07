@@ -1,5 +1,11 @@
 2007-08-07  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_eeprom.c:
+	Fix the error detection and handling if crypto_alloc_hash fails.
+	Thanks to Gabor Z. Papp who first told about the problem and then
+	tracked it down to a missing MD5 hash on his system.
+
+2007-08-07  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_eeprom.c:
 	Fix cleanup in case of a failure to allocate 16 bytes for
 	em->eeprom_checksum.
 

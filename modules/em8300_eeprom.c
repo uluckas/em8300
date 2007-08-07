@@ -38,6 +38,9 @@ static inline void sg_init_one(struct scatterlist *sg, void *buf,
 	sg->length = 128;
 }
 #endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,19)
+#include <linux/err.h>
+#endif
 
 #if !defined(CONFIG_CRYPTO_MD5) && !defined(CONFIG_CRYPTO_MD5_MODULE)
 #warning CONFIG_CRYPTO_MD5 is missing.
@@ -94,8 +97,8 @@ int em8300_eeprom_checksum_init(struct em8300_s *em)
 		struct scatterlist tmp;
 
 		tfm = crypto_alloc_hash("md5", 0, CRYPTO_ALG_ASYNC);
-		if (tfm == NULL) {
-			err = -5;
+		if (IS_ERR(tfm)) {
+			err = PTR_ERR(tfm);
 			goto cleanup2;
 		}
 

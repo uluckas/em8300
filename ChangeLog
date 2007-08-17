@@ -1,3 +1,8 @@
+2007-08-17  Nicolas Boullis  <nboullis@debian.org>
+	* configure.in,
+	  modules/Makefile:
+	Release 0.16.3.
+
 2007-08-07  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_eeprom.c:
 	Fix the error detection and handling if crypto_alloc_hash fails.

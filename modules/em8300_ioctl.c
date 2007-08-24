@@ -17,6 +17,7 @@
 #include <asm/io.h>
 #include <asm/uaccess.h>
 #include <linux/wait.h>
+#include <linux/ioctl.h>
 
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>

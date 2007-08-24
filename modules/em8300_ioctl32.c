@@ -32,6 +32,8 @@
 #include <linux/pci.h>
 #include <asm/io.h>
 #include <asm/uaccess.h>
+#include <linux/ioctl.h>
+#include <linux/fs.h>
 
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>

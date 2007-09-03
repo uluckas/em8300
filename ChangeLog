@@ -1,3 +1,8 @@
+2007-09-03  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_dicom.c:
+	Fix the issue of swapped red and blue channels with some cards and
+	some zoom values.
+
 2007-08-24  Ville Skyttä  <scop@users.sourceforge.net>
 	* modules/em8300_ioctl.c,
 	  modules/em8300_ioctl32.c:

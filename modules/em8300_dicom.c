@@ -168,14 +168,14 @@ int em8300_dicom_update(struct em8300_s *em)
 		v_vo = f_vo = tvmodematrix[em->video_mode].vertoffset;
 		v_ho = f_ho = tvmodematrix[em->video_mode].horizoffset;
 
-		f_vo += (100 - em->zoom) * f_vs / 200;
-		f_ho += (100 - em->zoom) * f_hs / 200;
-		v_vo += (100 - em->zoom) * v_vs / 200;
-		v_ho += (100 - em->zoom) * v_hs / 200;
-		f_vs = em->zoom * f_vs / 100;
-		f_hs = em->zoom * f_hs / 100;
-		v_vs = em->zoom * v_vs / 100;
-		v_hs = em->zoom * v_hs / 100;
+		f_vo += ((100 - em->zoom) * f_vs + 100) / 200;
+		f_ho += 2 * (((100 - em->zoom) * f_hs + 200) / 400);
+		v_vo += ((100 - em->zoom) * v_vs + 100) / 200;
+		v_ho += 2 * (((100 - em->zoom) * v_hs + 200) / 400);
+		f_vs = (em->zoom * f_vs + 50) / 100;
+		f_hs = (em->zoom * f_hs + 50) / 100;
+		v_vs = (em->zoom * v_vs + 50) / 100;
+		v_hs = (em->zoom * v_hs + 50) / 100;
 
 		write_ucregister(DICOM_FrameTop, f_vo);
 		write_ucregister(DICOM_FrameBottom, f_vo + f_vs - 1);

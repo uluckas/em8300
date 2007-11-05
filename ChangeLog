@@ -1,3 +1,8 @@
+2007-11-05  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_i2c.c:
+	Add sysfs links from the em8300 device to the encoder and eeprom
+	devices.
+
 2007-09-03  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_dicom.c:
 	Fix the issue of swapped red and blue channels with some cards and

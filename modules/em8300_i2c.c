@@ -25,6 +25,12 @@
 #include "bt865.h"
 //#include <linux/sensors.h>
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+#define sysfs_create_link(kobj, target, name) do {} while (0)
+#else
+#include <linux/sysfs.h>
+#endif
+
 #define I2C_HW_B_EM8300 0xa
 
 struct private_data_s {
@@ -106,6 +112,7 @@ static int em8300_i2c_reg(struct i2c_client *client)
 			em->encoder_type = ENCODER_ADV7170;
 		}
 		em->encoder = client;
+		sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, "encoder");
 		break;
 	case I2C_DRIVERID_BT865:
 		if (em8300_i2c_lock_client(client)) {
@@ -113,9 +120,10 @@ static int em8300_i2c_reg(struct i2c_client *client)
 		}
 		em->encoder_type = ENCODER_BT865;
 		em->encoder = client;
+		sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, "encoder");
 		break;
 	case I2C_DRIVERID_EEPROM:
-		/* do nothing */
+		sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, "eeprom");
 		break;
 	default:
 		printk(KERN_ERR "em8300_i2c: unknown client id\n");

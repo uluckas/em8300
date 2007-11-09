@@ -27,6 +27,7 @@
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 #define sysfs_create_link(kobj, target, name) do {} while (0)
+#define sysfs_remove_link(kobj, name) do {} while (0)
 #else
 #include <linux/sysfs.h>
 #endif
@@ -140,6 +141,7 @@ static int em8300_i2c_unreg(struct i2c_client *client)
 	switch (client->driver->id) {
 	case I2C_DRIVERID_ADV717X:
 	case I2C_DRIVERID_BT865:
+		sysfs_remove_link(&em->dev->dev.kobj, "encoder");
 		em->encoder = NULL;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,16)
@@ -148,6 +150,9 @@ static int em8300_i2c_unreg(struct i2c_client *client)
 		module_put(client->driver->owner);
 #endif
 #endif
+		break;
+	case I2C_DRIVERID_EEPROM:
+		sysfs_remove_link(&em->dev->dev.kobj, "eeprom");
 		break;
 	}
 

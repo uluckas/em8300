@@ -1,3 +1,9 @@
+2007-11-09  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_i2c.c:
+	Remove the sysfs links from the em8300 device to the encoder and
+	eeprom devices when those devices are unregistered, to ensure
+	correct removal of the em8300 module.
+
 2007-11-05  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_i2c.c:
 	Add sysfs links from the em8300 device to the encoder and eeprom

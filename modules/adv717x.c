@@ -2,6 +2,7 @@
    ADV7175A - Analog Devices ADV7175A video encoder driver version 0.0.3
 
    Copyright (C) 2000 Henrik Johannson <henrikjo@post.utfors.se>
+   Copyright (C) 2007 Nicolas Boullis <nboullis@debian.org>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -208,19 +209,20 @@ static const mode_info_t mode_info[] = {
 #define CHIP_ADV7175A 1
 #define CHIP_ADV7170  2
 
+struct mode_config_s {
+	char const *name;
+	unsigned char * val;
+};
+
 struct adv717x_data_s {
 	int chiptype;
 	int mode;
-	int bars;
 	int enableoutput;
-	output_mode_t out_mode;
-	int pp_pal;
-	int pp_ntsc;
-	int pd_adj_pal;
-	int pd_adj_ntsc;
 
-	unsigned char config[32];
 	int configlen;
+
+	unsigned int modes;
+	struct mode_config_s *conf;
 };
 
 /* This is the driver that will be inserted */
@@ -392,211 +394,305 @@ static unsigned char NTSC_config_7175[19] = {
 
 #define SET_REG(f,o,v) (f) = ((f) & ~(1<<(o))) | (((v) & 1) << (o))
 
+static int adv717x_reset(struct i2c_client *client)
+{
+	struct adv717x_data_s *data = i2c_get_clientdata(client);
+	i2c_smbus_write_byte_data(client, ADV717X_REG_TR0,
+				  data->conf[data->mode].val[ADV717X_REG_TR0] & 0x7f);
+	i2c_smbus_write_byte_data(client, ADV717X_REG_TR0,
+				  data->conf[data->mode].val[ADV717X_REG_TR0] | 0x80);
+	i2c_smbus_write_byte_data(client, ADV717X_REG_TR0,
+				  data->conf[data->mode].val[ADV717X_REG_TR0] & 0x7f);
+	return 0;
+}
+
 static int adv717x_update(struct i2c_client *client)
 {
 	struct adv717x_data_s *data = i2c_get_clientdata(client);
-	char tmpconfig[32];
-	int n, i;
-
-	memcpy(tmpconfig, data->config, data->configlen);
-
-	SET_REG(tmpconfig[ADV717X_REG_MR1], 7, data->bars);
-
-	switch(data->chiptype) {
-	    case CHIP_ADV7175A:
-		/* ADV7175/6A component out: MR06 (register 0, bit 6) */
-		SET_REG(tmpconfig[ADV717X_REG_MR0], 6,
-				mode_info[data->out_mode].conf.component);
-		/* ADV7175/6A YUV out: MR26 (register 13, bit 6) */
-		SET_REG(tmpconfig[ADV7175_REG_MR2], 6,
-				mode_info[data->out_mode].conf.yuv);
-		/* ADV7175/6A EuroSCART: MR37 (register 18, bit 7) */
-		SET_REG(tmpconfig[ADV7175_REG_MR3], 7,
-			mode_info[data->out_mode].conf.euroscart);
-		/* ADV7175/6A RGB sync: MR05 (register 0, bit 5) */
-		SET_REG(tmpconfig[ADV717X_REG_MR0], 5,
-				mode_info[data->out_mode].conf.sync_all);
-		break;
-	    case CHIP_ADV7170:
-		/* ADV7170/1 component out: MR40 (register 4, bit 0) */
-		SET_REG(tmpconfig[ADV7170_REG_MR4], 0,
-				mode_info[data->out_mode].conf.component);
-		/* ADV7170/1 YUV out: MR41 (register 4, bit 1) */
-		SET_REG(tmpconfig[ADV7170_REG_MR4], 1,
-				mode_info[data->out_mode].conf.yuv);
-		/* ADV7170/1 EuroSCART: MR33 (register 3, bit 3) */
-		SET_REG(tmpconfig[ADV7170_REG_MR3], 3,
-			mode_info[data->out_mode].conf.euroscart);
-		/* ADV7170/1 RGB sync: MR42 (register 4, bit 2) */
-		SET_REG(tmpconfig[ADV7170_REG_MR4], 2,
-				mode_info[data->out_mode].conf.sync_all);
-		break;
-	}
-	/* ADV7170/1/5A/6A non-interlace: MR10 (register 1, bit 0) */
-	SET_REG(tmpconfig[ADV717X_REG_MR1], 0,
-			mode_info[data->out_mode].conf.progressive);
-	/* ADV7170/1/5A/6A DAC A control: MR16 (register 1, bit 6) */
-	SET_REG(tmpconfig[ADV717X_REG_MR1], 6, mode_info[data->out_mode].conf.dacA);
-	/* ADV7170/1/5A/6A DAC B control: MR15 (register 1, bit 5) */
-	SET_REG(tmpconfig[ADV717X_REG_MR1], 5, mode_info[data->out_mode].conf.dacB);
-	/* ADV7170/1/5A/6A DAC C control: MR13 (register 1, bit 3) */
-	SET_REG(tmpconfig[ADV717X_REG_MR1], 3, mode_info[data->out_mode].conf.dacC);
-	/* ADV7170/1/5A/6A DAC D control: MR14 (register 1, bit 4) */
-	SET_REG(tmpconfig[ADV717X_REG_MR1], 4, mode_info[data->out_mode].conf.dacD);
-
-	if (!data->enableoutput) {
-		tmpconfig[ADV717X_REG_MR1] |= 0x7f;
-	}
+	int i;
 
 	for(i=0; i < data->configlen; i++) {
-		n = i2c_smbus_write_byte_data(client, i, tmpconfig[i]);
+		i2c_smbus_write_byte_data(client, i,
+					  data->conf[data->mode].val[i]
+					  | (((i == ADV717X_REG_MR1)&&(!data->enableoutput))?0x78:0x00));
 	}
 
-	i2c_smbus_write_byte_data(client, ADV717X_REG_TR0,
-			tmpconfig[ADV717X_REG_TR0] & 0x7f);
-	i2c_smbus_write_byte_data(client, ADV717X_REG_TR0,
-			tmpconfig[ADV717X_REG_TR0] | 0x80);
-	i2c_smbus_write_byte_data(client, ADV717X_REG_TR0,
-			tmpconfig[ADV717X_REG_TR0] & 0x7f);
-
-	return 0;
+	return adv717x_reset(client);
 }
 
 static int adv717x_setmode(int mode, struct i2c_client *client) {
 	struct adv717x_data_s *data = i2c_get_clientdata(client);
-	unsigned char *config = NULL;
 
 	pr_debug("adv717x_setmode(%d,%p)\n", mode, client);
 
-	switch (mode) {
-	case ENCODER_MODE_PAL:
-		printk(KERN_NOTICE "adv717x.o: Configuring for PAL\n");
-		switch (data->chiptype) {
-		case CHIP_ADV7175A:
-			config = PAL_config_7175;
-			data->configlen = sizeof(PAL_config_7175);
-			break;
-		case CHIP_ADV7170:
-			config = PAL_config_7170;
-			data->configlen = sizeof(PAL_config_7170);
-			break;
-		}
-		break;
-	case ENCODER_MODE_PAL_M:
-		printk(KERN_NOTICE "adv717x.o: Configuring for PALM\n");
-		switch (data->chiptype) {
-		case CHIP_ADV7175A:
-			config = PAL_config_7175;
-			data->configlen = sizeof(PAL_M_config_7175);
-			break;
-		case CHIP_ADV7170:
-			config = PAL_config_7170;
-			data->configlen = sizeof(PAL_config_7170);
-			break;
-		}
-		break;
-	case ENCODER_MODE_PAL60:
-		printk(KERN_NOTICE "adv717x.o: Configuring for PAL 60\n");
-		switch (data->chiptype) {
-		case CHIP_ADV7175A:
-			config = PAL60_config_7175;
-			data->configlen = sizeof(PAL60_config_7175);
-			break;
-		case CHIP_ADV7170:
-			config = PAL_config_7170;
-			data->configlen = sizeof(PAL_config_7170);
-			break;
-		}
-		break;
-	case ENCODER_MODE_NTSC:
-		printk(KERN_NOTICE "adv717x.o: Configuring for NTSC\n");
-		switch (data->chiptype) {
-		case CHIP_ADV7175A:
-			config = NTSC_config_7175;
-			data->configlen = sizeof(NTSC_config_7175);
-			break;
-		case CHIP_ADV7170:
-			config = NTSC_config_7170;
-			data->configlen = sizeof(NTSC_config_7170);
-			break;
-		}
-		break;
-	default:
+	if ((mode < 0)
+	    || (mode >= data->modes)
+	    || ! data->conf[mode].val) {
 		return -EINVAL;
 	}
 
 	data->mode = mode;
 
-	if (config) {
-		memcpy(data->config, config, data->configlen);
+	return 0;
+}
+
+static void adv717x_set_pixelport(struct i2c_client *client,
+				  uint32_t modes, int val)
+{
+	struct adv717x_data_s *data = i2c_get_clientdata(client);
+	int i;
+
+	for (i = 0; i < data->modes; i++) {
+		if ((((modes >> i) & 1) == 0) || (data->conf[i].val == NULL))
+			continue;
+		data->conf[i].val[ADV717X_REG_TR0] =
+			(data->conf[i].val[ADV717X_REG_TR0] & ~0x40)
+			| ((val == ADV717X_PIXELPORT_16BIT)?0x40:0x00);
+	}
+}
+
+static void adv717x_set_pixeldataadj(struct i2c_client *client,
+				     uint32_t modes, int val)
+{
+	struct adv717x_data_s *data = i2c_get_clientdata(client);
+	int i;
+
+	for (i = 0; i < data->modes; i++) {
+		if ((((modes >> i) & 1) == 0) || (data->conf[i].val == NULL))
+			continue;
+		switch(data->chiptype) {
+		case CHIP_ADV7170:
+			data->conf[i].val[ADV7170_REG_TR1] =
+				(data->conf[i].val[ADV7170_REG_TR1] & ~0xC0)
+				| ((val & 3) << 6);
+			break;
+		case CHIP_ADV7175A:
+			data->conf[i].val[ADV7175_REG_TR1] =
+				(data->conf[i].val[ADV7175_REG_TR1] & ~0xC0)
+				| ((val & 3) << 6);
+			break;
+		}
+	}
+}
+
+static void adv717x_set_outputmode(struct i2c_client *client,
+				   uint32_t modes, output_mode_t out_mode)
+{
+	struct adv717x_data_s *data = i2c_get_clientdata(client);
+	int i;
+
+	for (i = 0; i < data->modes; i++) {
+		if ((((modes >> i) & 1) == 0) || (data->conf[i].val == NULL))
+			continue;
+		switch(data->chiptype) {
+		case CHIP_ADV7175A:
+			/* ADV7175/6A component out: MR06 (register 0, bit 6) */
+			SET_REG(data->conf[i].val[ADV717X_REG_MR0], 6,
+				mode_info[out_mode].conf.component);
+			/* ADV7175/6A YUV out: MR26 (register 13, bit 6) */
+			SET_REG(data->conf[i].val[ADV7175_REG_MR2], 6,
+				mode_info[out_mode].conf.yuv);
+			/* ADV7175/6A EuroSCART: MR37 (register 18, bit 7) */
+			SET_REG(data->conf[i].val[ADV7175_REG_MR3], 7,
+				mode_info[out_mode].conf.euroscart);
+			/* ADV7175/6A RGB sync: MR05 (register 0, bit 5) */
+			SET_REG(data->conf[i].val[ADV717X_REG_MR0], 5,
+				mode_info[out_mode].conf.sync_all);
+			break;
+		case CHIP_ADV7170:
+			/* ADV7170/1 component out: MR40 (register 4, bit 0) */
+			SET_REG(data->conf[i].val[ADV7170_REG_MR4], 0,
+				mode_info[out_mode].conf.component);
+			/* ADV7170/1 YUV out: MR41 (register 4, bit 1) */
+			SET_REG(data->conf[i].val[ADV7170_REG_MR4], 1,
+				mode_info[out_mode].conf.yuv);
+			/* ADV7170/1 EuroSCART: MR33 (register 3, bit 3) */
+			SET_REG(data->conf[i].val[ADV7170_REG_MR3], 3,
+				mode_info[out_mode].conf.euroscart);
+			/* ADV7170/1 RGB sync: MR42 (register 4, bit 2) */
+			SET_REG(data->conf[i].val[ADV7170_REG_MR4], 2,
+				mode_info[out_mode].conf.sync_all);
+			break;
+		}
+		/* ADV7170/1/5A/6A non-interlace: MR10 (register 1, bit 0) */
+		SET_REG(data->conf[i].val[ADV717X_REG_MR1], 0,
+			mode_info[out_mode].conf.progressive);
+		/* ADV7170/1/5A/6A DAC A control: MR16 (register 1, bit 6) */
+		SET_REG(data->conf[i].val[ADV717X_REG_MR1], 6,
+			mode_info[out_mode].conf.dacA);
+		/* ADV7170/1/5A/6A DAC B control: MR15 (register 1, bit 5) */
+		SET_REG(data->conf[i].val[ADV717X_REG_MR1], 5,
+			mode_info[out_mode].conf.dacB);
+		/* ADV7170/1/5A/6A DAC C control: MR13 (register 1, bit 3) */
+		SET_REG(data->conf[i].val[ADV717X_REG_MR1], 3,
+			mode_info[out_mode].conf.dacC);
+		/* ADV7170/1/5A/6A DAC D control: MR14 (register 1, bit 4) */
+		SET_REG(data->conf[i].val[ADV717X_REG_MR1], 4,
+			mode_info[out_mode].conf.dacD);
+	}
+}
+
+static void adv717x_set_colorbars(struct i2c_client *client,
+				  uint32_t modes, int val)
+{
+	struct adv717x_data_s *data = i2c_get_clientdata(client);
+	int i;
+
+	for (i = 0; i < data->modes; i++) {
+		if ((((modes >> i) & 1) == 0) || (data->conf[i].val == NULL))
+			continue;
+		SET_REG(data->conf[i].val[ADV717X_REG_MR1], 7, val);
+	}
+}
+
+static int adv7170_setup(struct i2c_client *client)
+{
+	struct adv717x_data_s *data = i2c_get_clientdata(client);
+	unsigned int i, count;
+
+	data->configlen = 27;
+	data->modes = 8;
+	data->conf = kmalloc(data->modes*sizeof(struct mode_config_s)
+			     + 4*data->configlen*sizeof(unsigned char),
+			     GFP_KERNEL);
+	if (!data->conf)
+		return -ENOMEM;
+
+	count = 0;
+	for (i = 0; i < data->modes; i++) {
+		switch (i) {
+		case ENCODER_MODE_PAL:
+		case ENCODER_MODE_PAL_M:
+		case ENCODER_MODE_PAL60:
+			data->conf[i].name = "PAL";
+			data->conf[i].val = ((unsigned char *)data->conf)
+				+ data->modes*sizeof(struct mode_config_s)
+				+ (count++)*data->configlen*sizeof(unsigned char);
+			memcpy(data->conf[i].val, PAL_config_7170, data->configlen);
+			goto common;
+		case ENCODER_MODE_NTSC:
+			data->conf[i].name = "NTSC";
+			data->conf[i].val = ((unsigned char *)data->conf)
+				+ data->modes*sizeof(struct mode_config_s)
+				+ (count++)*data->configlen*sizeof(unsigned char);
+			memcpy(data->conf[i].val, NTSC_config_7170, data->configlen);
+			goto common;
+		common:
+			if (strncmp(client->adapter->name, "EM8300", 6) == 0) {
+				struct em8300_s *em = i2c_get_adapdata(client->adapter);
+				SET_REG(data->conf[i].val[ADV717X_REG_MR1], 7, color_bars[em->card_nr]);
+			}
+			break;
+		default:
+			data->conf[i].name = NULL;
+			data->conf[i].val = NULL;
+		}
 	}
 
-	switch (mode) {
-	case ENCODER_MODE_PAL:
-	case ENCODER_MODE_PAL_M:
-	case ENCODER_MODE_PAL60:
-		data->config[ADV717X_REG_TR0] =
-			(data->config[ADV717X_REG_TR0] & ~0x40) | data->pp_pal;
-		switch (data->chiptype) {
-		case CHIP_ADV7175A:
-			data->config[ADV7175_REG_TR1] = (data->config[ADV7175_REG_TR1] & ~0xC0) | data->pd_adj_pal;
-			break;
-		case CHIP_ADV7170:
-			data->config[ADV7170_REG_TR1] = (data->config[ADV7170_REG_TR1] & ~0xC0) | data->pd_adj_pal;
-			break;
-		}
-		break;
-	case ENCODER_MODE_NTSC:
-		data->config[ADV717X_REG_TR0] =
-			(data->config[ADV717X_REG_TR0] & ~0x40) | data->pp_ntsc;
-		switch (data->chiptype) {
-		case CHIP_ADV7175A:
-			data->config[ADV7175_REG_TR1] = (data->config[ADV7175_REG_TR1] & ~0xC0) | data->pd_adj_ntsc;
-			break;
-		case CHIP_ADV7170:
-			data->config[ADV7170_REG_TR1] = (data->config[ADV7170_REG_TR1] & ~0xC0) | data->pd_adj_ntsc;
-			break;
-		}
-		break;
-	}
+	data->mode = ENCODER_MODE_PAL60;
+	data->enableoutput = 1;
 
 	return 0;
 }
 
-static int adv717x_setup(struct i2c_client *client)
+static int adv7175a_setup(struct i2c_client *client)
 {
 	struct adv717x_data_s *data = i2c_get_clientdata(client);
-	struct em8300_s *em = i2c_get_adapdata(client->adapter);
+	unsigned int i, count;
 
-	memset(data->config, 0, sizeof(data->config));
+	data->configlen = 19;
+	data->modes = 8;
+	data->conf = kmalloc(data->modes*sizeof(struct mode_config_s)
+			     + 4*data->configlen*sizeof(unsigned char),
+			     GFP_KERNEL);
+	if (!data->conf)
+		return -ENOMEM;
 
-	if (pixelport_16bit[em->card_nr]) {
-		data->pp_ntsc = data->pp_pal = 0x40;
-		if (pixelport_other_pal[em->card_nr]) {
-			data->pp_pal = 0x00;
-		}
-	} else {
-		data->pp_ntsc = data->pp_pal = 0x00;
-		if (pixelport_other_pal[em->card_nr]) {
-			data->pp_pal = 0x40;
+	count = 0;
+	for (i = 0; i < data->modes; i++) {
+		switch (i) {
+		case ENCODER_MODE_PAL:
+			data->conf[i].name = "PAL";
+			data->conf[i].val = ((unsigned char *)data->conf)
+				+ data->modes*sizeof(struct mode_config_s)
+				+ (count++)*data->configlen*sizeof(unsigned char);
+			memcpy(data->conf[i].val, PAL_config_7175, data->configlen);
+			goto common;
+		case ENCODER_MODE_PAL_M:
+			data->conf[i].name = "PAL M";
+			data->conf[i].val = ((unsigned char *)data->conf)
+				+ data->modes*sizeof(struct mode_config_s)
+				+ (count++)*data->configlen*sizeof(unsigned char);
+			memcpy(data->conf[i].val, PAL_M_config_7175, data->configlen);
+			goto common;
+		case ENCODER_MODE_PAL60:
+			data->conf[i].name = "PAL 60";
+			data->conf[i].val = ((unsigned char *)data->conf)
+				+ data->modes*sizeof(struct mode_config_s)
+				+ (count++)*data->configlen*sizeof(unsigned char);
+			memcpy(data->conf[i].val, PAL60_config_7175, data->configlen);
+			goto common;
+		case ENCODER_MODE_NTSC:
+			data->conf[i].name = "NTSC";
+			data->conf[i].val = ((unsigned char *)data->conf)
+				+ data->modes*sizeof(struct mode_config_s)
+				+ (count++)*data->configlen*sizeof(unsigned char);
+			memcpy(data->conf[i].val, NTSC_config_7175, data->configlen);
+			goto common;
+		common:
+			if (strncmp(client->adapter->name, "EM8300", 6) == 0) {
+				struct em8300_s *em = i2c_get_adapdata(client->adapter);
+				SET_REG(data->conf[i].val[ADV717X_REG_MR1], 7, color_bars[em->card_nr]);
+			}
+			break;
+		default:
+			data->conf[i].name = NULL;
+			data->conf[i].val = NULL;
 		}
 	}
 
-	data->pd_adj_ntsc = (0x03 & pixeldata_adjust_ntsc[em->card_nr]) << 6;
-	data->pd_adj_pal = (0x03 & pixeldata_adjust_pal[em->card_nr]) << 6;
-
-	data->bars = color_bars[em->card_nr];
-	data->enableoutput = 0;
-	/* Maybe map from a string; dunno? */
-	data->out_mode = output_mode_nr[em->card_nr];
-	if (data->out_mode < 0 || data->out_mode >= MODE_MAX)
-		data->out_mode = 0;
-
-	adv717x_setmode(ENCODER_MODE_PAL60, client);
-
-	adv717x_update(client);
+	data->mode = ENCODER_MODE_PAL60;
+	data->enableoutput = 1;
 
 	return 0;
+}
+
+#define PAL_MODES_MASK ((uint32_t)((1u<<(ENCODER_MODE_PAL)) \
+                                  |(1u<<(ENCODER_MODE_PAL_M)) \
+                                  |(1u<<(ENCODER_MODE_PAL60))))
+#define NTSC_MODES_MASK ((uint32_t)((1u<<(ENCODER_MODE_NTSC))))
+
+static void adv717x_em8300_setup(struct i2c_client *client)
+{
+	struct adv717x_data_s *data = i2c_get_clientdata(client);
+	struct em8300_s *em = i2c_get_adapdata(client->adapter);
+	output_mode_t out_mode;
+
+	if (pixelport_16bit[em->card_nr]) {
+		adv717x_set_pixelport(client, NTSC_MODES_MASK, ADV717X_PIXELPORT_16BIT);
+		if (pixelport_other_pal[em->card_nr])
+			adv717x_set_pixelport(client, PAL_MODES_MASK, ADV717X_PIXELPORT_8BIT);
+		else
+			adv717x_set_pixelport(client, PAL_MODES_MASK, ADV717X_PIXELPORT_16BIT);
+	} else {
+		adv717x_set_pixelport(client, NTSC_MODES_MASK, ADV717X_PIXELPORT_8BIT);
+		if (pixelport_other_pal[em->card_nr])
+			adv717x_set_pixelport(client, PAL_MODES_MASK, ADV717X_PIXELPORT_16BIT);
+		else
+			adv717x_set_pixelport(client, PAL_MODES_MASK, ADV717X_PIXELPORT_8BIT);
+	}
+
+	adv717x_set_pixeldataadj(client, NTSC_MODES_MASK, (0x03 & pixeldata_adjust_ntsc[em->card_nr]));
+	adv717x_set_pixeldataadj(client, PAL_MODES_MASK, (0x03 & pixeldata_adjust_pal[em->card_nr]));
+
+	adv717x_set_colorbars(client, (uint32_t)-1, color_bars[em->card_nr]);
+
+	data->enableoutput = 0;
+
+	out_mode = output_mode_nr[em->card_nr];
+	if (out_mode < 0 || out_mode >= MODE_MAX)
+		out_mode = 0;
+	adv717x_set_outputmode(client, (uint32_t)-1, out_mode);
 }
 
 static int adv717x_detect(struct i2c_adapter *adapter, int address)
@@ -632,22 +728,33 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 			strcpy(new_client->name, "ADV7175A chip");
 			data->chiptype = CHIP_ADV7175A;
 			printk(KERN_NOTICE "adv717x.o: ADV7175A chip detected\n");
+			if ((err = adv7175a_setup(new_client))) {
+				kfree(new_client);
+				return err;
+			}
 		} else {
 			strcpy(new_client->name, "ADV7170 chip");
 			data->chiptype = CHIP_ADV7170;
 			printk(KERN_NOTICE "adv717x.o: ADV7170 chip detected\n");
+			if ((err = adv7170_setup(new_client))) {
+				kfree(new_client);
+				return err;
+			}
 		}
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,12)
 		new_client->id = adv717x_id++;
 #endif
 
+		if (strncmp(adapter->name, "EM8300", 6) == 0)
+			adv717x_em8300_setup(new_client);
+
 		if ((err = i2c_attach_client(new_client))) {
 			kfree(new_client);
 			return err;
 		}
 
-		adv717x_setup(new_client);
+		adv717x_update(new_client);
 
 		EM8300_MOD_INC_USE_COUNT;
 
@@ -670,6 +777,7 @@ static int adv717x_attach_adapter(struct i2c_adapter *adapter)
 int adv717x_detach_client(struct i2c_client *client)
 {
 	int err;
+	struct adv717x_data_s *data = i2c_get_clientdata(client);
 
 	if ((err = i2c_detach_client(client))) {
 		printk(KERN_ERR "adv717x.o: Client deregistration failed, client not detached.\n");
@@ -678,6 +786,7 @@ int adv717x_detach_client(struct i2c_client *client)
 
 	EM8300_MOD_DEC_USE_COUNT;
 
+	kfree(data->conf);
 	kfree(client);
 
 	return 0;

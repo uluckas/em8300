@@ -1,3 +1,10 @@
+2007-12-03  Nicolas Boullis  <nboullis@debian.org>
+	* modules/adv717x.c,
+	  modules/adv717x.h:
+	Reorganize the code of the ADV717X driver to ease the future works
+	of making it independant of the EM8300 driver, and of making
+	automatic configuration possible.
+
 2007-11-09  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_i2c.c:
 	Remove the sysfs links from the em8300 device to the encoder and

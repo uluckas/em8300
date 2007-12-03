@@ -1,4 +1,12 @@
 2007-12-03  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_compat24.h,
+	  modules/em8300_main.c:
+	Switch from the old SA_* macros to the new IRQF_* ones, and add
+	compatibility workaround for older kernels. Thanks to all those
+	who told me about the problem, and especially Martin Dauskardt and
+	Christian Gmeiner who provided a patch (although I did not use
+	it).
+
 	* modules/adv717x.c,
 	  modules/adv717x.h:
 	Reorganize the code of the ADV717X driver to ease the future works

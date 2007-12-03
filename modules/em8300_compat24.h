@@ -30,6 +30,15 @@
 typedef void irqreturn_t;
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,18)
+#ifndef IRQF_DISABLED
+#define IRQF_DISABLED SA_INTERRUPT
+#endif
+#ifndef IRQF_SHARED
+#define IRQF_SHARED SA_SHIRQ
+#endif
+#endif
+
 /* i2c stuff */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,67)
 static inline void *i2c_get_clientdata(struct i2c_client *dev)

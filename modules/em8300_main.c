@@ -686,7 +686,7 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	init_waitqueue_head(&em->vbi_wait);
 	init_waitqueue_head(&em->sp_ptsfifo_wait);
 
-	result = request_irq(dev->irq, em8300_irq, SA_SHIRQ | SA_INTERRUPT, "em8300", (void *) em);
+	result = request_irq(dev->irq, em8300_irq, IRQF_SHARED | IRQF_DISABLED, "em8300", (void *) em);
 
 	if (result == -EINVAL) {
 		printk(KERN_ERR "em8300: Bad irq number or handler\n");

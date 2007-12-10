@@ -23,6 +23,7 @@
 
 #include "adv717x.h"
 #include "bt865.h"
+#include "encoder.h"
 //#include <linux/sensors.h>
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
@@ -114,6 +115,52 @@ static int em8300_i2c_reg(struct i2c_client *client)
 		}
 		em->encoder = client;
 		sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, "encoder");
+		do {
+			struct getconfig_s data;
+			struct setparam_s param;
+			data.card_nr = em->card_nr;
+			if (client->driver->command(client,
+						    ENCODER_CMD_GETCONFIG,
+						    (void *) &data) != 0) {
+				printk("ENCODER_CMD_GETCONFIG failed\n");
+				break;
+			}
+			param.param = ENCODER_PARAM_COLORBARS;
+			param.modes = (uint32_t)-1;
+			param.val = data.config[4]?1:0;
+			client->driver->command(client,
+						ENCODER_CMD_SETPARAM,
+						&param);
+			param.param = ENCODER_PARAM_OUTPUTMODE;
+			param.val = data.config[5];
+			client->driver->command(client,
+						ENCODER_CMD_SETPARAM,
+						&param);
+			param.param = ENCODER_PARAM_PPORT;
+			param.modes = NTSC_MODES_MASK;
+			param.val = data.config[0]?1:0;
+			client->driver->command(client,
+						ENCODER_CMD_SETPARAM,
+						&param);
+			param.modes = PAL_MODES_MASK;
+			param.val = data.config[1]
+				? (data.config[0]?0:1)
+				: (data.config[0]?1:0);
+			client->driver->command(client,
+						ENCODER_CMD_SETPARAM,
+						&param);
+			param.param = ENCODER_PARAM_PDADJ;
+			param.modes = NTSC_MODES_MASK;
+			param.val = data.config[2];
+			client->driver->command(client,
+						ENCODER_CMD_SETPARAM,
+						&param);
+			param.modes = PAL_MODES_MASK;
+			param.val = data.config[3];
+			client->driver->command(client,
+						ENCODER_CMD_SETPARAM,
+						&param);
+		} while (0);
 		break;
 	case I2C_DRIVERID_BT865:
 		if (em8300_i2c_lock_client(client)) {

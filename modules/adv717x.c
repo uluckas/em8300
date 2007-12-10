@@ -436,11 +436,15 @@ static int adv717x_setmode(int mode, struct i2c_client *client) {
 	return 0;
 }
 
-static void adv717x_set_pixelport(struct i2c_client *client,
-				  uint32_t modes, int val)
+static int adv717x_set_pixelport(struct i2c_client *client,
+				 uint32_t modes, int val)
 {
 	struct adv717x_data_s *data = i2c_get_clientdata(client);
 	int i;
+
+	if ((val != ADV717X_PIXELPORT_8BIT)
+	    &&(val != ADV717X_PIXELPORT_16BIT))
+		return -EINVAL;
 
 	for (i = 0; i < data->modes; i++) {
 		if ((((modes >> i) & 1) == 0) || (data->conf[i].val == NULL))
@@ -449,13 +453,17 @@ static void adv717x_set_pixelport(struct i2c_client *client,
 			(data->conf[i].val[ADV717X_REG_TR0] & ~0x40)
 			| ((val == ADV717X_PIXELPORT_16BIT)?0x40:0x00);
 	}
+	return 0;
 }
 
-static void adv717x_set_pixeldataadj(struct i2c_client *client,
-				     uint32_t modes, int val)
+static int adv717x_set_pixeldataadj(struct i2c_client *client,
+				    uint32_t modes, int val)
 {
 	struct adv717x_data_s *data = i2c_get_clientdata(client);
 	int i;
+
+	if ((val < 0) || (val > 3))
+		return -EINVAL;
 
 	for (i = 0; i < data->modes; i++) {
 		if ((((modes >> i) & 1) == 0) || (data->conf[i].val == NULL))
@@ -473,13 +481,17 @@ static void adv717x_set_pixeldataadj(struct i2c_client *client,
 			break;
 		}
 	}
+	return 0;
 }
 
-static void adv717x_set_outputmode(struct i2c_client *client,
-				   uint32_t modes, output_mode_t out_mode)
+static int adv717x_set_outputmode(struct i2c_client *client,
+				  uint32_t modes, output_mode_t out_mode)
 {
 	struct adv717x_data_s *data = i2c_get_clientdata(client);
 	int i;
+
+	if ((out_mode < 0) || (out_mode >= MODE_MAX))
+		return -EINVAL;
 
 	for (i = 0; i < data->modes; i++) {
 		if ((((modes >> i) & 1) == 0) || (data->conf[i].val == NULL))
@@ -530,19 +542,24 @@ static void adv717x_set_outputmode(struct i2c_client *client,
 		SET_REG(data->conf[i].val[ADV717X_REG_MR1], 4,
 			mode_info[out_mode].conf.dacD);
 	}
+	return 0;
 }
 
-static void adv717x_set_colorbars(struct i2c_client *client,
-				  uint32_t modes, int val)
+static int adv717x_set_colorbars(struct i2c_client *client,
+				 uint32_t modes, int val)
 {
 	struct adv717x_data_s *data = i2c_get_clientdata(client);
 	int i;
+
+	if ((val < 0) || (val > 1))
+		return -EINVAL;
 
 	for (i = 0; i < data->modes; i++) {
 		if ((((modes >> i) & 1) == 0) || (data->conf[i].val == NULL))
 			continue;
 		SET_REG(data->conf[i].val[ADV717X_REG_MR1], 7, val);
 	}
+	return 0;
 }
 
 static int adv7170_setup(struct i2c_client *client)
@@ -657,44 +674,6 @@ static int adv7175a_setup(struct i2c_client *client)
 	return 0;
 }
 
-#define PAL_MODES_MASK ((uint32_t)((1u<<(ENCODER_MODE_PAL)) \
-                                  |(1u<<(ENCODER_MODE_PAL_M)) \
-                                  |(1u<<(ENCODER_MODE_PAL60))))
-#define NTSC_MODES_MASK ((uint32_t)((1u<<(ENCODER_MODE_NTSC))))
-
-static void adv717x_em8300_setup(struct i2c_client *client)
-{
-	struct adv717x_data_s *data = i2c_get_clientdata(client);
-	struct em8300_s *em = i2c_get_adapdata(client->adapter);
-	output_mode_t out_mode;
-
-	if (pixelport_16bit[em->card_nr]) {
-		adv717x_set_pixelport(client, NTSC_MODES_MASK, ADV717X_PIXELPORT_16BIT);
-		if (pixelport_other_pal[em->card_nr])
-			adv717x_set_pixelport(client, PAL_MODES_MASK, ADV717X_PIXELPORT_8BIT);
-		else
-			adv717x_set_pixelport(client, PAL_MODES_MASK, ADV717X_PIXELPORT_16BIT);
-	} else {
-		adv717x_set_pixelport(client, NTSC_MODES_MASK, ADV717X_PIXELPORT_8BIT);
-		if (pixelport_other_pal[em->card_nr])
-			adv717x_set_pixelport(client, PAL_MODES_MASK, ADV717X_PIXELPORT_16BIT);
-		else
-			adv717x_set_pixelport(client, PAL_MODES_MASK, ADV717X_PIXELPORT_8BIT);
-	}
-
-	adv717x_set_pixeldataadj(client, NTSC_MODES_MASK, (0x03 & pixeldata_adjust_ntsc[em->card_nr]));
-	adv717x_set_pixeldataadj(client, PAL_MODES_MASK, (0x03 & pixeldata_adjust_pal[em->card_nr]));
-
-	adv717x_set_colorbars(client, (uint32_t)-1, color_bars[em->card_nr]);
-
-	data->enableoutput = 0;
-
-	out_mode = output_mode_nr[em->card_nr];
-	if (out_mode < 0 || out_mode >= MODE_MAX)
-		out_mode = 0;
-	adv717x_set_outputmode(client, (uint32_t)-1, out_mode);
-}
-
 static int adv717x_detect(struct i2c_adapter *adapter, int address)
 {
 	struct adv717x_data_s *data;
@@ -746,8 +725,10 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 		new_client->id = adv717x_id++;
 #endif
 
+		/*
 		if (strncmp(adapter->name, "EM8300", 6) == 0)
 			adv717x_em8300_setup(new_client);
+		*/
 
 		if ((err = i2c_attach_client(new_client))) {
 			kfree(new_client);
@@ -794,6 +775,7 @@ int adv717x_detach_client(struct i2c_client *client)
 
 int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
 {
+	int ret = 0;
 	struct adv717x_data_s *data = i2c_get_clientdata(client);
 
 	switch (cmd) {
@@ -805,21 +787,44 @@ int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
 		data->enableoutput = (long int) arg;
 		adv717x_update(client);
 		break;
+	case ENCODER_CMD_SETPARAM:
+	{
+		struct setparam_s *data = arg;
+		switch (data->param) {
+		case ENCODER_PARAM_COLORBARS:
+			ret = adv717x_set_colorbars(client, data->modes, data->val);
+			break;
+		case ENCODER_PARAM_OUTPUTMODE:
+			ret = adv717x_set_outputmode(client, data->modes, data->val);
+			break;
+		case ENCODER_PARAM_PPORT:
+			ret = adv717x_set_pixelport(client, data->modes, data->val);
+			break;
+		case ENCODER_PARAM_PDADJ:
+			ret = adv717x_set_pixeldataadj(client, data->modes, data->val);
+			break;
+		default:
+			ret = -EINVAL;
+		}
+		break;
+	}
 	case ENCODER_CMD_GETCONFIG:
 	{
-		struct em8300_s *em = i2c_get_adapdata(client->adapter);
-		((int *)arg)[0] = pixelport_16bit[em->card_nr];
-		((int *)arg)[1] = pixelport_other_pal[em->card_nr];
-		((int *)arg)[2] = pixeldata_adjust_ntsc[em->card_nr];
-		((int *)arg)[3] = pixeldata_adjust_pal[em->card_nr];
+		struct getconfig_s *data = arg;
+		data->config[0] = pixelport_16bit[data->card_nr];
+		data->config[1] = pixelport_other_pal[data->card_nr];
+		data->config[2] = pixeldata_adjust_ntsc[data->card_nr];
+		data->config[3] = pixeldata_adjust_pal[data->card_nr];
+		data->config[4] = color_bars[data->card_nr];
+		data->config[5] = output_mode_nr[data->card_nr];
 		break;
 	}
 	default:
-		return -EINVAL;
+		ret = -EINVAL;
 		break;
 	}
 
-	return 0;
+	return ret;
 }
 
 /* ----------------------------------------------------------------------- */

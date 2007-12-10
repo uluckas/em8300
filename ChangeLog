@@ -1,3 +1,12 @@
+2007-12-10  Nicolas Boullis  <nboullis@debian.org>
+	* modules/adv717x.c,
+	  modules/em8300_i2c.c,
+	  modules/em8300_sysfs.c,
+	  modules/encoder.h:
+	Continue the code reorganization of the ADV717X driver. The
+	ADV717X chip is now configured by the em8300 driver (through the
+	adv717x driver, of course).
+
 2007-12-03  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_compat24.h,
 	  modules/em8300_main.c:

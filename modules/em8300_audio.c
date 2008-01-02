@@ -12,6 +12,7 @@
 #include <linux/string.h>
 #include <linux/pci.h>
 #include <linux/soundcard.h>
+#include <linux/types.h>
 #include <asm/io.h>
 #include <asm/uaccess.h>
 
@@ -31,74 +32,33 @@
 int em8300_audio_calcbuffered(struct em8300_s *em);
 static int set_audiomode(struct em8300_s *em, int mode);
 
-/* C decompilation of sub_prepare_SPDIF by
-*  Anton Altaparmakov <antona@bigfoot.com>
-*
-*  If outblock == inblock generate mute pattern.
-*
-* Notes:
-*  local1 = "in" = current inblock position pointer.
-*  local3 = "i" = for loop counter.
-*  Need unsigned everywhere, otherwise get into trouble with signed shift rights!
-*/
+#define SPDIF_PREAMBLE_B 0
+#define SPDIF_PREAMBLE_M 2
+#define SPDIF_PREAMBLE_W 1
 
-void sub_prepare_SPDIF(struct em8300_s *em, unsigned char *outblock, unsigned char *inblock, unsigned int inlength)
+static void sub_prepare_SPDIF(struct em8300_s *em, uint32_t *out,
+			      uint16_t *in, unsigned int length)
 {
-	//	ebp-4 = local1 = in	ebp-8 = local2
-	//	ebp-0ch = local3 = i	ebp-10h = local4
+	int i;
+	int mute = in == NULL;
 
-	unsigned char *in; // 32 bit points to array of 8 bit chars
-	unsigned short int local2; // 16 bit, unsigned
-	unsigned int i; // 32 bit, signed
-	unsigned char local4; // 8 bit, unsigned
-	unsigned char mutepattern[] = {0x00, 0x00};
-	int mute;
-
-	mute = (inblock == outblock) ? 1 : 0;
-	in = (mute) ? mutepattern : inblock;
-
-	for (i = 0; i < (inlength >> 2); i++) {
-		if (em->dword_DB4 == 0xc0) {
-			em->dword_DB4 = 0;
-		}
-
-		{
-			register int ebx;
-			if (em->dword_DB4 < 0) {
-				ebx = em->byte_D90[(em->dword_DB4 + 7) >> 3] & 0xff << (!((!em->dword_DB4 + 1) & 7) + 1) & 0xff;
-			} else {
-				ebx = (em->byte_D90[em->dword_DB4 >> 3] & 0xff) << (em->dword_DB4 & 7);
-			}
-			local4 = (unsigned char) ((ebx & 0x80) >> 1);
-		}
-
-		local2 = in[0] << 8 | in[1];
-		if (!mute)
-			in +=2;
-
-		if (em->dword_DB4 != 0) {
-			outblock[i * 8 + 3] = 2;
-		} else {
-			outblock[i * 8 + 3] = 0;
-		}
-
-		outblock[i * 8 + 2] = local2 << 4;
-		outblock[i * 8 + 1] = local2 >> 4;
-		outblock[i * 8] = local2 >> 12 | local4;
-
-		local2 = in[0] << 8 | in[1];
-		if (!mute)
-			in +=2;
-
-		outblock[i * 8 + 7] = 1;
-		outblock[i * 8 + 6] = local2 << 4;
-		outblock[i * 8 + 5] = local2 >> 4;
-		outblock[i * 8 + 4] = local2 >> 12 | local4;
-
-		++em->dword_DB4;
+	for (i = 0; i < length; i++) {
+		unsigned int in_value;
+		unsigned int out_value;
+		int channel_status_bit = (em->channel_status[em->channel_status_pos/8] & (0x80 >> (em->channel_status_pos%8))) != 0;
+		in_value = mute?0:__be16_to_cpu(*(in++));
+		out_value = ((em->channel_status_pos == 0)?SPDIF_PREAMBLE_B:SPDIF_PREAMBLE_M)
+			| (in_value << 12)
+			| (channel_status_bit?0x40000000UL:0x00000000UL);
+		*(out++) = __cpu_to_be32(out_value);
+		in_value = mute?0:__be16_to_cpu(*(in++));
+		out_value = SPDIF_PREAMBLE_W
+			| (in_value << 12)
+			| (channel_status_bit?0x40000000UL:0x00000000UL);
+		*(out++) = __cpu_to_be32(out_value);
+		em->channel_status_pos++;
+		em->channel_status_pos %= 192;
 	}
-
-	return;
 }
 
 static void preprocess_analog(struct em8300_s *em, unsigned char *outbuf, const unsigned char *inbuf_user, int inlength)
@@ -178,7 +138,7 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
 		}
 	}
 
-	sub_prepare_SPDIF(em,outbuf, em->mafifo->preprocess_buffer, inlength);
+	sub_prepare_SPDIF(em,outbuf, em->mafifo->preprocess_buffer, inlength/4);
 }
 
 static void setup_mafifo(struct em8300_s *em)
@@ -531,19 +491,20 @@ static int set_audiomode(struct em8300_s *em, int mode)
 
 	em8300_clockgen_write(em, em->clockgen);
 
-	memset(em->byte_D90, 0, sizeof(em->byte_D90));
+	em->channel_status_pos = 0;
+	memset(em->channel_status, 0, sizeof(em->channel_status));
 
-	em->byte_D90[1] = 0x98;
+	em->channel_status[1] = 0x98;
 
 	switch (em->audio.speed) {
 	case 32000:
-		em->byte_D90[3] = 0xc0;
+		em->channel_status[3] = 0xc0;
 		break;
 	case 44100:
-		em->byte_D90[3] = 0;
+		em->channel_status[3] = 0;
 		break;
 	case 48000:
-		em->byte_D90[3] = 0x40;
+		em->channel_status[3] = 0x40;
 		break;
 	}
 
@@ -560,8 +521,8 @@ static int set_audiomode(struct em8300_s *em, int mode)
 
 		write_register(EM8300_AUDIO_RATE, 0x3a0);
 
-		em->byte_D90[0] = 0x0;
-		sub_prepare_SPDIF(em, em->mafifo->preprocess_buffer, em->mafifo->preprocess_buffer, 0x300);
+		em->channel_status[0] = 0x0;
+		sub_prepare_SPDIF(em, em->mafifo->preprocess_buffer, NULL, 192);
 
 		em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)em->mafifo->preprocess_buffer, em->mafifo->slotsize);
 
@@ -570,8 +531,8 @@ static int set_audiomode(struct em8300_s *em, int mode)
 	case EM8300_AUDIOMODE_DIGITALAC3:
 		write_register(EM8300_AUDIO_RATE, 0x3a0);
 
-		em->byte_D90[0] = 0x40;
-		sub_prepare_SPDIF(em, em->mafifo->preprocess_buffer, em->mafifo->preprocess_buffer, 0x300);
+		em->channel_status[0] = 0x40;
+		sub_prepare_SPDIF(em, em->mafifo->preprocess_buffer, NULL, 192);
 
 		em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)em->mafifo->preprocess_buffer, em->mafifo->slotsize);
 		printk(KERN_NOTICE "em8300_audio.o: Digital AC3 audio enabled\n");

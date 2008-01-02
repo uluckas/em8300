@@ -341,10 +341,10 @@ struct em8300_s
 	int audio_mode;
         int pcm_mode;
 	int dsp_num;
-/* */
-	int dword_DB4;
-	unsigned char byte_D90[24];
-	
+	/* Channel status for S/PDIF */
+	unsigned int channel_status_pos;
+	unsigned char channel_status[24];
+
 	/* Video */
 	int video_mode;
 	int video_playmode;

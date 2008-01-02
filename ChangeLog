@@ -8,6 +8,12 @@
 	contrast and saturation, since it was obviously decompiled and
 	possibly illegal.
 
+	* include/linux/em8300.h,
+	  modules/em8300_audio.c:
+	Completely rewrite from scratch the code to deal with S/PDIF
+	digital audio, since it was obviously decompiled and possibly
+	illegal.
+
 2007-12-10  Nicolas Boullis  <nboullis@debian.org>
 	* modules/adv717x.c,
 	  modules/em8300_i2c.c,

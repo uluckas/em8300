@@ -1,3 +1,8 @@
+2008-01-02  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_i2c.c:
+	Disable the encoder chip when it is discovered and until the
+	firmware in loaded and everything is properly configured.
+
 2007-12-10  Nicolas Boullis  <nboullis@debian.org>
 	* modules/adv717x.c,
 	  modules/em8300_i2c.c,

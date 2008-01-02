@@ -115,6 +115,7 @@ static int em8300_i2c_reg(struct i2c_client *client)
 		}
 		em->encoder = client;
 		sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, "encoder");
+		client->driver->command(client, ENCODER_CMD_ENABLEOUTPUT, (void *)0);
 		do {
 			struct getconfig_s data;
 			struct setparam_s param;

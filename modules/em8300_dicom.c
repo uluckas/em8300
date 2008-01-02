@@ -35,99 +35,9 @@ struct dicom_tvmode tvmodematrix[EM8300_VIDEOMODE_LAST + 1] = {
 	{480, 720, 31, 138},     // NTSC 4:3
 };
 
-/* C decompilation of the chromaluma code
-*  by Anton Altaparmakov <antona@bigfoot.com>
-*
-*  This basically returns the result of calculating param1 / param2 and
-*  depending on some weird rules either adds 1 to the result or not.
-*  Returns 0 on error, ie. when param2 is 0.
-*/
-int sub_265C1 (int param1, unsigned int param2, short int param3)
-{
-	int local1;
-	if (!param2) {
-		return 0;
-	}
-	local1 = param1 / param2;
-	if (param2 & 1) {
-		param1 <<= 1;
-		param2 <<= 1;
-	}
-	if (param3) {
-		// Original was stupid, so there:
-		if (param1 % param2 >= param2) {
-			++local1;
-		}
-	} else {
-		if (param1 % param2 >= param2 >> 1) {
-			++local1;
-		}
-	}
-
-	return local1;
-}
-
-/* sub_40137 calculates the contents of the dicom_bcsluma and dicom_bcschroma
-*		 registers with brightness contrast and saturation values as inputs.
-*/
-int sub_40137(struct em8300_s *em)
-{
-	short int local1;
-	int local2, local3;
-	short int local4;
-	int local5;
-	short int local6, local7;
-	int ir;
-	register int eax;
-
-	local3 = sub_265C1(em->dicom_contrast * 0x7f, 0x3e8, 0); // 0x3e8 = 1000
-	local2 = sub_265C1(em->dicom_brightness * 0xff, 0x3e8, 0);
-	local5 = sub_265C1(em->dicom_saturation * 0x1f, 0x3e8, 0);
-	if (local3 >= 0x40) {
-		local1 = 0x2000 / (0xc0 - local3);
-		ir = local2 - 0x80 - ((local3 - 0x40) << 7) / (0xc0 - local3);
-		if (ir > -128) {
-			local4 = ir;
-		} else {
-			local4 = -128;
-		}
-		if ((eax = local5 << 7) < 0) {
-			eax += 0xf;
-		}
-		local6 = local7 = ((eax & 0xfffffff0) << 2) / (0xc0 - local3);
-	} else {
-		register int eax;
-		if ((eax = (local3 + 0x40) << 6) < 0) {
-			eax += 0x7f;
-		}
-		local1 = eax >> 7;
-		if ((eax = local2 - local3 - 0x40) < 0x7f) {
-			local4 = eax;
-		} else {
-			local4 = 0x7f;
-		}
-		if ((eax = local5 * (local3 + 0x40)) < 0) {
-			eax += 0xf;
-		}
-		if ((eax = (eax & 0xfffffff0) << 2) < 0) {
-			eax += 0x7f;
-		}
-		local6 = local7 =  eax >> 7;
-	}
-#if 0
-	if (em->encoder_type != ENCODER_BT865) {
-#endif
-		write_ucregister(DICOM_BCSLuma, (local1 << 8) | (local4 & 0xff));
-		write_ucregister(DICOM_BCSChroma, local7 << 8 | local6);
-#if 0
-	}
-#endif
-
-	return 1;
-}
-
 void em8300_dicom_setBCS(struct em8300_s *em, int brightness, int contrast, int saturation)
 {
+	int luma_factor, luma_offset, chroma_factor;
 	em->dicom_brightness = brightness;
 	em->dicom_contrast = contrast;
 	em->dicom_saturation = saturation;
@@ -137,7 +47,20 @@ void em8300_dicom_setBCS(struct em8300_s *em, int brightness, int contrast, int 
 		udelay(1);
 	}
 
-	sub_40137(em); // Update brightness/contrast/saturation
+	luma_factor = (contrast * 127 + 500) / 1000;
+	luma_offset = 128 - 2 * luma_factor + ((brightness - 500) * 255 + 500) / 1000;
+	if (luma_offset < -128)
+		luma_offset = -128;
+	if (luma_offset > 127)
+		luma_offset = 127;
+	chroma_factor = (luma_factor * saturation + 250) / 500;
+	if (chroma_factor > 127)
+		chroma_factor = 127;
+
+	write_ucregister(DICOM_BCSLuma,
+			 ((luma_factor & 255) << 8) | (luma_offset & 255));
+	write_ucregister(DICOM_BCSChroma,
+			 ((chroma_factor & 255) << 8) | (chroma_factor & 255));
 
 	write_ucregister(DICOM_UpdateFlag, 1);
 }

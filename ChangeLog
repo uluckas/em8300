@@ -3,6 +3,11 @@
 	Disable the encoder chip when it is discovered and until the
 	firmware in loaded and everything is properly configured.
 
+	* modules/em8300_dicom.c:
+	Completely rewrite from scratch the code to deal with brightness,
+	contrast and saturation, since it was obviously decompiled and
+	possibly illegal.
+
 2007-12-10  Nicolas Boullis  <nboullis@debian.org>
 	* modules/adv717x.c,
 	  modules/em8300_i2c.c,

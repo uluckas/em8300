@@ -1,3 +1,8 @@
+2008-01-05  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_audio.c:
+	Get rid of some warnings introduced by the S/PDIF rewrite. Thanks
+	to Christian Gmeiner for his patch.
+
 2008-01-02  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_i2c.c:
 	Disable the encoder chip when it is discovered and until the

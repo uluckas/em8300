@@ -138,7 +138,7 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
 		}
 	}
 
-	sub_prepare_SPDIF(em,outbuf, em->mafifo->preprocess_buffer, inlength/4);
+	sub_prepare_SPDIF(em, (uint32_t *)outbuf, (uint16_t *)em->mafifo->preprocess_buffer, inlength/4);
 }
 
 static void setup_mafifo(struct em8300_s *em)
@@ -522,7 +522,7 @@ static int set_audiomode(struct em8300_s *em, int mode)
 		write_register(EM8300_AUDIO_RATE, 0x3a0);
 
 		em->channel_status[0] = 0x0;
-		sub_prepare_SPDIF(em, em->mafifo->preprocess_buffer, NULL, 192);
+		sub_prepare_SPDIF(em, (uint32_t *)em->mafifo->preprocess_buffer, NULL, 192);
 
 		em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)em->mafifo->preprocess_buffer, em->mafifo->slotsize);
 
@@ -532,7 +532,7 @@ static int set_audiomode(struct em8300_s *em, int mode)
 		write_register(EM8300_AUDIO_RATE, 0x3a0);
 
 		em->channel_status[0] = 0x40;
-		sub_prepare_SPDIF(em, em->mafifo->preprocess_buffer, NULL, 192);
+		sub_prepare_SPDIF(em, (uint32_t *)em->mafifo->preprocess_buffer, NULL, 192);
 
 		em8300_writeregblock(em, 2*ucregister(Mute_Pattern), (unsigned *)em->mafifo->preprocess_buffer, em->mafifo->slotsize);
 		printk(KERN_NOTICE "em8300_audio.o: Digital AC3 audio enabled\n");

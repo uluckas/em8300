@@ -1,3 +1,10 @@
+2008-01-07  Nicolas Boullis  <nboullis@debian.org>
+	* modules/em8300_i2c.c:
+	Get rid of some warnings related to the result of
+	sysfs_create_link being unused and log some runtime warning in
+	case of failure. Thanks to Christian Gmeiner for the initial
+	work.
+
 2008-01-05  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_audio.c:
 	Get rid of some warnings introduced by the S/PDIF rewrite. Thanks

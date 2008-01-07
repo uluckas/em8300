@@ -27,7 +27,7 @@
 //#include <linux/sensors.h>
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
-#define sysfs_create_link(kobj, target, name) do {} while (0)
+#define sysfs_create_link(kobj, target, name) 0
 #define sysfs_remove_link(kobj, name) do {} while (0)
 #else
 #include <linux/sysfs.h>
@@ -98,6 +98,12 @@ static int em8300_i2c_lock_client(struct i2c_client *client)
 	return 0;
 }
 
+#define EM8300_I2C_MAKE_LINK(link_name) \
+	do { \
+		if (sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, link_name)) \
+			printk(KERN_WARNING "em8300_i2c: unable to create the %s link\n", link_name); \
+	} while (0)
+
 static int em8300_i2c_reg(struct i2c_client *client)
 {
 	struct em8300_s *em = i2c_get_adapdata(client->adapter);
@@ -114,7 +120,7 @@ static int em8300_i2c_reg(struct i2c_client *client)
 			em->encoder_type = ENCODER_ADV7170;
 		}
 		em->encoder = client;
-		sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, "encoder");
+		EM8300_I2C_MAKE_LINK("encoder");
 		client->driver->command(client, ENCODER_CMD_ENABLEOUTPUT, (void *)0);
 		do {
 			struct getconfig_s data;
@@ -169,10 +175,10 @@ static int em8300_i2c_reg(struct i2c_client *client)
 		}
 		em->encoder_type = ENCODER_BT865;
 		em->encoder = client;
-		sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, "encoder");
+		EM8300_I2C_MAKE_LINK("encoder");
 		break;
 	case I2C_DRIVERID_EEPROM:
-		sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, "eeprom");
+		EM8300_I2C_MAKE_LINK("eeprom");
 		break;
 	default:
 		printk(KERN_ERR "em8300_i2c: unknown client id\n");

@@ -1,3 +1,8 @@
+2008-02-04  Nicolas Boullis  <nboullis@debian.org>
+	* configure.in,
+	  modules/Makefile:
+	Release 0.16.4.
+
 2008-01-07  Nicolas Boullis  <nboullis@debian.org>
 	* modules/em8300_i2c.c:
 	Get rid of some warnings related to the result of

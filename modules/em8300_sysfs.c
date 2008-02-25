@@ -31,6 +31,8 @@
 #include "em8300_reg.h"
 #include "encoder.h"
 
+#include "em8300_version.h"
+
 extern struct pci_driver em8300_driver;
 
 static ssize_t show_version(struct device_driver *dd, char *buf)

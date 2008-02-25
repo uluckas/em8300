@@ -53,6 +53,8 @@
 #include "adv717x.h"
 #include "encoder.h"
 
+#include "em8300_version.h"
+
 MODULE_SUPPORTED_DEVICE("adv717x");
 MODULE_LICENSE("GPL");
 #ifdef MODULE_VERSION

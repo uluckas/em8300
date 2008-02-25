@@ -29,12 +29,23 @@ KERNEL_LOCATION := /lib/modules/$(shell uname -r)/build
 #export EM8300_I2C_LOCATION := /usr/src/modules/i2c
 #export EM8300_I2C_FORCE_API := NEW
 
-export EM8300_VERSION := "0.16.4"
 export EM8300_DIR := $(CURDIR)/..
 export INSTALL_MOD_DIR=em8300
 
-build:
+build: em8300_version.h
 	$(MAKE) -C $(KERNEL_LOCATION) SUBDIRS=$(CURDIR) modules
+
+.PHONY: em8300_version.h
+em8300_version.h:
+	@hg_id=$$(hg id -i 2>/dev/null); \
+	if [ -n "$$hg_id" ]; then \
+	  printf '#define EM8300_VERSION "hg-%s"\n' "$$hg_id" > $@.tmp; \
+	  if diff -q $@ $@.tmp >/dev/null 2>&1; then \
+	    rm $@.tmp; \
+	  else \
+	    mv -f $@.tmp $@; \
+	  fi; \
+	fi
 
 ifeq ($(strip $(shell printf '\043if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,51)\n1\n\043else\n0\n\043endif\n' | $(CPP) -imacros $(KERNEL_LOCATION)/include/linux/version.h -P - )),1)
 
@@ -82,7 +93,6 @@ endif
 EXTRA_CFLAGS := -I$(EM8300_DIR)/include \
 		-DEM8300_VIDEOMODE_DEFAULT=EM8300_VIDEOMODE_PAL \
 		-DEM8300_AUDIOMODE_DEFAULT=EM8300_AUDIOMODE_ANALOG \
-		-DEM8300_VERSION=\"$(EM8300_VERSION)\" \
 		-DCONFIG_ADV717X_PIXELPORT16BIT -DCONFIG_ADV717X_PIXELPORTPAL \
 		-DCONFIG_EM8300_DICOMPAL -DCONFIG_EM8300_DICOMFIX \
 		-DCONFIG_EM8300_DICOMCTRL

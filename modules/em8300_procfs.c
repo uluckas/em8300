@@ -24,6 +24,8 @@
 #include "em8300_reg.h"
 #include "em8300_eeprom.h"
 
+#include "em8300_version.h"
+
 #ifdef CONFIG_PROC_FS
 
 #ifndef EM8300_PROCFS_DIR

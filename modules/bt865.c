@@ -54,6 +54,8 @@
 #include "bt865.h"
 #include "encoder.h"
 
+#include "em8300_version.h"
+
 MODULE_SUPPORTED_DEVICE("bt865");
 MODULE_LICENSE("GPL");
 #ifdef MODULE_VERSION

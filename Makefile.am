@@ -41,3 +41,8 @@ uninstall-local:
 
 ChangeLog:
 	hg log --follow --style changelog > $@
+
+if MAINTAINER_MODE
+.PHONY: ChangeLog
+ACLOCAL_AMFLAGS = -I autotools
+endif

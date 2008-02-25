@@ -15,7 +15,8 @@ EXTRA_DIST = \
 	$(srcdir)/modules/em8300.uc \
 	$(srcdir)/modules/ldm \
 	$(srcdir)/modules/rmm \
-	shinit.sh
+	shinit.sh \
+	ChangeLog.old
 
 if HAVE_GTK
 SUBDIRS = include overlay dhc scripts em8300setup
@@ -37,3 +38,6 @@ install-data-local:
 uninstall-local:
 	rm -f "$(DESTDIR)$(firmwaredir)/em8300.bin"
 	test -z "$(alsadir)" || rm -f "$(DESTDIR)$(alsadir)/cards/EM8300.conf"
+
+ChangeLog:
+	hg log --follow --style changelog > $@

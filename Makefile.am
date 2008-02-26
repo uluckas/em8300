@@ -40,7 +40,7 @@ uninstall-local:
 	test -z "$(alsadir)" || rm -f "$(DESTDIR)$(alsadir)/cards/EM8300.conf"
 
 ChangeLog:
-	hg log --follow --style changelog > $@
+	hg log -R $(top_srcdir) --follow --style changelog > $@
 
 if MAINTAINER_MODE
 .PHONY: ChangeLog

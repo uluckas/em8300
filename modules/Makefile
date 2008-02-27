@@ -80,68 +80,6 @@ endif
 
 else
 
-BUILD_IOCTL32 := n
-
-ifeq ($(ARCH),sparc64)
-BUILD_IOCTL32 := $(CONFIG_SPARC32_COMPAT)
-endif
-
-ifeq ($(ARCH),x86_64)
-BUILD_IOCTL32 := $(CONFIG_IA32_EMULATION)
-endif
-
-EXTRA_CFLAGS := -I$(EM8300_DIR)/include \
-		-DEM8300_VIDEOMODE_DEFAULT=EM8300_VIDEOMODE_PAL \
-		-DEM8300_AUDIOMODE_DEFAULT=EM8300_AUDIOMODE_ANALOG \
-		-DCONFIG_ADV717X_PIXELPORT16BIT -DCONFIG_ADV717X_PIXELPORTPAL \
-		-DCONFIG_EM8300_DICOMPAL -DCONFIG_EM8300_DICOMFIX \
-		-DCONFIG_EM8300_DICOMCTRL
-ifeq ($(BUILD_IOCTL32),y)
-EXTRA_CFLAGS += -DCONFIG_EM8300_IOCTL32=1
-endif
-ifneq ($(EM8300_I2C_LOCATION),)
-EXTRA_CFLAGS += -DCONFIG_I2C_ALGOBIT=1
-# This is a hack to include i2c headers from $(EM8300_I2C_LOCATION)
-# over those from the kernel source tree.
-override CC += -I$(EM8300_I2C_LOCATION)
-endif
-ifneq ($(EM8300_I2C_FORCE_API),)
-EXTRA_CFLAGS += -DEM8300_I2C_FORCE_$(EM8300_I2C_FORCE_API)_API
-endif
-
-#MOD_DESTDIR := drivers/video
-
-em8300-objs := em8300_main.o em8300_i2c.o em8300_audio.o em8300_fifo.o \
-		em8300_video.o em8300_misc.o em8300_dicom.o em8300_ucode.o \
-		em8300_ioctl.o em8300_spu.o em9010.o em8300_registration.o \
-		em8300_procfs.o em8300_devfs.o em8300_udev.o em8300_sysfs.o \
-		em8300_alsa.o em8300_params.o em8300_eeprom.o
-ifeq ($(BUILD_IOCTL32),y)
-em8300-objs += em8300_ioctl32.o
-endif
-
-obj-m += adv717x.o
-obj-m += bt865.o
-obj-m += em8300.o
-
-# The following hack tests for old kernels (2.4 and old 2.5).
-ifneq ($(TOPDIR),$(shell /bin/pwd))
-
-EXTRA_CFLAGS += -include $(TOPDIR)/include/linux/config.h
-
-include $(TOPDIR)/Rules.make
-
-em8300.o: $(em8300-objs)
-	$(LD) $(LDFLAGS) $(LDFLAGS_MODULE) -r -o $@ $(em8300-objs)
-
-else
-
-ifeq ($(shell expr $(VERSION) \* 10000 + $(PATCHLEVEL) \* 100 + $(SUBLEVEL) \< 20615),1)
-
-EXTRA_CFLAGS += -include $(TOPDIR)/include/linux/config.h
-
-endif
-
-endif
+include Kbuild
 
 endif

@@ -7,6 +7,7 @@ EXTRA_DIST = \
 	$(srcdir)/modules/EM8300.conf \
 	$(srcdir)/modules/INSTALL \
 	$(srcdir)/modules/Makefile \
+	$(srcdir)/modules/Kbuild \
 	$(srcdir)/modules/README* \
 	$(srcdir)/modules/adv717x.c \
 	$(srcdir)/modules/adv717x.h \

@@ -1,25 +1,15 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(em8300setup/em8300setup.c)
-dnl AC_PREREQ(2.50)
-AC_PREREQ(2.13)
+AC_INIT([EM8300], [0.16.4-hg])
+AC_CONFIG_SRCDIR([em8300setup/em8300setup.c])
+AC_PREREQ(2.50)
 AC_CONFIG_AUX_DIR(autotools)
-
-EM8300_MAJOR=0
-EM8300_MINOR=16
-EM8300_SUB=4
-#EM8300_PRE=".cvs"
-TAR_NAME="em8300-"$EM8300_MAJOR.$EM8300_MINOR.$EM8300_SUB$EM8300_PRE
-AC_SUBST(EM8300_MAJOR)
-AC_SUBST(EM8300_MINOR)
-AC_SUBST(EM8300_SUB)
-AC_SUBST(TAR_NAME)
 
 AC_PROG_CC
 
-AM_INIT_AUTOMAKE("em8300", $EM8300_MAJOR.$EM8300_MINOR.$EM8300_SUB$EM8300_PRE)
+AM_INIT_AUTOMAKE
 
 AC_CANONICAL_HOST
-AM_CONFIG_HEADER(include/config.h)
+AC_CONFIG_HEADERS([include/config.h])
 
 AM_MAINTAINER_MODE
 
@@ -92,7 +82,7 @@ AS_IF([test "x$with_alsa_dir" != xno],
     [ALSA_DIR="$with_alsa_dir"]))
 AC_SUBST(ALSA_DIR)
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 	Makefile
 	include/Makefile
 	include/linux/Makefile
@@ -101,3 +91,4 @@ AC_OUTPUT([
 	em8300setup/Makefile
 	scripts/Makefile
 ])
+AC_OUTPUT

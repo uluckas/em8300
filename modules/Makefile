@@ -80,6 +80,10 @@ endif
 
 else
 
-include Kbuild
+# It should be possible to write it
+# $(lastword $(MAKEFILE_LIST))
+# but it's not supported by old make.
+CURRENT_MAKEFILE := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
+include $(dir $(CURRENT_MAKEFILE))Kbuild
 
 endif

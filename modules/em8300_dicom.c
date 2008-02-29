@@ -70,7 +70,7 @@ int em8300_dicom_update(struct em8300_s *em)
 	int ret;
 	int vmode_ntsc = 1;
 
-	if (dicom_other_pal[em->card_nr]) {
+	if (em->config.model.dicom_other_pal) {
 		vmode_ntsc = (em->video_mode == EM8300_VIDEOMODE_NTSC);
 	}
 
@@ -167,25 +167,25 @@ int em8300_dicom_update(struct em8300_s *em)
 			write_register(0x1f47, 0x18);
 
 			if (vmode_ntsc) {
-				if (dicom_fix[em->card_nr]) {
+				if (em->config.model.dicom_fix) {
 					write_register(0x1f5e, 0x1efe);
 				} else {
 					write_register(0x1f5e, 0x1afe);
 				}
 
-				if (dicom_control[em->card_nr]) {
+				if (em->config.model.dicom_control) {
 					write_ucregister(DICOM_Control, 0x9efe);
 				} else {
 					write_ucregister(DICOM_Control, 0x9afe);
 				}
 			} else {
-				if (dicom_fix[em->card_nr]) {
+				if (em->config.model.dicom_fix) {
 					write_register(0x1f5e, 0x1afe);
 				} else {
 					write_register(0x1f5e, 0x1efe);
 				}
 
-				if (dicom_control[em->card_nr]) {
+				if (em->config.model.dicom_control) {
 					write_ucregister(DICOM_Control, 0x9afe);
 				} else {
 					write_ucregister(DICOM_Control, 0x9efe);
@@ -195,9 +195,9 @@ int em8300_dicom_update(struct em8300_s *em)
 	}
 
 	pr_debug("em8300_dicom.o: vmode_ntsc: %d\n", vmode_ntsc);
-	pr_debug("em8300_dicom.o: dicom_other_pal: %d\n", dicom_other_pal[em->card_nr]);
-	pr_debug("em8300_dicom.o: dicom_control: %d\n", dicom_control[em->card_nr]);
-	pr_debug("em8300_dicom.o: dicom_fix: %d\n", dicom_fix[em->card_nr]);
+	pr_debug("em8300_dicom.o: dicom_other_pal: %d\n", em->config.model.dicom_other_pal);
+	pr_debug("em8300_dicom.o: dicom_control: %d\n", em->config.model.dicom_control);
+	pr_debug("em8300_dicom.o: dicom_fix: %d\n", em->config.model.dicom_fix);
 
 	write_ucregister(DICOM_UpdateFlag, 1);
 

@@ -251,6 +251,19 @@ struct em8300_audio_s {
 	int enable_bits;
 };
 
+struct em8300_model_config_s {
+	int use_bt865;
+	int dicom_other_pal;
+	int dicom_fix;
+	int dicom_control;
+	int bt865_ucode_timeout;
+	int activate_loopback;
+};
+
+struct em8300_config_s {
+	struct em8300_model_config_s model;
+};
+
 struct em8300_s
 {
 	char name[40];
@@ -397,10 +410,12 @@ struct em8300_s
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,0)
 	/* Memory exported via mmap() */
 	struct list_head  memory;
-#endif	
+#endif
 
 	/* Checksum for the on-board eeprom */
 	u8 *eeprom_checksum;
+
+	struct em8300_config_s config;
 
 	/* To support different options for different cards */
 	unsigned int card_nr;

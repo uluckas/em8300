@@ -607,7 +607,7 @@ static int init_em8300(struct em8300_s *em)
 			em->var_ucode_reg2 = 0x272;
 			em->var_ucode_reg3 = 0x8272;
 			if (0x20 & read_register(0x1c08)) {
-				if (use_bt865[em->card_nr]) {
+				if (em->config.model.use_bt865) {
 					em->var_ucode_reg1 = 0x800;
 				} else {
 					em->var_ucode_reg1 = 0x818;
@@ -629,12 +629,12 @@ static int init_em8300(struct em8300_s *em)
 	}
 
 	pr_info("em8300_main.o: Chip revision: %d\n", em->chip_revision);
-	pr_debug("em8300_main.o: use_bt865: %d\n", use_bt865[em->card_nr]);
+	pr_debug("em8300_main.o: use_bt865: %d\n", em->config.model.use_bt865);
 	em8300_i2c_init1(em);
 	em8300_i2c_init2(em);
 	em8300_eeprom_checksum_init(em);
 
-	if (activate_loopback[em->card_nr] == 0) {
+	if (em->config.model.activate_loopback == 0) {
 		em->clockgen_tvmode = CLOCKGEN_TVMODE_1;
 		em->clockgen_overlaymode = CLOCKGEN_OVERLAYMODE_1;
 	} else {
@@ -647,7 +647,7 @@ static int init_em8300(struct em8300_s *em)
 
 	em->zoom=100;
 
-	pr_debug("em8300_main.o: activate_loopback: %d\n", activate_loopback[em->card_nr]);
+	pr_debug("em8300_main.o: activate_loopback: %d\n", em->config.model.activate_loopback);
 
 	return 0;
 }
@@ -665,6 +665,19 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	em->card_nr = em8300_cards;
 	em->adr = dev->resource[0].start;
 	em->memsize = 1024 * 1024;
+
+	em->config.model.use_bt865 =
+		use_bt865[em8300_cards];
+	em->config.model.dicom_other_pal =
+		dicom_other_pal[em8300_cards];
+	em->config.model.dicom_fix =
+		dicom_fix[em8300_cards];
+	em->config.model.dicom_control =
+		dicom_control[em8300_cards];
+	em->config.model.bt865_ucode_timeout =
+		bt865_ucode_timeout[em8300_cards];
+	em->config.model.activate_loopback =
+		activate_loopback[em8300_cards];
 
 	if ((result = pci_enable_device(dev)) != 0) {
 		printk(KERN_ERR "em8300: Unable to enable PCI device\n");

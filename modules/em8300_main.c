@@ -599,8 +599,15 @@ static int init_em8300(struct em8300_s *em)
 
 	write_register(0x1f50, 0x123);
 
-	if (read_register(0x1f50) == 0x123) {
+	if (read_register(0x1f50) == 0x123)
 		em->chip_revision = 2;
+	else
+		em->chip_revision = 1;
+
+	em8300_i2c_init1(em);
+	em8300_eeprom_checksum_init(em);
+
+	if (em->chip_revision == 2) {
 		if (0x40 & read_register(0x1c08)) {
 			em->var_video_value = 3375; /* was 0xd34 = 3380 */
 			em->mystery_divisor = 0x107ac;
@@ -620,7 +627,6 @@ static int init_em8300(struct em8300_s *em)
 			em->var_ucode_reg3 = 0x825a;
 		}
 	} else {
-		em->chip_revision = 1;
 		em->var_ucode_reg1 = 0x80;
 		em->var_video_value = 0xce4;
 		em->mystery_divisor = 0x101d0;
@@ -630,9 +636,8 @@ static int init_em8300(struct em8300_s *em)
 
 	pr_info("em8300_main.o: Chip revision: %d\n", em->chip_revision);
 	pr_debug("em8300_main.o: use_bt865: %d\n", em->config.model.use_bt865);
-	em8300_i2c_init1(em);
+
 	em8300_i2c_init2(em);
-	em8300_eeprom_checksum_init(em);
 
 	if (em->config.model.activate_loopback == 0) {
 		em->clockgen_tvmode = CLOCKGEN_TVMODE_1;

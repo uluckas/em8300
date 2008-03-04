@@ -59,6 +59,7 @@
 #include "em8300_registration.h"
 #include "em8300_params.h"
 #include "em8300_eeprom.h"
+#include "em8300_models.h"
 
 #ifdef CONFIG_EM8300_IOCTL32
 #include "em8300_ioctl32.h"
@@ -595,6 +596,8 @@ static struct file_operations em8300_dsp_audio_fops = {
 
 static int init_em8300(struct em8300_s *em)
 {
+	int identified_model;
+
 	write_register(0x30000, read_register(0x30000));
 
 	write_register(0x1f50, 0x123);
@@ -606,6 +609,30 @@ static int init_em8300(struct em8300_s *em)
 
 	em8300_i2c_init1(em);
 	em8300_eeprom_checksum_init(em);
+
+	identified_model = identify_model(em);
+
+	if (em->model == -1) {
+		if (identified_model > 0) {
+			em->model = identified_model;
+			printk("em8300.c: detected card: %s.\n",
+			       known_models[identified_model].name);
+		}
+		else {
+			em->model = 0;
+			printk("em8300.c: unable to identify model...\n");
+		}
+	}
+
+	if ((em->model != identified_model) && (em->model > 0) && (identified_model > 0)) {
+		printk("em8300.c: mismatch between detected and requested model.\n");
+	}
+
+	if (em->model > 0) {
+		if (known_models[em->model].module != NULL)
+			request_module(known_models[em->model].module);
+		em->config.model = known_models[em->model].em8300_config;
+	}
 
 	if (em->chip_revision == 2) {
 		if (0x40 & read_register(0x1c08)) {
@@ -683,6 +710,8 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 		bt865_ucode_timeout[em8300_cards];
 	em->config.model.activate_loopback =
 		activate_loopback[em8300_cards];
+
+	em->model = card_model[em8300_cards];
 
 	if ((result = pci_enable_device(dev)) != 0) {
 		printk(KERN_ERR "em8300: Unable to enable PCI device\n");

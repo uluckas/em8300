@@ -94,6 +94,14 @@ module_param_array(activate_loopback, bool, NULL, 0444);
 #endif
 MODULE_PARM_DESC(activate_loopback, "If you lose video after loading the modules or uploading the microcode set this to 1. Defaults to 0.");
 
+int card_model[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
+MODULE_PARM(card_model, "1-" __MODULE_STRING(EM8300_MAX) "i");
+#else
+module_param_array(card_model, int, NULL, 0444);
+#endif
+MODULE_PARM_DESC(card_model, "Model number for the em8300-based card. -1 (default) means automatic detection; 0 means unknown model with manual setup.");
+
 int major = EM8300_MAJOR;
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(major, "i");

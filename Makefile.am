@@ -30,6 +30,8 @@ EXTRA_DIST = \
 	$(srcdir)/modules/em8300_ioctl32.h \
 	$(srcdir)/modules/em8300_main.c \
 	$(srcdir)/modules/em8300_misc.c \
+	$(srcdir)/modules/em8300_models.c \
+	$(srcdir)/modules/em8300_models.h \
 	$(srcdir)/modules/em8300_params.c \
 	$(srcdir)/modules/em8300_params.h \
 	$(srcdir)/modules/em8300_procfs.c \

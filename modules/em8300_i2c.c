@@ -19,6 +19,7 @@
 
 #include "em8300_compat24.h"
 #include "em8300_reg.h"
+#include "em8300_models.h"
 #include <linux/em8300.h>
 
 #include "adv717x.h"
@@ -131,6 +132,14 @@ static int em8300_i2c_reg(struct i2c_client *client)
 						    (void *) &data) != 0) {
 				printk("ENCODER_CMD_GETCONFIG failed\n");
 				break;
+			}
+			if (em->model > 0) {
+				struct adv717x_model_config_s const *conf
+					= &known_models[em->model].adv717x_config;
+				data.config[0] = conf->pixelport_16bit;
+				data.config[1] = conf->pixelport_other_pal;
+				data.config[2] = conf->pixeldata_adjust_ntsc;
+				data.config[3] = conf->pixeldata_adjust_pal;
 			}
 			param.param = ENCODER_PARAM_COLORBARS;
 			param.modes = (uint32_t)-1;

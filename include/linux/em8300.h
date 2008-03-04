@@ -415,6 +415,8 @@ struct em8300_s
 	/* Checksum for the on-board eeprom */
 	u8 *eeprom_checksum;
 
+	int model;
+
 	struct em8300_config_s config;
 
 	/* To support different options for different cards */

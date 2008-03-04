@@ -34,6 +34,8 @@ extern int dicom_control[];
 extern int bt865_ucode_timeout[];
 extern int activate_loopback[];
 
+extern int card_model[];
+
 /* Audio driver used by the driver:
    - OSS     means OSS-compatible /dev/em8300_ma + /dev/dsp (old behavior)
    - OSSLIKE means OSS-compatible /dev/em8300_ma only

@@ -209,10 +209,19 @@ static int em8300_i2c_reg(struct i2c_client *client)
 		em->encoder = client;
 		EM8300_I2C_MAKE_LINK("encoder");
 		break;
+#ifdef I2C_DRIVERID_EEPROM
 	case I2C_DRIVERID_EEPROM:
 		EM8300_I2C_MAKE_LINK("eeprom");
 		break;
+#endif
 	default:
+#ifndef I2C_DRIVERID_EEPROM
+		if ((client->addr == 0x50) &&
+		    (strcmp(client->name, "eeprom") == 0)) {
+			EM8300_I2C_MAKE_LINK("eeprom");
+			break;
+		}
+#endif
 		printk(KERN_ERR "em8300_i2c: unknown client id\n");
 		return -ENODEV;
 	}
@@ -237,9 +246,18 @@ static int em8300_i2c_unreg(struct i2c_client *client)
 #endif
 #endif
 		break;
+#ifdef I2C_DRIVERID_EEPROM
 	case I2C_DRIVERID_EEPROM:
 		sysfs_remove_link(&em->dev->dev.kobj, "eeprom");
 		break;
+#else
+	default:
+		if ((client->addr == 0x50) &&
+		    (strcmp(client->name, "eeprom") == 0)) {
+			sysfs_remove_link(&em->dev->dev.kobj, "eeprom");
+			break;
+		}
+#endif
 	}
 
 	return 0;

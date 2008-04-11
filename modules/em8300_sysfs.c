@@ -2,7 +2,7 @@
  *
  * em8300_sysfs.c -- interface to the sysfs filesystem
  * Copyright (C) 2004 Eric Donohue <epd3j@hotmail.com>
- * Copyright (C) 2004,2006 Nicolas Boullis <nboullis@debian.org>
+ * Copyright (C) 2004,2006,2008 Nicolas Boullis <nboullis@debian.org>
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -29,6 +29,7 @@
 #include "em8300_params.h"
 #include "em8300_eeprom.h"
 #include "em8300_reg.h"
+#include "em8300_models.h"
 #include "encoder.h"
 
 #include "em8300_version.h"
@@ -53,6 +54,18 @@ static ssize_t show_model(struct device *dev,
 	char *encoder_name = NULL;
 	u8 *tmp;
 	int i;
+	int model;
+
+	len += sprintf(buf + len,
+		       "\n**** Card model ****\n\n");
+
+/* Identified model */
+	model = identify_model(em);
+	if (model < 0)
+		model = 0;
+	len += sprintf(buf + len,
+		       "Identified model: %s\n",
+		       known_models[model].name);
 
 	len += sprintf(buf + len,
 		       "\n**** Detected data ****\n\n");
@@ -126,29 +139,29 @@ static ssize_t show_model(struct device *dev,
 			&&((0x60 & read_register(0x1c08)) == 0x60)) ?
 		       "  use_bt865=%d\n" :
 		       "  [use_bt865=%d]\n",
-		       use_bt865[em->card_nr]);
+		       em->config.model.use_bt865);
 	len += sprintf(buf + len,
 		       "  dicom_other_pal=%d\n",
-		       dicom_other_pal[em->card_nr]);
+		       em->config.model.dicom_other_pal);
 	len += sprintf(buf + len,
 		       (em->encoder_type != ENCODER_BT865) ?
 		       "  dicom_fix=%d\n" :
 		       "  [dicom_fix=%d]\n",
-		       dicom_fix[em->card_nr]);
+		       em->config.model.dicom_fix);
 	len += sprintf(buf + len,
 		       (em->encoder_type != ENCODER_BT865) ?
 		       "  dicom_control=%d\n" :
 		       "  [dicom_control=%d]\n",
-		       dicom_control[em->card_nr]);
+		       em->config.model.dicom_control);
 	len += sprintf(buf + len,
 		       ((em->encoder_type != ENCODER_ADV7170)
 			&&(em->encoder_type != ENCODER_ADV7175)) ?
 		       "  bt865_ucode_timeout=%d\n" :
 		       "  [bt865_ucode_timeout=%d]\n",
-		       bt865_ucode_timeout[em->card_nr]);
+		       em->config.model.bt865_ucode_timeout);
 	len += sprintf(buf + len,
 		       "  activate_loopback=%d\n",
-		       activate_loopback[em->card_nr]);
+		       em->config.model.activate_loopback);
 
 	switch (em->encoder_type) {
 	case ENCODER_ADV7170:
@@ -170,6 +183,14 @@ static ssize_t show_model(struct device *dev,
 				       "*The adv717x.ko module is too old to report its configuration.*\n"
 				       "*Please rebuild and load the new module.*\n");
 			break;
+		}
+		if (em->model > 0) {
+			struct adv717x_model_config_s const *conf
+				= &known_models[em->model].adv717x_config;
+			data->config[0] = conf->pixelport_16bit;
+			data->config[1] = conf->pixelport_other_pal;
+			data->config[2] = conf->pixeldata_adjust_ntsc;
+			data->config[3] = conf->pixeldata_adjust_pal;
 		}
 		len += sprintf(buf + len,
 			       "adv717x.ko options:\n");

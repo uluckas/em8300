@@ -2,6 +2,7 @@
 	em8300.c - EM8300 MPEG-2 decoder device driver
 
 	Copyright (C) 2000 Henrik Johansson <henrikjo@post.utfors.se>
+	Copyright (C) 2008 Nicolas Boullis <nboullis@debian.org>
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -661,6 +662,28 @@ static int init_em8300(struct em8300_s *em)
 		em->var_ucode_reg3 = 0x8c7;
 	}
 
+	/*
+	 * Override default (or detected) values with module parameters.
+	 */ 
+	if (use_bt865[em->card_nr] >= 0)
+		em->config.model.use_bt865 =
+			use_bt865[em->card_nr];
+	if (dicom_other_pal[em->card_nr] >= 0)
+		em->config.model.dicom_other_pal =
+			dicom_other_pal[em->card_nr];
+	if (dicom_fix[em->card_nr] >= 0)
+		em->config.model.dicom_fix =
+			dicom_fix[em->card_nr];
+	if (dicom_control[em->card_nr] >= 0)
+		em->config.model.dicom_control =
+			dicom_control[em->card_nr];
+	if (bt865_ucode_timeout[em->card_nr] >= 0)
+		em->config.model.bt865_ucode_timeout =
+			bt865_ucode_timeout[em->card_nr];
+	if (activate_loopback[em->card_nr] >= 0)
+		em->config.model.activate_loopback =
+			activate_loopback[em->card_nr];
+
 	pr_info("em8300_main.o: Chip revision: %d\n", em->chip_revision);
 	pr_debug("em8300_main.o: use_bt865: %d\n", em->config.model.use_bt865);
 
@@ -698,18 +721,46 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	em->adr = dev->resource[0].start;
 	em->memsize = 1024 * 1024;
 
+	/*
+	 * Specify default values if card is not identified.
+	 */
 	em->config.model.use_bt865 =
-		use_bt865[em8300_cards];
+		0;
+#ifdef CONFIG_EM8300_DICOMPAL
 	em->config.model.dicom_other_pal =
-		dicom_other_pal[em8300_cards];
+		1;
+#else
+	em->config.model.dicom_other_pal =
+		0;
+#endif
+#ifdef CONFIG_EM8300_DICOMFIX
 	em->config.model.dicom_fix =
-		dicom_fix[em8300_cards];
+		1;
+#else
+	em->config.model.dicom_fix =
+		0;
+#endif
+#ifdef CONFIG_EM8300_DICOMCTRL
 	em->config.model.dicom_control =
-		dicom_control[em8300_cards];
+		1;
+#else
+	em->config.model.dicom_control =
+		0;
+#endif
+#ifdef CONFIG_EM8300_UCODETIMEOUT
 	em->config.model.bt865_ucode_timeout =
-		bt865_ucode_timeout[em8300_cards];
+		1;
+#else
+	em->config.model.bt865_ucode_timeout =
+		0;
+#endif
+#ifdef CONFIG_EM8300_LOOPBACK
 	em->config.model.activate_loopback =
-		activate_loopback[em8300_cards];
+		1;
+#else
+	em->config.model.activate_loopback =
+		0;
+#endif
 
 	em->model = card_model[em8300_cards];
 

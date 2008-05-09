@@ -23,7 +23,7 @@
 #include <linux/module.h>
 #include <linux/string.h>
 
-int use_bt865[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
+int use_bt865[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(use_bt865, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
@@ -34,11 +34,7 @@ MODULE_PARM_DESC(use_bt865, "Set this to 1 if you have a bt865. It changes some 
 /*
  * Module params by Jonas Birmé (birme@jpl.nu)
  */
-#ifdef CONFIG_EM8300_DICOMPAL
-int dicom_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
-#else
-int dicom_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#endif
+int dicom_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(dicom_other_pal, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
@@ -46,11 +42,7 @@ module_param_array(dicom_other_pal, bool, NULL, 0444);
 #endif
 MODULE_PARM_DESC(dicom_other_pal, "If this is set, then some internal register values are swapped for PAL and NTSC. Defaults to 1.");
 
-#ifdef CONFIG_EM8300_DICOMFIX
-int dicom_fix[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
-#else
-int dicom_fix[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#endif
+int dicom_fix[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(dicom_fix, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
@@ -58,11 +50,7 @@ module_param_array(dicom_fix, bool, NULL, 0444);
 #endif
 MODULE_PARM_DESC(dicom_fix, "If this is set then some internal register values are changed. Fixes green screen problems for some. Defaults to 1.");
 
-#ifdef CONFIG_EM8300_DICOMCTRL
-int dicom_control[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
-#else
-int dicom_control[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#endif
+int dicom_control[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(dicom_control, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
@@ -70,11 +58,7 @@ module_param_array(dicom_control, bool, NULL, 0444);
 #endif
 MODULE_PARM_DESC(dicom_control, "If this is set then some internal register values are changed. Fixes green screen problems for some. Defaults to 1.");
 
-#ifdef CONFIG_EM8300_UCODETIMEOUT
-int bt865_ucode_timeout[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
-#else
-int bt865_ucode_timeout[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#endif
+int bt865_ucode_timeout[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(bt865_ucode_timeout, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
@@ -82,11 +66,7 @@ module_param_array(bt865_ucode_timeout, bool, NULL, 0444);
 #endif
 MODULE_PARM_DESC(bt865_ucode_timeout, "Set this to 1 if you have a bt865 and get timeouts when uploading the microcode. Defaults to 0.");
 
-#ifdef CONFIG_EM8300_LOOPBACK
-int activate_loopback[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
-#else
-int activate_loopback[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#endif
+int activate_loopback[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(activate_loopback, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else

@@ -24,16 +24,6 @@
 #include <linux/types.h>
 #include <linux/em8300.h>
 
-struct adv717x_model_config_s {
-	int pixelport_16bit;
-	int pixelport_other_pal;
-	int pixeldata_adjust_ntsc;
-	int pixeldata_adjust_pal;
-};
-
-struct bt865_model_config_s {
-};
-
 struct em8300_model_s {
 	char const *name;
 	char const *module;

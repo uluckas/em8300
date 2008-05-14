@@ -156,14 +156,20 @@ static int em8300_i2c_reg(struct i2c_client *client)
 				printk("ENCODER_CMD_GETCONFIG failed\n");
 				break;
 			}
-			if (em->model > 0) {
-				struct adv717x_model_config_s const *conf
-					= &known_models[em->model].adv717x_config;
-				data.config[0] = conf->pixelport_16bit;
-				data.config[1] = conf->pixelport_other_pal;
-				data.config[2] = conf->pixeldata_adjust_ntsc;
-				data.config[3] = conf->pixeldata_adjust_pal;
-			}
+
+			if (data.config[0] >= 0)
+				em->config.adv717x_model.pixelport_16bit =
+					data.config[0];
+			if (data.config[1] >= 0)
+				em->config.adv717x_model.pixelport_other_pal =
+					data.config[1];
+			if (data.config[2] >= 0)
+				em->config.adv717x_model.pixeldata_adjust_ntsc =
+					data.config[2];
+			if (data.config[3] >= 0)
+				em->config.adv717x_model.pixeldata_adjust_pal =
+					data.config[3];
+
 			param.param = ENCODER_PARAM_COLORBARS;
 			param.modes = (uint32_t)-1;
 			param.val = data.config[4]?1:0;
@@ -177,25 +183,25 @@ static int em8300_i2c_reg(struct i2c_client *client)
 						&param);
 			param.param = ENCODER_PARAM_PPORT;
 			param.modes = NTSC_MODES_MASK;
-			param.val = data.config[0]?1:0;
+			param.val = em->config.adv717x_model.pixelport_16bit?1:0;
 			client->driver->command(client,
 						ENCODER_CMD_SETPARAM,
 						&param);
 			param.modes = PAL_MODES_MASK;
-			param.val = data.config[1]
-				? (data.config[0]?0:1)
-				: (data.config[0]?1:0);
+			param.val = em->config.adv717x_model.pixelport_other_pal
+				? (em->config.adv717x_model.pixelport_16bit?0:1)
+				: (em->config.adv717x_model.pixelport_16bit?1:0);
 			client->driver->command(client,
 						ENCODER_CMD_SETPARAM,
 						&param);
 			param.param = ENCODER_PARAM_PDADJ;
 			param.modes = NTSC_MODES_MASK;
-			param.val = data.config[2];
+			param.val = em->config.adv717x_model.pixeldata_adjust_ntsc;
 			client->driver->command(client,
 						ENCODER_CMD_SETPARAM,
 						&param);
 			param.modes = PAL_MODES_MASK;
-			param.val = data.config[3];
+			param.val = em->config.adv717x_model.pixeldata_adjust_pal;
 			client->driver->command(client,
 						ENCODER_CMD_SETPARAM,
 						&param);

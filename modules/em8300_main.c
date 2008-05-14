@@ -633,6 +633,7 @@ static int init_em8300(struct em8300_s *em)
 		if (known_models[em->model].module != NULL)
 			request_module(known_models[em->model].module);
 		em->config.model = known_models[em->model].em8300_config;
+		em->config.adv717x_model = known_models[em->model].adv717x_config;
 	}
 
 	if (em->chip_revision == 2) {
@@ -761,6 +762,19 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	em->config.model.activate_loopback =
 		0;
 #endif
+
+#ifdef CONFIG_ADV717X_PIXELPORT16BIT
+	em->config.adv717x_model.pixelport_16bit = 1;
+#else
+	em->config.adv717x_model.pixelport_16bit = 0;
+#endif
+#ifdef CONFIG_ADV717X_PIXELPORTPAL
+	em->config.adv717x_model.pixelport_other_pal = 1;
+#else
+	em->config.adv717x_model.pixelport_other_pal = 0;
+#endif
+	em->config.adv717x_model.pixeldata_adjust_ntsc = 1;
+	em->config.adv717x_model.pixeldata_adjust_pal = 1;
 
 	em->model = card_model[em8300_cards];
 

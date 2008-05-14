@@ -63,11 +63,7 @@ MODULE_VERSION(EM8300_VERSION);
 
 EXPORT_NO_SYMBOLS;
 
-#ifdef CONFIG_ADV717X_PIXELPORT16BIT
-int pixelport_16bit[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
-#else
-int pixelport_16bit[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#endif
+int pixelport_16bit[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(pixelport_16bit, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
@@ -75,11 +71,7 @@ module_param_array(pixelport_16bit, bool, NULL, 0444);
 #endif
 MODULE_PARM_DESC(pixelport_16bit, "Changes how the ADV717x expects its input data to be formatted. If the colours on the TV appear green, try changing this. Defaults to 1.");
 
-#ifdef CONFIG_ADV717X_PIXELPORTPAL
-int pixelport_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
-#else
-int pixelport_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 0 };
-#endif
+int pixelport_other_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(pixelport_other_pal, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
@@ -87,7 +79,7 @@ module_param_array(pixelport_other_pal, bool, NULL, 0444);
 #endif
 MODULE_PARM_DESC(pixelport_other_pal, "If this is set to 1, then the pixelport setting is swapped for PAL from the setting given with pixelport_16bit. Defaults to 1.");
 
-int pixeldata_adjust_ntsc[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
+int pixeldata_adjust_ntsc[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(pixeldata_adjust_ntsc, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else
@@ -95,7 +87,7 @@ module_param_array(pixeldata_adjust_ntsc, int, NULL, 0444);
 #endif
 MODULE_PARM_DESC(pixeldata_adjust_ntsc, "If your red and blue colours are swapped in NTSC, try setting this to 0,1,2 or 3. Defaults to 1.");
 
-int pixeldata_adjust_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = 1 };
+int pixeldata_adjust_pal[EM8300_MAX] = { [ 0 ... EM8300_MAX-1 ] = -1 };
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
 MODULE_PARM(pixeldata_adjust_pal, "1-" __MODULE_STRING(EM8300_MAX) "i");
 #else

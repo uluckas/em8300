@@ -289,8 +289,20 @@ struct em8300_model_config_s {
 	int activate_loopback;
 };
 
+struct adv717x_model_config_s {
+	int pixelport_16bit;
+	int pixelport_other_pal;
+	int pixeldata_adjust_ntsc;
+	int pixeldata_adjust_pal;
+};
+
+struct bt865_model_config_s {
+};
+
 struct em8300_config_s {
 	struct em8300_model_config_s model;
+	struct adv717x_model_config_s adv717x_model;
+	struct bt865_model_config_s bt865_model;
 };
 
 struct em8300_s

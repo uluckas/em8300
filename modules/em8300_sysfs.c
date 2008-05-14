@@ -167,46 +167,20 @@ static ssize_t show_model(struct device *dev,
 	case ENCODER_ADV7170:
 	case ENCODER_ADV7175:
 	{
-		struct getconfig_s *data;
-		data = kmalloc(sizeof(struct getconfig_s), GFP_KERNEL);
-		if (!data) {
-			len += sprintf(buf + len,
-				       "Could not allocate memory to get the configuration for the adv717x module.\n");
-			break;
-		}
-		data->card_nr = em->card_nr;
-		if (em->encoder->driver->command(em->encoder,
-						 ENCODER_CMD_GETCONFIG,
-						 (void *) data) != 0) {
-			kfree(data);
-			len += sprintf(buf + len,
-				       "*The adv717x.ko module is too old to report its configuration.*\n"
-				       "*Please rebuild and load the new module.*\n");
-			break;
-		}
-		if (em->model > 0) {
-			struct adv717x_model_config_s const *conf
-				= &known_models[em->model].adv717x_config;
-			data->config[0] = conf->pixelport_16bit;
-			data->config[1] = conf->pixelport_other_pal;
-			data->config[2] = conf->pixeldata_adjust_ntsc;
-			data->config[3] = conf->pixeldata_adjust_pal;
-		}
 		len += sprintf(buf + len,
 			       "adv717x.ko options:\n");
 		len += sprintf(buf + len,
 			       "  pixelport_16bit=%d\n",
-			       data->config[0]);
+			       em->config.adv717x_model.pixelport_16bit);
 		len += sprintf(buf + len,
 			       "  pixelport_other_pal=%d\n",
-			       data->config[1]);
+			       em->config.adv717x_model.pixelport_other_pal);
 		len += sprintf(buf + len,
 			       "  pixeldata_adjust_ntsc=%d\n",
-			       data->config[2]);
+			       em->config.adv717x_model.pixeldata_adjust_ntsc);
 		len += sprintf(buf + len,
 			       "  pixeldata_adjust_pal=%d\n",
-			       data->config[3]);
-		kfree(data);
+			       em->config.adv717x_model.pixeldata_adjust_pal);
 		break;
 	}
 	}

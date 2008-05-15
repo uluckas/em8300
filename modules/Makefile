@@ -37,15 +37,7 @@ build: em8300_version.h
 
 .PHONY: em8300_version.h
 em8300_version.h:
-	@hg_id=$$(hg id -i 2>/dev/null); \
-	if [ -n "$$hg_id" ]; then \
-	  printf '#define EM8300_VERSION "hg-%s"\n' "$$hg_id" > $@.tmp; \
-	  if diff -q $@ $@.tmp >/dev/null 2>&1; then \
-	    rm $@.tmp; \
-	  else \
-	    mv -f $@.tmp $@; \
-	  fi; \
-	fi
+	[ ! -x ./update_em8300_version.sh ] || ./update_em8300_version.sh $@
 
 ifeq ($(strip $(shell printf '\043if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,51)\n1\n\043else\n0\n\043endif\n' | $(CPP) -imacros $(KERNEL_LOCATION)/include/linux/version.h -P - )),1)
 

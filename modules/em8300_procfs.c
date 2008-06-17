@@ -171,7 +171,7 @@ static void em8300_procfs_unregister_card(struct em8300_s *em)
 static void em8300_procfs_unregister_driver(void)
 {
 	if (em8300_proc) {
-		remove_proc_entry(EM8300_PROCFS_DIR, &proc_root);
+		remove_proc_entry(EM8300_PROCFS_DIR, NULL);
 	}
 }
 
@@ -179,7 +179,7 @@ static void em8300_procfs_register_driver(void)
 {
 	em8300_proc = create_proc_entry(EM8300_PROCFS_DIR,
 					S_IFDIR | S_IRUGO | S_IXUGO,
-					&proc_root);
+					NULL);
 	if (em8300_proc) {
 		em8300_proc->owner = THIS_MODULE;
 	} else {

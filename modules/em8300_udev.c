@@ -29,9 +29,21 @@
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,13)
 #define class class_simple
 #define class_create class_simple_create
-#define class_device_create class_simple_device_add
-#define class_device_destroy(cls, dev) class_simple_device_remove(dev)
 #define class_destroy class_simple_destroy
+#define device_create(cls, parent, devt, fmt, args...) \
+	class_simple_device_add(cls, devt, parent, fmt, ## args)
+#define device_destroy(cls, devt) \
+	class_simple_device_remove(devt)
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(2,6,15)
+#define device_create(cls, parent, devt, fmt, args...) \
+	class_device_create(cls, devt, parent, fmt, ## args)
+#define device_destroy(cls, devt) \
+	class_device_destroy(cls, devt)
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(2,6,18)
+#define device_create(cls, parent, devt, fmt, args...) \
+	class_device_create(cls, NULM, devt, parent, fmt, ## args)
+#define device_destroy(cls, devt) \
+	class_device_destroy(cls, devt)
 #endif
 
 #include "em8300_params.h"
@@ -45,58 +57,38 @@ static void em8300_udev_register_driver(void)
 
 static void em8300_udev_register_card(struct em8300_s *em)
 {
-	em->classdev = class_device_create(em8300_class,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,15)
-					   NULL,
-#endif
-					   MKDEV(major, em->card_nr * 4 + 0),
-					   &em->dev->dev,
-					   "%s-%d",
-					   EM8300_LOGNAME, em->card_nr);
+	device_create(em8300_class, &em->dev->dev,
+		      MKDEV(major, em->card_nr * 4 + 0),
+		      "%s-%d", EM8300_LOGNAME, em->card_nr);
 }
 
 static void em8300_udev_enable_card(struct em8300_s *em)
 {
-	em->classdev_mv = class_device_create(em8300_class,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,15)
-					      em->classdev,
-#endif
-					      MKDEV(major, em->card_nr * 4 + 1),
-					      &em->dev->dev,
-					      "%s_mv-%d",
-					      EM8300_LOGNAME, em->card_nr);
+	device_create(em8300_class, &em->dev->dev,
+		      MKDEV(major, em->card_nr * 4 + 1),
+		      "%s_mv-%d", EM8300_LOGNAME, em->card_nr);
 	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
 	    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
-		em->classdev_ma = class_device_create(em8300_class,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,15)
-						      em->classdev,
-#endif
-						      MKDEV(major, em->card_nr * 4 + 2),
-						      &em->dev->dev,
-						      "%s_ma-%d",
-						      EM8300_LOGNAME, em->card_nr);
-	em->classdev_sp = class_device_create(em8300_class,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,15)
-					      em->classdev,
-#endif
-					      MKDEV(major, em->card_nr * 4 + 3),
-					      &em->dev->dev,
-					      "%s_sp-%d",
-					      EM8300_LOGNAME, em->card_nr);
+		device_create(em8300_class, &em->dev->dev,
+			      MKDEV(major, em->card_nr * 4 + 2),
+			      "%s_ma-%d", EM8300_LOGNAME, em->card_nr);
+	device_create(em8300_class, &em->dev->dev,
+		      MKDEV(major, em->card_nr * 4 + 3),
+		      "%s_sp-%d", EM8300_LOGNAME, em->card_nr);
 }
 
 static void em8300_udev_disable_card(struct em8300_s *em)
 {
-	class_device_destroy(em8300_class, MKDEV(major, em->card_nr * 4 + 1));
+	device_destroy(em8300_class, MKDEV(major, em->card_nr * 4 + 1));
 	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
 	    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
-		class_device_destroy(em8300_class, MKDEV(major, em->card_nr * 4 + 2));
-	class_device_destroy(em8300_class, MKDEV(major, em->card_nr * 4 + 3));
+		device_destroy(em8300_class, MKDEV(major, em->card_nr * 4 + 2));
+	device_destroy(em8300_class, MKDEV(major, em->card_nr * 4 + 3));
 }
 
 static void em8300_udev_unregister_card(struct em8300_s *em)
 {
-	class_device_destroy(em8300_class, MKDEV(major, em->card_nr * 4 + 0));
+	device_destroy(em8300_class, MKDEV(major, em->card_nr * 4 + 0));
 }
 
 static void em8300_udev_unregister_driver(void)

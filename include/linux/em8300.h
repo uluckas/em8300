@@ -322,14 +322,6 @@ struct em8300_s
 	ulong memsize;
 	
 	int playmode;
-	
-	/* Sysfs */
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,46)
-	struct class_device *classdev;
-	struct class_device *classdev_mv;
-	struct class_device *classdev_ma;
-	struct class_device *classdev_sp;
-#endif
 
 #if defined(CONFIG_SND) || defined(CONFIG_SND_MODULE)
 	snd_card_t *alsa_card;

@@ -782,8 +782,8 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	pci_read_config_byte(dev, PCI_CLASS_REVISION, &revision);
 	em->pci_revision = revision;
 	pr_info("em8300: EM8300 %x (rev %d) ", dev->device, revision);
-	printk("bus: %d, devfn: %d, irq: %d, ", dev->bus->number, dev->devfn, dev->irq);
-	printk("memory: 0x%08lx.\n", em->adr);
+	pr_info("bus: %d, devfn: %d, irq: %d, ", dev->bus->number, dev->devfn, dev->irq);
+	pr_info("memory: 0x%08lx.\n", em->adr);
 
 	em->mem = ioremap(em->adr, em->memsize);
 	pr_info("em8300: mapped-memory at 0x%p\n", em->mem);

@@ -129,7 +129,7 @@ int em8300_video_sync(struct em8300_s *em)
 		}
 
 		if (rdptr == rdptr_last) {
-			printk(KERN_DEBUG "em8300_video.o: Video sync rdptr is stuck at 0x%08x, wrptr 0x%08x, left %d\n", rdptr, wrptr, wrptr - rdptr);
+			pr_debug("em8300_video.o: Video sync rdptr is stuck at 0x%08x, wrptr 0x%08x, left %d\n", rdptr, wrptr, wrptr - rdptr);
 			break;
 		}
 		rdptr_last = rdptr;
@@ -145,7 +145,7 @@ int em8300_video_sync(struct em8300_s *em)
 	} while (++synctimeout < 4);
 
 	if (rdptr != wrptr) {
-		printk(KERN_DEBUG "em8300_video.o: Video sync timeout\n");
+		pr_debug("em8300_video.o: Video sync timeout\n");
 	}
 
 	set_current_state(TASK_RUNNING);
@@ -171,7 +171,7 @@ int em8300_video_flush(struct em8300_s *em)
 	write_ucregister(SP_RdPtr_Lo, 0);
 	write_ucregister(SP_RdPtr_Hi, 0);
 	writel(readl(em->spfifo->readptr), em->spfifo->writeptr);
- 
+
 	em->sp_ptsfifo_ptr = 0;
 	em->sp_ptsvalid = 0;
 	em->sp_pts = 0;
@@ -271,7 +271,7 @@ int em8300_video_setup(struct em8300_s *em)
 		if (!em->config.model.bt865_ucode_timeout) {
 			write_register(0x1f47, 0x18);
 		}
-		write_register(0x1f5e,0x9afe);
+		write_register(0x1f5e, 0x9afe);
 		write_ucregister(DICOM_Control, 0x9afe);
 	}
 
@@ -349,7 +349,7 @@ void em8300_video_check_ptsfifo(struct em8300_s *em)
 	}
 }
 
-ssize_t em8300_video_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
+ssize_t em8300_video_write(struct em8300_s *em, const char *buf, size_t count, loff_t *ppos)
 {
 	unsigned flags = 0;
 	int written;
@@ -367,8 +367,7 @@ ssize_t em8300_video_write(struct em8300_s *em, const char * buf, size_t count, 
 		if (ret == 0) {
 			printk(KERN_ERR "em8300_video.c: Video Fifo timeout\n");
 			return -EINTR;
-		}
-		else if (ret < 0)
+		} else if (ret < 0)
 			return ret;
 
 #ifdef DEBUG_SYNC
@@ -407,7 +406,7 @@ int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 		}
 
 		if (em->video_pts == 0) {
-			printk("Video SETPTS = 0x%x\n", em->video_pts);
+			pr_debug("Video SETPTS = 0x%x\n", em->video_pts);
 		}
 
 		if (em->video_pts != em->video_lastpts) {
@@ -418,7 +417,7 @@ int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 
 	case _IOC_NR(EM8300_IOCTL_VIDEO_SETSCR):
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
-			if (get_user(val, (unsigned*) arg))
+			if (get_user(val, (unsigned *) arg))
 				return -EFAULT;
 			val >>= 1;
 			scr = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);

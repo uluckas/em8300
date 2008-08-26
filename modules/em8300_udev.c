@@ -96,8 +96,7 @@ static void em8300_udev_unregister_driver(void)
 	class_destroy(em8300_class);
 }
 
-struct em8300_registrar_s em8300_udev_registrar =
-{
+struct em8300_registrar_s em8300_udev_registrar = {
 	.register_driver      = &em8300_udev_register_driver,
 	.postregister_driver  = NULL,
 	.register_card        = &em8300_udev_register_card,
@@ -113,8 +112,7 @@ struct em8300_registrar_s em8300_udev_registrar =
 
 #else /* LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,2) */
 
-struct em8300_registrar_s em8300_udev_registrar =
-{
+struct em8300_registrar_s em8300_udev_registrar = {
 	.register_driver      = NULL,
 	.postregister_driver  = NULL,
 	.register_card        = NULL,

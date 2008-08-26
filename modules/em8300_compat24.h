@@ -67,8 +67,8 @@ static inline void i2c_set_adapdata(struct i2c_adapter *dev, void *data)
 #define EM8300_MOD_INC_USE_COUNT MOD_INC_USE_COUNT
 #define EM8300_MOD_DEC_USE_COUNT MOD_DEC_USE_COUNT
 #else
-#define EM8300_MOD_INC_USE_COUNT do { } while(0)
-#define EM8300_MOD_DEC_USE_COUNT do { } while(0)
+#define EM8300_MOD_INC_USE_COUNT do { } while (0)
+#define EM8300_MOD_DEC_USE_COUNT do { } while (0)
 #endif
 
 #if !defined(MODULE_LICENSE)

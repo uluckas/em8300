@@ -63,8 +63,8 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 
 	f->type = fifotype;
 
-	f->writeptr = (unsigned * volatile) ucregister_ptr(wrptr);
-	f->readptr = (unsigned * volatile) ucregister_ptr(rdptr);
+	f->writeptr = (unsigned *volatile) ucregister_ptr(wrptr);
+	f->readptr = (unsigned *volatile) ucregister_ptr(rdptr);
 
 	switch (f->type) {
 	case FIFOTYPE_AUDIO:
@@ -124,10 +124,10 @@ int em8300_fifo_init(struct em8300_s *em, struct fifo_s *f, int start, int wrptr
 void em8300_fifo_free(struct fifo_s *f)
 {
 	if (f) {
-		if(f->valid && f->fifobuffer) {
+		if (f->valid && f->fifobuffer) {
 			pci_free_consistent(f->em->dev, f->nslots * f->slotsize, f->fifobuffer, f->phys_base);
 		}
-		if(f->valid && f->preprocess_buffer) {
+		if (f->valid && f->preprocess_buffer) {
 			kfree(f->preprocess_buffer);
 		}
 		kfree(f);
@@ -167,8 +167,7 @@ int em8300_fifo_sync(struct fifo_s *fifo)
 	if (ret == 0) {
 		printk(KERN_ERR "em8300.o: FIFO sync timeout during sync\n");
 		return -EINTR;
-	}
-	else if (ret > 0)
+	} else if (ret > 0)
 		return 0;
 	else
 		return ret;
@@ -263,7 +262,7 @@ int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *use
 
 			if (running) {
 				int i;
-				for (i=0; i<2; i++) {
+				for (i = 0; i < 2; i++) {
 
 					ret = wait_event_interruptible_timeout(fifo->wait, em8300_fifo_freeslots(fifo), 2 * HZ);
 					if (ret > 0)
@@ -272,18 +271,16 @@ int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *use
 						printk("Fifo still full, trying stop\n");
 						em8300_video_setplaymode(em, EM8300_PLAYMODE_STOPPED);
 						em8300_video_setplaymode(em, EM8300_PLAYMODE_PLAY);
-					}
-					else
-						return (total_bytes_written>0)?total_bytes_written:ret;
+					} else
+						return (total_bytes_written>0) ? total_bytes_written : ret;
 				}
 				if (ret == 0) {
 					printk(KERN_ERR "em8300.o: FIFO sync timeout during blocking write\n");
 					return (total_bytes_written>0)?total_bytes_written:-EINTR;
 				}
-			}
-			else {
+			} else {
 				if ((ret = wait_event_interruptible(fifo->wait, em8300_fifo_freeslots(fifo))))
-					return (total_bytes_written>0)?total_bytes_written:ret;
+					return (total_bytes_written>0) ? total_bytes_written : ret;
 			}
 
 		}
@@ -311,7 +308,7 @@ int em8300_fifo_freeslots(struct fifo_s *fifo)
 void em8300_fifo_statusmsg(struct fifo_s *fifo, char *str)
 {
 	int freeslots = em8300_fifo_freeslots(fifo);
-	sprintf(str,"Free slots: %d/%d", freeslots, fifo->nslots);
+	sprintf(str, "Free slots: %d/%d", freeslots, fifo->nslots);
 }
 
 int em8300_fifo_calcbuffered(struct fifo_s *fifo)

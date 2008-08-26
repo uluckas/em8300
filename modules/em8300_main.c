@@ -95,8 +95,7 @@ static int dsp_num_table[16];
 
 /* structure to keep track of the memory that has been allocated by
    the user via mmap() */
-struct memory_info
-{
+struct memory_info {
 	struct list_head item;
 	long length;
 	char *ptr;
@@ -112,7 +111,7 @@ MODULE_DEVICE_TABLE(pci, em8300_ids);
 
 static irqreturn_t em8300_irq(int irq, void *dev_id
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,19)
-			      , struct pt_regs * regs
+			      , struct pt_regs *regs
 #endif
 			      )
 {
@@ -162,7 +161,7 @@ static irqreturn_t em8300_irq(int irq, void *dev_id
 
 static void release_em8300(struct em8300_s *em)
 {
-	if(em->encoder) {
+	if (em->encoder) {
 		em->encoder->driver->command(em->encoder, ENCODER_CMD_ENABLEOUTPUT, (void *) 0);
 	}
 
@@ -194,7 +193,7 @@ static void release_em8300(struct em8300_s *em)
 	}
 }
 
-static int em8300_io_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, unsigned long arg)
+static int em8300_io_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	struct em8300_s *em = filp->private_data;
 	int subdevice = EM8300_IMINOR(inode) % 4;
@@ -217,7 +216,7 @@ static int em8300_io_ioctl(struct inode* inode, struct file* filp, unsigned int 
 	return -EINVAL;
 }
 
-static int em8300_io_open(struct inode* inode, struct file* filp)
+static int em8300_io_open(struct inode *inode, struct file *filp)
 {
 	int card = EM8300_IMINOR(inode) / 4;
 	int subdevice = EM8300_IMINOR(inode) % 4;
@@ -249,8 +248,7 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 			em8300[card].nonblock[1] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
 			err = em8300_audio_open(em);
 			break;
-		}
-		else
+		} else
 			return -ENODEV;
 	case EM8300_SUBDEVICE_VIDEO:
 		em8300_require_ucode(em);
@@ -289,10 +287,10 @@ static int em8300_io_open(struct inode* inode, struct file* filp)
 
 	EM8300_MOD_INC_USE_COUNT;
 
-	return(0);
+	return 0;
 }
 
-static ssize_t em8300_io_write(struct file *file, const char * buf, size_t count, loff_t *ppos)
+static ssize_t em8300_io_write(struct file *file, const char *buf, size_t count, loff_t *ppos)
 {
 	struct em8300_s *em = file->private_data;
 	int subdevice = EM8300_IMINOR(file->f_dentry->d_inode) % 4;
@@ -308,8 +306,7 @@ static ssize_t em8300_io_write(struct file *file, const char * buf, size_t count
 			em->nonblock[1] = ((file->f_flags&O_NONBLOCK) == O_NONBLOCK);
 			return em8300_audio_write(em, buf, count, ppos);
 			break;
-		}
-		else
+		} else
 			return -ENODEV;
 	case EM8300_SUBDEVICE_SUBPICTURE:
 		em->nonblock[3] = ((file->f_flags&O_NONBLOCK) == O_NONBLOCK);
@@ -344,20 +341,20 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 		size = pages * PAGE_SIZE;
 
 		/* allocate the physical contiguous memory */
-		mem = (char*)kmalloc(pages*PAGE_SIZE, GFP_KERNEL);
-		if( mem == NULL) {
+		mem = (char *)kmalloc(pages*PAGE_SIZE, GFP_KERNEL);
+		if (mem == NULL) {
 			return -ENOMEM;
 		}
 		/* clear out the memory for sure */
 		memset(mem, 0x00, pages*PAGE_SIZE);
 
 		/* reserve all pages */
-		for(adr = (long)mem; adr < (long)mem + size; adr += PAGE_SIZE) {
+		for (adr = (long)mem; adr < (long)mem + size; adr += PAGE_SIZE) {
 			SetPageReserved(virt_to_page(adr));
 		}
 
 		/* lock the area*/
-		vma->vm_flags |=VM_LOCKED;
+		vma->vm_flags |= VM_LOCKED;
 
 		/* remap the memory to user space */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,3)
@@ -372,11 +369,11 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 		}
 
 		/* put the physical address into the first dword of the memory */
-		*((long*)mem) = virt_to_phys((void *)mem);
+		*((long *)mem) = virt_to_phys((void *)mem);
 
 		/* keep track of the memory we have allocated */
-		info = (struct memory_info*)vmalloc(sizeof(struct memory_info));
-		if( NULL == info ) {
+		info = (struct memory_info *)vmalloc(sizeof(struct memory_info));
+		if (NULL == info) {
 			kfree(mem);
 			return -ENOMEM;
 		}
@@ -450,7 +447,7 @@ static unsigned int em8300_poll(struct file *file, struct poll_table_struct *wai
 	return mask;
 }
 
-int em8300_io_release(struct inode* inode, struct file *filp)
+int em8300_io_release(struct inode *inode, struct file *filp)
 {
 	struct em8300_s *em = filp->private_data;
 	int subdevice = EM8300_IMINOR(inode) % 4;
@@ -471,13 +468,13 @@ int em8300_io_release(struct inode* inode, struct file *filp)
 		break;
 	}
 
-	while( 0 == list_empty(&em->memory)) {
+	while (0 == list_empty(&em->memory)) {
 		unsigned long adr = 0;
 
 		struct memory_info *info = list_entry(em->memory.next, struct memory_info, item);
 		list_del(&info->item);
 
-		for(adr = (long)info->ptr; adr < (long)info->ptr + info->length; adr += PAGE_SIZE) {
+		for (adr = (long)info->ptr; adr < (long)info->ptr + info->length; adr += PAGE_SIZE) {
 			ClearPageReserved(virt_to_page(adr));
 		}
 
@@ -492,7 +489,7 @@ int em8300_io_release(struct inode* inode, struct file *filp)
 
 	EM8300_MOD_DEC_USE_COUNT;
 
-	return(0);
+	return 0;
 }
 
 struct file_operations em8300_fops = {
@@ -509,13 +506,13 @@ struct file_operations em8300_fops = {
 };
 
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
-static int em8300_dsp_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, unsigned long arg)
+static int em8300_dsp_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	struct em8300_s *em = filp->private_data;
 	return em8300_audio_ioctl(em, cmd, arg);
 }
 
-static int em8300_dsp_open(struct inode* inode, struct file* filp)
+static int em8300_dsp_open(struct inode *inode, struct file *filp)
 {
 	int dsp_number = ((EM8300_IMINOR(inode) >> 4) & 0x0f);
 	int card = dsp_num_table[dsp_number] - 1;
@@ -546,10 +543,10 @@ static int em8300_dsp_open(struct inode* inode, struct file* filp)
 
 	EM8300_MOD_INC_USE_COUNT;
 
-	return(0);
+	return 0;
 }
 
-static ssize_t em8300_dsp_write(struct file *file, const char * buf, size_t count, loff_t *ppos)
+static ssize_t em8300_dsp_write(struct file *file, const char *buf, size_t count, loff_t *ppos)
 {
 	struct em8300_s *em = file->private_data;
 	return em8300_audio_write(em, buf, count, ppos);
@@ -569,7 +566,7 @@ static unsigned int em8300_dsp_poll(struct file *file, struct poll_table_struct 
 	return mask;
 }
 
-int em8300_dsp_release(struct inode* inode, struct file* filp)
+int em8300_dsp_release(struct inode *inode, struct file *filp)
 {
 	struct em8300_s *em = filp->private_data;
 
@@ -582,7 +579,7 @@ int em8300_dsp_release(struct inode* inode, struct file* filp)
 
 	EM8300_MOD_DEC_USE_COUNT;
 
-	return(0);
+	return 0;
 }
 
 static struct file_operations em8300_dsp_audio_fops = {
@@ -618,8 +615,7 @@ static int init_em8300(struct em8300_s *em)
 			em->model = identified_model;
 			printk("em8300.c: detected card: %s.\n",
 			       known_models[identified_model].name);
-		}
-		else {
+		} else {
 			em->model = 0;
 			printk("em8300.c: unable to identify model...\n");
 		}
@@ -665,7 +661,7 @@ static int init_em8300(struct em8300_s *em)
 
 	/*
 	 * Override default (or detected) values with module parameters.
-	 */ 
+	 */
 	if (use_bt865[em->card_nr] >= 0)
 		em->config.model.use_bt865 =
 			use_bt865[em->card_nr];
@@ -701,7 +697,7 @@ static int init_em8300(struct em8300_s *em)
 	em->clockgen = em->clockgen_tvmode;
 	em8300_clockgen_write(em, em->clockgen);
 
-	em->zoom=100;
+	em->zoom = 100;
 
 	pr_debug("em8300_main.o: activate_loopback: %d\n", em->config.model.activate_loopback);
 
@@ -812,7 +808,7 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 
 	em->irqmask = 0;
 	em->encoder = NULL;
-	em->linecounter=0;
+	em->linecounter = 0;
 
 	init_em8300(em);
 
@@ -904,13 +900,11 @@ static int __init em8300_init(void)
 			err = -ENODEV;
 			goto err_chrdev;
 		}
-	}
-	else {
+	} else {
 		int m = register_chrdev(major, EM8300_LOGNAME, &em8300_fops);
 		if (m > 0) {
 			major = m;
-		}
-		else {
+		} else {
 			printk(KERN_ERR "em8300: unable to get any majo\n");
 			err = -ENODEV;
 			goto err_chrdev;

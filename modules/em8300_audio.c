@@ -73,15 +73,15 @@ static void sub_prepare_SPDIF(struct em8300_s *em, uint32_t *out,
 		unsigned int in_value;
 		unsigned int out_value;
 		int channel_status_bit = (em->channel_status[em->channel_status_pos/8] & (0x80 >> (em->channel_status_pos%8))) != 0;
-		in_value = mute?0:__be16_to_cpu(*(in++));
-		out_value = ((em->channel_status_pos == 0)?SPDIF_PREAMBLE_B:SPDIF_PREAMBLE_M)
+		in_value = mute ? 0 : __be16_to_cpu(*(in++));
+		out_value = ((em->channel_status_pos == 0) ? SPDIF_PREAMBLE_B : SPDIF_PREAMBLE_M)
 			| (in_value << 12)
-			| (channel_status_bit?0x40000000UL:0x00000000UL);
+			| (channel_status_bit ? 0x40000000UL : 0x00000000UL);
 		*(out++) = __cpu_to_be32(out_value);
-		in_value = mute?0:__be16_to_cpu(*(in++));
+		in_value = mute ? 0:__be16_to_cpu(*(in++));
 		out_value = SPDIF_PREAMBLE_W
 			| (in_value << 12)
-			| (channel_status_bit?0x40000000UL:0x00000000UL);
+			| (channel_status_bit ? 0x40000000UL : 0x00000000UL);
 		*(out++) = __cpu_to_be32(out_value);
 		em->channel_status_pos++;
 		em->channel_status_pos %= 192;
@@ -138,12 +138,12 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
         if (em->audio.format == AFMT_S16_LE ||
 	    em->audio.format == AFMT_AC3) {
 		if (em->audio.channels == 2) {
-			for(i = 0; i < inlength; i += 2) {
+			for (i = 0; i < inlength; i += 2) {
 				get_user(em->mafifo->preprocess_buffer[i + 1], inbuf_user++);
 				get_user(em->mafifo->preprocess_buffer[i + 0], inbuf_user++);
 			}
 		} else {
-			for(i = 0; i < inlength; i += 2) {
+			for (i = 0; i < inlength; i += 2) {
 				get_user(em->mafifo->preprocess_buffer[2 * i + 1], inbuf_user++);
 				get_user(em->mafifo->preprocess_buffer[2 * i + 0], inbuf_user++);
 				em->mafifo->preprocess_buffer[2 * i + 3] = em->mafifo->preprocess_buffer[2 * i + 1];
@@ -155,7 +155,7 @@ static void preprocess_digital(struct em8300_s *em, unsigned char *outbuf,
 		if (em->audio.channels == 2) {
 			(void)copy_from_user(em->mafifo->preprocess_buffer, inbuf_user, inlength);
 		} else {
-			for(i = 0; i < inlength; i += 2) {
+			for (i = 0; i < inlength; i += 2) {
 				get_user(em->mafifo->preprocess_buffer[2 * i + 0], inbuf_user++);
 				get_user(em->mafifo->preprocess_buffer[2 * i + 1], inbuf_user++);
 				em->mafifo->preprocess_buffer[2 * i + 2] = em->mafifo->preprocess_buffer[2 * i + 0];
@@ -277,7 +277,7 @@ static int set_format(struct em8300_s *em, int fmt)
 	return em->audio.format;
 }
 
-int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
+int em8300_audio_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 {
 	int len = 0;
 	int val = 0;
@@ -397,15 +397,14 @@ int em8300_audio_ioctl(struct em8300_s *em,unsigned int cmd, unsigned long arg)
 	case SNDCTL_DSP_GETOSPACE:
 	{
 		audio_buf_info buf_info;
-		switch(em->audio_mode)
-		{
+		switch (em->audio_mode) {
 			case EM8300_AUDIOMODE_ANALOG:
-				buf_info.fragments=
+				buf_info.fragments =
 					em8300_fifo_freeslots(em->mafifo) -
 					em->mafifo->nslots / 2;
 				break;
 			default:
-				buf_info.fragments=
+				buf_info.fragments =
 					em8300_fifo_freeslots(em->mafifo) / 2;
 				break;
 		}
@@ -613,7 +612,7 @@ int em8300_audio_calcbuffered(struct em8300_s *em)
 		em->mafifo->preprocess_ratio;
 }
 
-ssize_t em8300_audio_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
+ssize_t em8300_audio_write(struct em8300_s *em, const char *buf, size_t count, loff_t *ppos)
 {
 	if (em->nonblock[1]) {
 		return em8300_fifo_write(em->mafifo, count, buf, 0);

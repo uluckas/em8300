@@ -172,7 +172,7 @@ static int em8300_i2c_reg(struct i2c_client *client)
 
 			param.param = ENCODER_PARAM_COLORBARS;
 			param.modes = (uint32_t)-1;
-			param.val = data.config[4]?1:0;
+			param.val = data.config[4] ? 1 : 0;
 			client->driver->command(client,
 						ENCODER_CMD_SETPARAM,
 						&param);
@@ -189,8 +189,8 @@ static int em8300_i2c_reg(struct i2c_client *client)
 						&param);
 			param.modes = PAL_MODES_MASK;
 			param.val = em->config.adv717x_model.pixelport_other_pal
-				? (em->config.adv717x_model.pixelport_16bit?0:1)
-				: (em->config.adv717x_model.pixelport_16bit?1:0);
+				? (em->config.adv717x_model.pixelport_16bit ? 0 : 1)
+				: (em->config.adv717x_model.pixelport_16bit ? 1 : 0);
 			client->driver->command(client,
 						ENCODER_CMD_SETPARAM,
 						&param);
@@ -349,7 +349,7 @@ int em8300_i2c_init2(struct em8300_s *em)
 	em->i2c_data_1.udelay = 10;
 	em->i2c_data_1.timeout = 100;
 
-	pdata = kmalloc(sizeof(struct private_data_s),GFP_KERNEL);
+	pdata = kmalloc(sizeof(struct private_data_s), GFP_KERNEL);
 	pdata->clk = 0x10;
 	pdata->data = 0x8;
 	pdata->em = em;
@@ -437,7 +437,7 @@ static int I2C_in(struct em8300_s *em, int bits)
 {
 	int i, data = 0;
 
-	for(i = bits - 1; i >= 0; i--) {
+	for (i = bits - 1; i >= 0; i--) {
 		data |= I2C_read_data << i;
 		I2C_clk(em, 0);
 		I2C_clk(em, 1);
@@ -454,7 +454,7 @@ static void sub_23660(struct em8300_s *em, int arg1, int arg2)
 }
 
 
-static void sub_236f0 (struct em8300_s *em,int arg1, int arg2, int arg3)
+static void sub_236f0(struct em8300_s *em, int arg1, int arg2, int arg3)
 {
 	I2C_clk(em, 1);
 	I2C_data(em, 1);

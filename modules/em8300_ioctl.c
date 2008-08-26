@@ -86,7 +86,7 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		}
 	}
 
-	switch(_IOC_NR(cmd)) {
+	switch (_IOC_NR(cmd)) {
 	case _IOC_NR(EM8300_IOCTL_INIT):
 		return em8300_ioctl_init(em, (em8300_microcode_t *) arg);
 
@@ -152,7 +152,7 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		if (ret == 0)
 			return -EINTR;
 		else if (ret < 0)
-		        return ret;		
+			return ret;
 
 		/* copy timestamp and return */
 		if (copy_to_user((void *) arg, &em->tv, sizeof(struct timeval)))
@@ -246,8 +246,7 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 				em8300_ioctl_getaudiomode(em, arg);
 			}
 			break;
-		}
-		else
+		} else
 			return -EINVAL;
 	case _IOC_NR(EM8300_IOCTL_SET_SPUMODE):
 		em8300_require_ucode(em);
@@ -386,7 +385,7 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
 			unsigned scr;
-			if (get_user(val, (unsigned*) arg))
+			if (get_user(val, (unsigned *) arg))
 				return -EFAULT;
 			scr = read_ucregister(MV_SCRlo) | (read_ucregister(MV_SCRhi) << 16);
 
@@ -416,7 +415,7 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		}
 
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
-			get_user(val, (int*) arg);
+			get_user(val, (int *) arg);
 			val &= 0xFFFF;
 
 			write_ucregister(MV_SCRSpeed,
@@ -440,7 +439,7 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 		}
 
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
-			if (get_user(val, (unsigned*) arg))
+			if (get_user(val, (unsigned *) arg))
 				return -EFAULT;
 
 			switch (val) {
@@ -527,9 +526,9 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc)
 	em8300_fifo_init(em,em->mvfifo, MV_PCIStart, MV_PCIWrPtr, MV_PCIRdPtr, MV_PCISize, 0x900, FIFOTYPE_VIDEO);
 	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
 	    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
-		em8300_fifo_init(em,em->mafifo, MA_PCIStart, MA_PCIWrPtr, MA_PCIRdPtr, MA_PCISize, 0x1000, FIFOTYPE_AUDIO);
+		em8300_fifo_init(em, em->mafifo, MA_PCIStart, MA_PCIWrPtr, MA_PCIRdPtr, MA_PCISize, 0x1000, FIFOTYPE_AUDIO);
 	//	em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x1000, FIFOTYPE_VIDEO);
-	em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x800, FIFOTYPE_VIDEO);
+	em8300_fifo_init(em, em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x800, FIFOTYPE_VIDEO);
 	em8300_spu_init(em);
 
 	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)

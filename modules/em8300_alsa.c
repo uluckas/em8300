@@ -142,8 +142,7 @@ static int snd_em8300_playback_open(snd_pcm_substream_t *substream)
 	if (substream->pcm->device == EM8300_ALSA_ANALOG_DEVICENUM) {
 		write_register(EM8300_AUDIO_RATE, 0x62);
 		em8300_setregblock(em, 2 * ucregister(Mute_Pattern), 0, 0x600);
-	}
-	else {
+	} else {
 		write_register(EM8300_AUDIO_RATE, 0x3a0);
 	}
 	write_ucregister(MA_Threshold, 6);
@@ -334,7 +333,7 @@ snd_em8300_pcm_indirect_playback_transfer(snd_pcm_substream_t *substream,
 			bytes = sw_to_end;
 		if (8192 < bytes)
 			bytes = 8192;
-		if (! bytes)
+		if (!bytes)
 			break;
 		copy(substream, rec, bytes);
 		rec->hw_data += bytes;
@@ -348,7 +347,8 @@ snd_em8300_pcm_indirect_playback_transfer(snd_pcm_substream_t *substream,
 	}
 }
 
-static int snd_em8300_pcm_ack(snd_pcm_substream_t *substream) {
+static int snd_em8300_pcm_ack(snd_pcm_substream_t *substream)
+{
 	em8300_alsa_t *em8300_alsa = snd_pcm_substream_chip(substream);
 //	printk("snd_em8300_pcm_ack called.\n");
 	snd_em8300_pcm_indirect_playback_transfer(substream, &em8300_alsa->indirect,
@@ -381,7 +381,7 @@ static int snd_em8300_pcm_analog(em8300_alsa_t *em8300_alsa)
 	snd_pcm_t *pcm;
 	int err;
 
-	if ((err = snd_pcm_new(em8300_alsa->card, "EM8300/" __stringify(EM8300_ALSA_ANALOG_DEVICENUM), EM8300_ALSA_ANALOG_DEVICENUM, 1, 0, &pcm))<0)
+	if ((err = snd_pcm_new(em8300_alsa->card, "EM8300/" __stringify(EM8300_ALSA_ANALOG_DEVICENUM), EM8300_ALSA_ANALOG_DEVICENUM, 1, 0, &pcm)) < 0)
 		return err;
 
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &snd_em8300_playback_ops);
@@ -415,7 +415,7 @@ static int snd_em8300_pcm_digital(em8300_alsa_t *em8300_alsa)
 	snd_pcm_t *pcm;
 	int err;
 
-	if ((err = snd_pcm_new(em8300_alsa->card, "EM8300/" __stringify(EM8300_ALSA_DIGITAL_DEVICENUM), EM8300_ALSA_DIGITAL_DEVICENUM, 1, 0, &pcm))<0)
+	if ((err = snd_pcm_new(em8300_alsa->card, "EM8300/" __stringify(EM8300_ALSA_DIGITAL_DEVICENUM), EM8300_ALSA_DIGITAL_DEVICENUM, 1, 0, &pcm)) < 0)
 		return err;
 
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &snd_em8300_playback_ops);
@@ -548,8 +548,7 @@ void em8300_alsa_audio_interrupt(struct em8300_s *em)
 	}
 }
 
-struct em8300_registrar_s em8300_alsa_registrar =
-{
+struct em8300_registrar_s em8300_alsa_registrar = {
 	.register_driver   = NULL,
 	.register_card     = NULL,
 	.enable_card       = &em8300_alsa_enable_card,
@@ -563,8 +562,7 @@ struct em8300_registrar_s em8300_alsa_registrar =
 
 #else
 
-struct em8300_registrar_s em8300_alsa_registrar =
-{
+struct em8300_registrar_s em8300_alsa_registrar = {
 	.register_driver   = NULL,
 	.register_card     = NULL,
 	.enable_card       = NULL,

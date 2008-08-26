@@ -71,8 +71,8 @@ struct fifo_s {
 	int slotsize;
 
 	int start;
-	int * volatile writeptr;
-	int * volatile readptr;
+	volatile int *writeptr;
+	volatile int *readptr;
 	int localreadptr;
 	int threshold;
 

@@ -150,7 +150,7 @@ $input = <INFILE>;
 close(INFILE);
 
 ($magic1, $magic2, $magic3, $lastchar, $size_low, $size_high) =
-  unpack 'IICa1SS', substr($input, 0, $HEADSIZE);
+  unpack 'VVCa1vv', substr($input, 0, $HEADSIZE);
 
 if ($magic1 != $MAGIC1 || $magic2 != $MAGIC2 || $magic3 != $MAGIC3) {
   print "Error: Input file is not a Microsoft Compress format.\n";

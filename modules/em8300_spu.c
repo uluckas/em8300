@@ -59,7 +59,7 @@ int em8300_spu_setpalette(struct em8300_s *em, unsigned *pal)
 
 	palette = ucregister(SP_Palette);
 
-	for (i=0; i < 16; i++) {
+	for (i = 0; i < 16; i++) {
 		write_register(palette + i * 2, pal[i] >> 16);
 		write_register(palette + i * 2 + 1, pal[i] & 0xffff);
 	}
@@ -98,7 +98,7 @@ void em8300_spu_check_ptsfifo(struct em8300_s *em)
 		}
 	}
 
-ssize_t em8300_spu_write(struct em8300_s *em, const char * buf, size_t count, loff_t *ppos)
+ssize_t em8300_spu_write(struct em8300_s *em, const char *buf, size_t count, loff_t *ppos)
 {
 	int flags = 0;
 	long ret;
@@ -114,8 +114,7 @@ ssize_t em8300_spu_write(struct em8300_s *em, const char * buf, size_t count, lo
 		if (ret == 0) {
 			printk(KERN_ERR "em8300_spu.c: SPU Fifo timeout\n");
 			return -EINTR;
-		}
-		else if (ret < 0)
+		} else if (ret < 0)
 			return ret;
 
 		write_register(ptsfifoptr + 0, em->sp_pts >> 16);
@@ -157,7 +156,7 @@ int em8300_spu_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 				em8300_spu_button(em, 0);
 				break;
 			}
-			if (copy_from_user(&btn, (void*) arg, sizeof(btn)))
+			if (copy_from_user(&btn, (void *) arg, sizeof(btn)))
 				return -EFAULT;
 			em8300_spu_button(em, &btn);
 		}

@@ -95,8 +95,7 @@ static ssize_t show_model(struct device *dev,
 			       "Video encoder: %s at address 0x%02x on %s\n",
 			       encoder_name, em->encoder->addr,
 			       em->encoder->adapter->name);
-	}
-	else {
+	} else {
 		len += sprintf(buf + len,
 			       "No known video encoder found.\n");
 	}
@@ -105,7 +104,7 @@ static ssize_t show_model(struct device *dev,
 	if ((tmp = kmalloc(256, GFP_KERNEL)) != NULL) {
 		if (!em8300_eeprom_read(em, tmp)) {
 			len += sprintf(buf + len, "EEPROM data:");
-			for (i=0; i<256; i++) {
+			for (i = 0; i < 256; i++) {
 				if (i%32 == 0)
 					len += sprintf(buf + len, "\n\t");
 				len += sprintf(buf + len, "%02x", tmp[i]);
@@ -116,7 +115,7 @@ static ssize_t show_model(struct device *dev,
 	}
 	if (em->eeprom_checksum) {
 		len += sprintf(buf + len, "EEPROM checksum: ");
-		for (i=0; i<16; i++) {
+		for (i = 0; i < 16; i++) {
 			len += sprintf(buf + len, "%02x",
 				       em->eeprom_checksum[i]);
 		}
@@ -136,7 +135,7 @@ static ssize_t show_model(struct device *dev,
 		       "em8300.ko options:\n");
 	len += sprintf(buf + len,
 		       ((em->chip_revision == 2)
-			&&((0x60 & read_register(0x1c08)) == 0x60)) ?
+			&& ((0x60 & read_register(0x1c08)) == 0x60)) ?
 		       "  use_bt865=%d\n" :
 		       "  [use_bt865=%d]\n",
 		       em->config.model.use_bt865);
@@ -155,7 +154,7 @@ static ssize_t show_model(struct device *dev,
 		       em->config.model.dicom_control);
 	len += sprintf(buf + len,
 		       ((em->encoder_type != ENCODER_ADV7170)
-			&&(em->encoder_type != ENCODER_ADV7175)) ?
+			&& (em->encoder_type != ENCODER_ADV7175)) ?
 		       "  bt865_ucode_timeout=%d\n" :
 		       "  [bt865_ucode_timeout=%d]\n",
 		       em->config.model.bt865_ucode_timeout);
@@ -212,36 +211,36 @@ static ssize_t show_model(struct device *dev,
 		       " [ ] breaks something (please describe problem)\n"
 		       " [ ] was not tried\n"
 		       "\n",
-		       ((em->chip_revision == 2)&&((0x60 & read_register(0x1c08)) == 0x60))?"[important] ":"",
-		       use_bt865[em->card_nr]?"off":"on");
-	if ((em->encoder_type != ENCODER_ADV7170)&&(em->encoder_type != ENCODER_ADV7175))
+		       ((em->chip_revision == 2) && ((0x60 & read_register(0x1c08)) == 0x60)) ? "[important] " : "",
+		       use_bt865[em->card_nr] ? "off" : "on");
+	if ((em->encoder_type != ENCODER_ADV7170) && (em->encoder_type != ENCODER_ADV7175))
 		len += sprintf(buf + len,
 			       "changing the bt865_ucode_timeout option (bt865_ucode_timeout=%s)\n"
 			       " [ ] makes no difference\n"
 			       " [ ] breaks something (please describe problem)\n"
 			       " [ ] was not tried\n"
-			       "\n", bt865_ucode_timeout[em->card_nr]?"off":"on");
+			       "\n", bt865_ucode_timeout[em->card_nr] ? "off" : "on");
 	len += sprintf(buf + len,
 		       "changing the activate_loopback option (activate_loopback=%s)\n"
 		       "(relevant even if you only use video out)\n"
 		       " [ ] makes no difference\n"
 		       " [ ] breaks something (please describe problem)\n"
 		       " [ ] was not tried\n"
-		       "\n", activate_loopback[em->card_nr]?"off":"on");
+		       "\n", activate_loopback[em->card_nr] ? "off" : "on");
 	len += sprintf(buf + len,
 		       "changing the dicom_other_pal option (dicom_other_pal=%s)\n"
 		       "(only relevant for PAL mode)\n"
 		       " [ ] makes no difference\n"
 		       " [ ] breaks something (please describe problem)\n"
 		       " [ ] was not tried\n"
-		       "\n", dicom_other_pal[em->card_nr]?"off":"on");
+		       "\n", dicom_other_pal[em->card_nr] ? "off" : "on");
 	if (em->encoder_type != ENCODER_BT865)
 		len += sprintf(buf + len,
 			       "[important] changing the dicom_fix option (dicom_fix=%s)\n"
 			       " [ ] makes no difference\n"
 			       " [ ] breaks something (please describe problem)\n"
 			       " [ ] was not tried\n"
-			       "\n", dicom_fix[em->card_nr]?"off":"on");
+			       "\n", dicom_fix[em->card_nr] ? "off" : "on");
 	len += sprintf(buf + len,
 		       "[optional] card model:\n"
 		       "(something like \"CT7260\" for DXR3 boards or "
@@ -313,8 +312,7 @@ static void em8300_sysfs_preunregister_driver(void)
 	driver_remove_file(&em8300_driver.driver, &driver_attr_version);
 }
 
-struct em8300_registrar_s em8300_sysfs_registrar =
-{
+struct em8300_registrar_s em8300_sysfs_registrar = {
 	.register_driver      = NULL,
 	.postregister_driver  = &em8300_sysfs_postregister_driver,
 	.register_card        = &em8300_sysfs_register_card,
@@ -330,8 +328,7 @@ struct em8300_registrar_s em8300_sysfs_registrar =
 
 #else /* LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,46) */
 
-struct em8300_registrar_s em8300_sysfs_registrar =
-{
+struct em8300_registrar_s em8300_sysfs_registrar = {
 	.register_driver      = NULL,
 	.postregister_driver  = NULL,
 	.register_card        = NULL,

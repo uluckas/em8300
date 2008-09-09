@@ -35,7 +35,7 @@ static void em8300_devfs_register_card(struct em8300_s *em)
 {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,70)
 	char devname[64];
-	sprintf(devname, "%s-%d", EM8300_LOGNAME, em->card_nr );
+	sprintf(devname, "%s-%d", EM8300_LOGNAME, em->card_nr);
 	em8300_handle[em->card_nr * 4] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, major,
 							em->card_nr * 4, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 #else
@@ -49,16 +49,16 @@ static void em8300_devfs_enable_card(struct em8300_s *em)
 {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,70)
 	char devname[64];
-	sprintf(devname, "%s_mv-%d", EM8300_LOGNAME, em->card_nr );
+	sprintf(devname, "%s_mv-%d", EM8300_LOGNAME, em->card_nr);
 	em8300_handle[(em->card_nr * 4) + 1] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, major,
 							      (em->card_nr * 4) + 1, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
 	    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS)) {
-		sprintf(devname, "%s_ma-%d", EM8300_LOGNAME, em->card_nr );
+		sprintf(devname, "%s_ma-%d", EM8300_LOGNAME, em->card_nr);
 		em8300_handle[(em->card_nr * 4) + 2] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, major,
 								      (em->card_nr * 4) + 2, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 	}
-	sprintf(devname, "%s_sp-%d", EM8300_LOGNAME, em->card_nr );
+	sprintf(devname, "%s_sp-%d", EM8300_LOGNAME, em->card_nr);
 	em8300_handle[(em->card_nr * 4) + 3] = devfs_register(NULL, devname, DEVFS_FL_DEFAULT, major,
 							      (em->card_nr * 4) + 3, S_IFCHR | S_IRUGO | S_IWUGO, &em8300_fops, NULL);
 #else
@@ -103,8 +103,7 @@ static void em8300_devfs_unregister_card(struct em8300_s *em)
 #endif
 }
 
-struct em8300_registrar_s em8300_devfs_registrar =
-{
+struct em8300_registrar_s em8300_devfs_registrar = {
 	.register_driver      = NULL,
 	.postregister_driver  = NULL,
 	.register_card        = &em8300_devfs_register_card,
@@ -120,8 +119,7 @@ struct em8300_registrar_s em8300_devfs_registrar =
 
 #else /* CONFIG_DEVFS_FS */
 
-struct em8300_registrar_s em8300_devfs_registrar =
-{
+struct em8300_registrar_s em8300_devfs_registrar = {
 	.register_driver      = NULL,
 	.postregister_driver  = NULL,
 	.register_card        = NULL,

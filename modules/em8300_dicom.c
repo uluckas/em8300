@@ -267,7 +267,7 @@ int em8300_dicom_get_dbufinfo(struct em8300_s *em)
 	di->flag1 = read_register(displaybuffer+2) & 0x8000;
 	di->flag2 = read_ucregister(Vsync_DBuf) & 0x4000;
 
-	if(read_ucregister(MicroCodeVersion) <= 0xf) {
+	if (read_ucregister(MicroCodeVersion) <= 0xf) {
 		di->buffer1 = (read_register(displaybuffer + 3) | (read_register(displaybuffer + 4) << 16)) << 4;
 		di->buffer2 = (read_register(displaybuffer + 5) | (read_register(displaybuffer + 6) << 16)) << 4;
 	} else {
@@ -275,12 +275,12 @@ int em8300_dicom_get_dbufinfo(struct em8300_s *em)
 		di->buffer2 = read_register(displaybuffer + 4) << 6;
 	}
 
-	if(displaybuffer == ucregister(Width_Buf3)) {
+	if (displaybuffer == ucregister(Width_Buf3)) {
 		di->unk_present = 1;
 		if(read_ucregister(MicroCodeVersion) <= 0xf) {
 			di->unknown1 = read_register(displaybuffer + 7);
-			di->unknown2 = (read_register(displaybuffer + 8) | (read_register(displaybuffer + 9) <<16)) << 4;
-			di->unknown3 = (read_register(displaybuffer + 0xa) | (read_register(displaybuffer + 0xb) <<16)) << 4;
+			di->unknown2 = (read_register(displaybuffer + 8) | (read_register(displaybuffer + 9) << 16)) << 4;
+			di->unknown3 = (read_register(displaybuffer + 0xa) | (read_register(displaybuffer + 0xb) << 16)) << 4;
 		} else {
 			di->unknown2 = read_register(displaybuffer + 6);
 			di->unknown3 = read_register(displaybuffer + 7);

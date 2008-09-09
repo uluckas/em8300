@@ -41,7 +41,7 @@
 	class_device_destroy(cls, devt)
 #elif LINUX_VERSION_CODE < KERNEL_VERSION(2,6,18)
 #define device_create(cls, parent, devt, fmt, args...) \
-	class_device_create(cls, NULM, devt, parent, fmt, ## args)
+	class_device_create(cls, NULL, devt, parent, fmt, ## args)
 #define device_destroy(cls, devt) \
 	class_device_destroy(cls, devt)
 #endif

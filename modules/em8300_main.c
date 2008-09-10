@@ -123,7 +123,7 @@ static irqreturn_t em8300_irq(int irq, void *dev_id
 
 	if (irqstatus & 0x8000) {
 		write_ucregister(Q_IrqMask, 0x0);
-		writel(2, &em->mem[EM8300_INTERRUPT_ACK]);
+		write_register(EM8300_INTERRUPT_ACK, 2);
 
 		write_ucregister(Q_IrqStatus, 0x8000);
 
@@ -174,7 +174,7 @@ static void release_em8300(struct em8300_s *em)
 
 	write_ucregister(Q_IrqMask, 0);
 	write_ucregister(Q_IrqStatus, 0);
-	writel(0, &em->mem[0x2000]);
+	write_register(0x2000, 0);
 
 	em8300_fifo_free(em->mvfifo);
 	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)

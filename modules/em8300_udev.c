@@ -30,20 +30,23 @@
 #define class class_simple
 #define class_create class_simple_create
 #define class_destroy class_simple_destroy
-#define device_create(cls, parent, devt, fmt, args...) \
+#define device_create(cls, parent, devt, drvdata, fmt, args...) \
 	class_simple_device_add(cls, devt, parent, fmt, ## args)
 #define device_destroy(cls, devt) \
 	class_simple_device_remove(devt)
 #elif LINUX_VERSION_CODE < KERNEL_VERSION(2,6,15)
-#define device_create(cls, parent, devt, fmt, args...) \
+#define device_create(cls, parent, devt, drvdata, fmt, args...) \
 	class_device_create(cls, devt, parent, fmt, ## args)
 #define device_destroy(cls, devt) \
 	class_device_destroy(cls, devt)
 #elif LINUX_VERSION_CODE < KERNEL_VERSION(2,6,18)
-#define device_create(cls, parent, devt, fmt, args...) \
+#define device_create(cls, parent, devt, drvdata, fmt, args...) \
 	class_device_create(cls, NULL, devt, parent, fmt, ## args)
 #define device_destroy(cls, devt) \
 	class_device_destroy(cls, devt)
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(2,6,27)
+#define device_create(cls, parent, devt, drvdata, fmt, args...) \
+	device_create(cls, parent, devt, fmt, ## args)
 #endif
 
 #include "em8300_params.h"
@@ -58,22 +61,22 @@ static void em8300_udev_register_driver(void)
 static void em8300_udev_register_card(struct em8300_s *em)
 {
 	device_create(em8300_class, &em->dev->dev,
-		      MKDEV(major, em->card_nr * 4 + 0),
+		      MKDEV(major, em->card_nr * 4 + 0), NULL,
 		      "%s-%d", EM8300_LOGNAME, em->card_nr);
 }
 
 static void em8300_udev_enable_card(struct em8300_s *em)
 {
 	device_create(em8300_class, &em->dev->dev,
-		      MKDEV(major, em->card_nr * 4 + 1),
+		      MKDEV(major, em->card_nr * 4 + 1), NULL,
 		      "%s_mv-%d", EM8300_LOGNAME, em->card_nr);
 	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
 	    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
 		device_create(em8300_class, &em->dev->dev,
-			      MKDEV(major, em->card_nr * 4 + 2),
+			      MKDEV(major, em->card_nr * 4 + 2), NULL,
 			      "%s_ma-%d", EM8300_LOGNAME, em->card_nr);
 	device_create(em8300_class, &em->dev->dev,
-		      MKDEV(major, em->card_nr * 4 + 3),
+		      MKDEV(major, em->card_nr * 4 + 3), NULL,
 		      "%s_sp-%d", EM8300_LOGNAME, em->card_nr);
 }
 

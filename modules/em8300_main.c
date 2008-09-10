@@ -803,6 +803,11 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	pr_info("memory: 0x%08lx.\n", em->adr);
 
 	em->mem = ioremap(em->adr, em->memsize);
+	if (!em->mem) {
+		printk(KERN_ERR "em8300: ioremap for memory region failed\n");
+		return -ENOMEM;
+	}
+
 	pr_info("em8300: mapped-memory at 0x%p\n", em->mem);
 #ifdef CONFIG_MTRR
 	em->mtrr_reg = mtrr_add(em->adr, em->memsize, MTRR_TYPE_UNCACHABLE, 1);
@@ -818,7 +823,7 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 
 	if (result == -EINVAL) {
 		printk(KERN_ERR "em8300: Bad irq number or handler\n");
-		return -EINVAL;
+		goto irq_error;
 	}
 
 	em->irqmask = 0;
@@ -847,6 +852,10 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 
 	em8300_cards++;
 	return 0;
+
+irq_error:
+	iounmap(em->mem);
+	return result;
 }
 
 static void __devexit em8300_remove(struct pci_dev *pci)

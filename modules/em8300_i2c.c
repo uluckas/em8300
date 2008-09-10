@@ -393,7 +393,7 @@ void em8300_clockgen_write(struct em8300_s *em, int abyte)
 	write_register(em->i2c_pin_reg, 0x808);
 	for (i=0; i < 8; i++) {
 		write_register(em->i2c_pin_reg, 0x2000);
-		write_register(em->i2c_pin_reg, 0x800);
+		write_register(em->i2c_pin_reg, 0x800 | ((abyte & 1) ? 8 : 0));
 		write_register(em->i2c_pin_reg, 0x2020);
 		abyte >>= 1;
 	}

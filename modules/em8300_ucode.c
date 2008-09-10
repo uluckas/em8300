@@ -70,9 +70,9 @@ static int upload_block(struct em8300_s *em, int blocktype, int offset, int len,
 			writel(val, &em->mem[0x11800]);
 		}
 
-		if (em8300_waitfor(em, 0x1c1a, 0, 1)) {
+		if (em8300_waitfor(em, 0x1c1a, 0, 1))
 			return -ETIME;
-		}
+
 		break;
 	case 1:
 		for (i = 0; i < len; i += 4) {
@@ -163,12 +163,11 @@ void em8300_ucode_upload(struct em8300_s *em, void *ucode, int ucode_size)
 			upload_block(em, flags, offset, len, p);
 			break;
 		case 0x200:
-			for (i = 0;i < len; i++) {
-				if (p[i]) {
+			for (i = 0; i < len; i++) {
+				if (p[i])
 					regname[i] = p[i] ^ 0xff;
-				} else {
+				else
 					break;
-				}
 			}
 			regname[i] = 0;
 
@@ -214,41 +213,42 @@ void em8300_require_ucode(struct em8300_s *em)
 
 		em8300_dicom_init(em);
 
-		if (em8300_video_setup(em)) {
+		if (em8300_video_setup(em))
 			return;
-		}
 
-		if (em->mvfifo) {
+		if (em->mvfifo)
 			em8300_fifo_free(em->mvfifo);
-		}
+
 		if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
 		    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
 			if (em->mafifo) {
 				em8300_fifo_free(em->mafifo);
 			}
-		if (em->spfifo) {
+
+		if (em->spfifo)
 			em8300_fifo_free(em->spfifo);
-		}
 
-		if (!(em->mvfifo = em8300_fifo_alloc())) {
+		em->mvfifo = em8300_fifo_alloc();
+		if (!em->mvfifo)
 			return;
-		}
 
 		if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
-		    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
-			if (!(em->mafifo = em8300_fifo_alloc())) {
+		    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS)) {
+
+			em->mafifo = em8300_fifo_alloc();
+			if (!em->mafifo)
 				return;
-			}
-
-		if (!(em->spfifo = em8300_fifo_alloc())) {
-			return;
 		}
 
-		em8300_fifo_init(em,em->mvfifo, MV_PCIStart, MV_PCIWrPtr, MV_PCIRdPtr, MV_PCISize, 0x900, FIFOTYPE_VIDEO);
+		em->spfifo = em8300_fifo_alloc();
+		if (!em->spfifo)
+			return;
+
+		em8300_fifo_init(em, em->mvfifo, MV_PCIStart, MV_PCIWrPtr, MV_PCIRdPtr, MV_PCISize, 0x900, FIFOTYPE_VIDEO);
 		if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
 		    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
-			em8300_fifo_init(em,em->mafifo, MA_PCIStart, MA_PCIWrPtr, MA_PCIRdPtr, MA_PCISize, 0x1000, FIFOTYPE_AUDIO);
-		//	em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x1000, FIFOTYPE_VIDEO);
+			em8300_fifo_init(em, em->mafifo, MA_PCIStart, MA_PCIWrPtr, MA_PCIRdPtr, MA_PCISize, 0x1000, FIFOTYPE_AUDIO);
+		/*	em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x1000, FIFOTYPE_VIDEO); */
 		em8300_fifo_init(em,em->spfifo, SP_PCIStart, SP_PCIWrPtr, SP_PCIRdPtr, SP_PCISize, 0x800, FIFOTYPE_VIDEO);
 		em8300_spu_init(em);
 

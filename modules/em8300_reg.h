@@ -22,15 +22,14 @@
 /*
   Register access macros
 */
+#define register_ptr(reg) &em->mem[reg]
+#define ucregister_ptr(reg) &em->mem[em->ucode_regs[reg]]
+#define ucregister(reg) em->ucode_regs[reg]
 
-#define register_ptr(a) &em->mem[a]
-#define ucregister_ptr(a) &em->mem[em->ucode_regs[a]]
-#define ucregister(a) em->ucode_regs[a]
-
-#define write_register(a,v) writel(v, &em->mem[a])
-#define read_register(a) readl(&em->mem[a])
-#define write_ucregister(a,v) writel(v, &em->mem[em->ucode_regs[a]])
-#define read_ucregister(a) readl(&em->mem[em->ucode_regs[a]])
+#define write_register(reg, v) writel(v, &em->mem[reg])
+#define read_register(reg) readl(&em->mem[reg])
+#define write_ucregister(reg,v) writel(v, &em->mem[em->ucode_regs[reg]])
+#define read_ucregister(reg) readl(&em->mem[em->ucode_regs[reg]])
 
 /*
   EM8300 fixed registers

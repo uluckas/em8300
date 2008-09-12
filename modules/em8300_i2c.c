@@ -77,8 +77,8 @@ static void em8300_setscl(void *data,int state)
 	struct em8300_s *em = p->em;
 	int sel = p->clk << 8;
 
-	writel(sel | p->clk, &em->mem[em->i2c_oe_reg]);
-	writel(sel | (state ? p->clk : 0), &em->mem[em->i2c_pin_reg]);
+	write_register(em->i2c_oe_reg, (sel | p->clk));
+	write_register(em->i2c_pin_reg, sel | (state ? p->clk : 0));
 }
 
 static void em8300_setsda(void *data, int state)
@@ -87,8 +87,8 @@ static void em8300_setsda(void *data, int state)
 	struct em8300_s *em = p->em;
 	int sel = p->data << 8;
 
-	writel(sel | p->data, &em->mem[em->i2c_oe_reg]);
-	writel(sel | (state ? p->data : 0), &em->mem[em->i2c_pin_reg]);
+	write_register(em->i2c_oe_reg, (sel | p->data));
+	write_register(em->i2c_pin_reg, sel | (state ? p->data : 0));
 }
 
 static int em8300_getscl(void *data)
@@ -96,7 +96,7 @@ static int em8300_getscl(void *data)
 	struct private_data_s *p = (struct private_data_s *)data;
 	struct em8300_s *em = p->em;
 
-	return readl(&em->mem[em->i2c_pin_reg]) & (p->clk << 8);
+	return read_register(em->i2c_pin_reg) & (p->clk << 8);
 }
 
 static int em8300_getsda(void *data)
@@ -104,7 +104,7 @@ static int em8300_getsda(void *data)
 	struct private_data_s *p = (struct private_data_s *)data;
 	struct em8300_s *em = p->em;
 
-	return readl(&em->mem[em->i2c_pin_reg]) & (p->data << 8);
+	return read_register(em->i2c_pin_reg) & (p->data << 8);
 }
 
 static int em8300_i2c_lock_client(struct i2c_client *client)
@@ -293,11 +293,11 @@ int em8300_i2c_init1(struct em8300_s *em)
 	/*
 	  Reset devices on I2C bus
 	*/
-	writel(0x3f3f, &em->mem[em->i2c_pin_reg]);
-	writel(0x3b3b, &em->mem[em->i2c_oe_reg]);
-	writel(0x0100, &em->mem[em->i2c_pin_reg]);
-	writel(0x0101, &em->mem[em->i2c_pin_reg]);
-	writel(0x0808, &em->mem[em->i2c_pin_reg]);
+	write_register(em->i2c_pin_reg, 0x3f3f);
+	write_register(em->i2c_oe_reg, 0x3b3b);
+	write_register(em->i2c_pin_reg, 0x0100);
+	write_register(em->i2c_pin_reg, 0x0101);
+	write_register(em->i2c_pin_reg, 0x0808);
 
 	/*
 	  Setup info structure for bus 2
@@ -390,34 +390,34 @@ void em8300_clockgen_write(struct em8300_s *em, int abyte)
 {
 	int i;
 
-	writel(0x808, &em->mem[em->i2c_pin_reg]);
+	write_register(em->i2c_pin_reg, 0x808);
 	for (i=0; i < 8; i++) {
-		writel(0x2000, &em->mem[em->i2c_pin_reg]);
-		writel(0x800 | ((abyte & 1) ? 8 : 0), &em->mem[em->i2c_pin_reg]);
-		writel(0x2020, &em->mem[em->i2c_pin_reg]);
+		write_register(em->i2c_pin_reg, 0x2000);
+		write_register(em->i2c_pin_reg, 0x800);
+		write_register(em->i2c_pin_reg, 0x2020);
 		abyte >>= 1;
 	}
 
-	writel(0x200, &em->mem[em->i2c_pin_reg]);
+	write_register(em->i2c_pin_reg, 0x200);
 	udelay(10);
-	writel(0x202, &em->mem[em->i2c_pin_reg]);
+	write_register(em->i2c_pin_reg, 0x202);
 }
 
 static void I2C_clk(struct em8300_s *em, int level)
 {
-	writel(0x1000 | (level ? 0x10 : 0), &em->mem[em->i2c_pin_reg]);
+	write_register(em->i2c_pin_reg, 0x1000 | (level ? 0x10 : 0));
 	udelay(10);
 }
 
 static void I2C_data(struct em8300_s *em, int level)
 {
-	writel(0x800 | (level ? 0x8 : 0), &em->mem[em->i2c_pin_reg]);
+	write_register(em->i2c_pin_reg, 0x800 | (level ? 0x8 : 0));
 	udelay(10);
 }
 
 static void I2C_drivedata(struct em8300_s *em, int level)
 {
-	writel(0x800 | (level ? 0x8 : 0), &em->mem[em->i2c_oe_reg]);
+	write_register(em->i2c_oe_reg, 0x800 | (level ? 0x8 : 0));
 	udelay(10);
 }
 

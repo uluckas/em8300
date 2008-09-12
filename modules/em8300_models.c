@@ -98,7 +98,8 @@ const struct em8300_model_s known_models[] = {
 
 const unsigned known_models_number = sizeof(known_models) / sizeof(known_models[0]);
 
-int identify_model(struct em8300_s *em) {
+int identify_model(struct em8300_s *em)
+{
 	u8 *buf;
 	int ret;
 	int i;
@@ -112,7 +113,8 @@ int identify_model(struct em8300_s *em) {
 		goto cleanup;
 
 	for (i = 0x40; i < 0x50; i++)
-		if (buf[i] != 0xff) break;
+		if (buf[i] != 0xff)
+			break;
 
 	if (i < 0x50) {
 		/* The board is a Hollywood+ one */
@@ -126,8 +128,7 @@ int identify_model(struct em8300_s *em) {
 		default:
 			ret = 0; /* unknown */
 		}
-	}
-	else {
+	} else {
 		/* The board is a DXR3 one */
 		switch (read_register(0x1c08)) {
 		case 0x01:

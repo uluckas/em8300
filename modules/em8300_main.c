@@ -85,7 +85,7 @@ MODULE_VERSION(EM8300_VERSION);
 
 EXPORT_NO_SYMBOLS;
 
-static int em8300_cards,clients;
+static int em8300_cards, clients;
 
 static struct em8300_s em8300[EM8300_MAX];
 
@@ -123,7 +123,7 @@ static irqreturn_t em8300_irq(int irq, void *dev_id
 
 	if (irqstatus & 0x8000) {
 		write_ucregister(Q_IrqMask, 0x0);
-		writel(2, &em->mem[EM8300_INTERRUPT_ACK]);
+		write_register(EM8300_INTERRUPT_ACK, 2);
 
 		write_ucregister(Q_IrqStatus, 0x8000);
 
@@ -161,14 +161,12 @@ static irqreturn_t em8300_irq(int irq, void *dev_id
 
 static void release_em8300(struct em8300_s *em)
 {
-	if (em->encoder) {
+	if (em->encoder)
 		em->encoder->driver->command(em->encoder, ENCODER_CMD_ENABLEOUTPUT, (void *) 0);
-	}
 
 #ifdef CONFIG_MTRR
-	if (em->mtrr_reg) {
-		mtrr_del(em->mtrr_reg,em->adr, em->memsize);
-	}
+	if (em->mtrr_reg)
+		mtrr_del(em->mtrr_reg, em->adr, em->memsize);
 #endif
 
 	em8300_eeprom_checksum_deinit(em);
@@ -176,7 +174,7 @@ static void release_em8300(struct em8300_s *em)
 
 	write_ucregister(Q_IrqMask, 0);
 	write_ucregister(Q_IrqStatus, 0);
-	writel(0, &em->mem[0x2000]);
+	write_register(0x2000, 0);
 
 	em8300_fifo_free(em->mvfifo);
 	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
@@ -188,9 +186,8 @@ static void release_em8300(struct em8300_s *em)
 	free_irq(em->dev->irq, em);
 
 	/* unmap and free memory */
-	if (em->mem) {
+	if (em->mem)
 		iounmap((unsigned *) em->mem);
-	}
 }
 
 static int em8300_io_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg)
@@ -223,14 +220,12 @@ static int em8300_io_open(struct inode *inode, struct file *filp)
 	struct em8300_s *em = &em8300[card];
 	int err = 0;
 
-	if (card >= em8300_cards) {
+	if (card >= em8300_cards)
 		return -ENODEV;
-	}
 
 	if (subdevice != EM8300_SUBDEVICE_CONTROL) {
-		if (em8300[card].inuse[subdevice]) {
+		if (em8300[card].inuse[subdevice])
 			return -EBUSY;
-		}
 	}
 
 	filp->private_data = &em8300[card];
@@ -252,9 +247,9 @@ static int em8300_io_open(struct inode *inode, struct file *filp)
 			return -ENODEV;
 	case EM8300_SUBDEVICE_VIDEO:
 		em8300_require_ucode(em);
-		if (!em->ucodeloaded) {
+		if (!em->ucodeloaded)
 			return -ENODEV;
-		}
+
 		em8300[card].nonblock[2] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
 		em8300_video_open(em);
 
@@ -265,9 +260,9 @@ static int em8300_io_open(struct inode *inode, struct file *filp)
 		break;
 	case EM8300_SUBDEVICE_SUBPICTURE:
 		em8300_require_ucode(em);
-		if (!em->ucodeloaded) {
+		if (!em->ucodeloaded)
 			return -ENODEV;
-		}
+
 		em8300[card].nonblock[3] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
 		err = em8300_spu_open(em);
 		break;
@@ -276,9 +271,8 @@ static int em8300_io_open(struct inode *inode, struct file *filp)
 		break;
 	}
 
-	if (err) {
+	if (err)
 		return err;
-	}
 
 	em8300[card].inuse[subdevice]++;
 
@@ -323,9 +317,8 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 	unsigned long size = vma->vm_end - vma->vm_start;
 	int subdevice = EM8300_IMINOR(file->f_dentry->d_inode) % 4;
 
-	if (subdevice != EM8300_SUBDEVICE_CONTROL) {
+	if (subdevice != EM8300_SUBDEVICE_CONTROL)
 		return -EPERM;
-	}
 
 	switch (vma->vm_pgoff) {
 	case 1: {
@@ -341,17 +334,16 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 		size = pages * PAGE_SIZE;
 
 		/* allocate the physical contiguous memory */
-		mem = (char *)kmalloc(pages*PAGE_SIZE, GFP_KERNEL);
-		if (mem == NULL) {
+		mem = kmalloc(pages*PAGE_SIZE, GFP_KERNEL);
+		if (mem == NULL)
 			return -ENOMEM;
-		}
+
 		/* clear out the memory for sure */
 		memset(mem, 0x00, pages*PAGE_SIZE);
 
 		/* reserve all pages */
-		for (adr = (long)mem; adr < (long)mem + size; adr += PAGE_SIZE) {
+		for (adr = (long)mem; adr < (long)mem + size; adr += PAGE_SIZE)
 			SetPageReserved(virt_to_page(adr));
-		}
 
 		/* lock the area*/
 		vma->vm_flags |= VM_LOCKED;
@@ -380,14 +372,13 @@ int em8300_io_mmap(struct file *file, struct vm_area_struct *vma)
 
 		info->ptr = mem;
 		info->length = size;
-		list_add_tail(&info->item,&em->memory);
+		list_add_tail(&info->item, &em->memory);
 
 		break;
 	}
 	case 0:
-		if (size > em->memsize) {
+		if (size > em->memsize)
 			return -EINVAL;
-		}
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,3)
 		remap_page_range(vma->vm_start, em->adr, vma->vm_end - vma->vm_start, vma->vm_page_prot);
@@ -493,15 +484,15 @@ int em8300_io_release(struct inode *inode, struct file *filp)
 }
 
 struct file_operations em8300_fops = {
-	owner: THIS_MODULE,
-	write: em8300_io_write,
-	ioctl: em8300_io_ioctl,
-	mmap: em8300_io_mmap,
-	poll: em8300_poll,
-	open: em8300_io_open,
-	release: em8300_io_release,
+	.owner = THIS_MODULE,
+	.write = em8300_io_write,
+	.ioctl = em8300_io_ioctl,
+	.mmap = em8300_io_mmap,
+	.poll = em8300_poll,
+	.open = em8300_io_open,
+	.release = em8300_io_release,
 #if defined(CONFIG_EM8300_IOCTL32) && defined(HAVE_COMPAT_IOCTL)
-	compat_ioctl: em8300_compat_ioctl,
+	.compat_ioctl = em8300_compat_ioctl,
 #endif
 };
 
@@ -520,21 +511,18 @@ static int em8300_dsp_open(struct inode *inode, struct file *filp)
 
 	pr_debug("em8300: opening dsp %i for card %i\n", dsp_number, card);
 
-	if (card < 0 || card >= em8300_cards) {
+	if (card < 0 || card >= em8300_cards)
 		return -ENODEV;
-	}
 
-	if (em8300[card].inuse[EM8300_SUBDEVICE_AUDIO]) {
+	if (em8300[card].inuse[EM8300_SUBDEVICE_AUDIO])
 		return -EBUSY;
-	}
 
 	filp->private_data = &em8300[card];
 
 	err = em8300_audio_open(&em8300[card]);
 
-	if (err) {
+	if (err)
 		return err;
-	}
 
 	em8300[card].inuse[EM8300_SUBDEVICE_AUDIO]++;
 
@@ -583,12 +571,12 @@ int em8300_dsp_release(struct inode *inode, struct file *filp)
 }
 
 static struct file_operations em8300_dsp_audio_fops = {
-	owner: THIS_MODULE,
-	write: em8300_dsp_write,
-	ioctl: em8300_dsp_ioctl,
-	poll: em8300_dsp_poll,
-	open: em8300_dsp_open,
-	release: em8300_dsp_release,
+	.owner = THIS_MODULE,
+	.write = em8300_dsp_write,
+	.ioctl = em8300_dsp_ioctl,
+	.poll = em8300_dsp_poll,
+	.open = em8300_dsp_open,
+	.release = em8300_dsp_release,
 };
 #endif
 
@@ -621,9 +609,8 @@ static int init_em8300(struct em8300_s *em)
 		}
 	}
 
-	if ((em->model != identified_model) && (em->model > 0) && (identified_model > 0)) {
+	if ((em->model != identified_model) && (em->model > 0) && (identified_model > 0))
 		printk("em8300.c: mismatch between detected and requested model.\n");
-	}
 
 	if (em->model > 0) {
 		if (known_models[em->model].module != NULL)
@@ -639,11 +626,10 @@ static int init_em8300(struct em8300_s *em)
 			em->var_ucode_reg2 = 0x272;
 			em->var_ucode_reg3 = 0x8272;
 			if (0x20 & read_register(0x1c08)) {
-				if (em->config.model.use_bt865) {
+				if (em->config.model.use_bt865)
 					em->var_ucode_reg1 = 0x800;
-				} else {
+				else
 					em->var_ucode_reg1 = 0x818;
-				}
 			}
 		} else {
 			em->var_video_value = 0xce4;
@@ -774,7 +760,8 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 
 	em->model = card_model[em8300_cards];
 
-	if ((result = pci_enable_device(dev)) != 0) {
+	result = pci_enable_device(dev);
+	if (result != 0) {
 		printk(KERN_ERR "em8300: Unable to enable PCI device\n");
 		return result;
 	}
@@ -789,7 +776,8 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	pr_info("em8300: mapped-memory at 0x%p\n", em->mem);
 #ifdef CONFIG_MTRR
 	em->mtrr_reg = mtrr_add(em->adr, em->memsize, MTRR_TYPE_UNCACHABLE, 1);
-	if (em->mtrr_reg) pr_info("em8300: using MTRR\n");
+	if (em->mtrr_reg)
+		pr_info("em8300: using MTRR\n");
 #endif
 
 	init_waitqueue_head(&em->video_ptsfifo_wait);
@@ -816,7 +804,8 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
 	if (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS) {
-		if ((em->dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, dsp_num[em->card_nr])) < 0) {
+		em->dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, dsp_num[em->card_nr]);
+		if (em->dsp_num < 0) {
 			printk(KERN_ERR "em8300: cannot register oss audio device!\n");
 		} else {
 			dsp_num_table[em->dsp_num >> 4 & 0x0f] = em8300_cards + 1;
@@ -887,7 +876,7 @@ static int __init em8300_init(void)
 
 	em8300_params_init();
 
-	//memset(&em8300, 0, sizeof(em8300) * EM8300_MAX);
+	/*memset(&em8300, 0, sizeof(em8300) * EM8300_MAX);*/
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
 	memset(&dsp_num_table, 0, sizeof(dsp_num_table));
 #endif
@@ -911,7 +900,8 @@ static int __init em8300_init(void)
 		}
 	}
 
-	if ((err = pci_register_driver(&em8300_driver)) < 0) {
+	err = pci_register_driver(&em8300_driver);
+	if (err < 0) {
 		printk(KERN_ERR "em8300: unable to register PCI driver\n");
 		goto err_init;
 	}

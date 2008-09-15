@@ -703,17 +703,7 @@ static int em8300_pci_setup(struct pci_dev *dev)
 		return rc;
 	}
 
-	/* Check for bus mastering */
-	pci_read_config_word(dev, PCI_COMMAND, &cmd);
-	if (!(cmd & PCI_COMMAND_MASTER)) {
-		pr_info("em8300: Attempting to enable Bus Mastering\n");
-		pci_set_master(dev);
-		pci_read_config_word(dev, PCI_COMMAND, &cmd);
-		if (!(cmd & PCI_COMMAND_MASTER)) {
-			pr_info("em8300: Bus Mastering is not enabled\n");
-			return -ENXIO;
-		}
-	}
+	pci_set_master(dev);
 
 	em->adr = pci_resource_start(dev, 0);
 	em->memsize = pci_resource_len(dev, 0);

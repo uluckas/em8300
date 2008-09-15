@@ -690,10 +690,43 @@ static int init_em8300(struct em8300_s *em)
 	return 0;
 }
 
+static int em8300_pci_setup(struct pci_dev *dev)
+{
+	struct em8300_s *em = pci_get_drvdata(dev);
+	unsigned char revision;
+	int rc = 0;
+	u16 cmd;
+
+	rc = pci_enable_device(dev);
+	if (rc < 0) {
+		printk(KERN_ERR "em8300: Unable to enable PCI device\n");
+		return rc;
+	}
+
+	/* Check for bus mastering */
+	pci_read_config_word(dev, PCI_COMMAND, &cmd);
+	if (!(cmd & PCI_COMMAND_MASTER)) {
+		pr_info("em8300: Attempting to enable Bus Mastering\n");
+		pci_set_master(dev);
+		pci_read_config_word(dev, PCI_COMMAND, &cmd);
+		if (!(cmd & PCI_COMMAND_MASTER)) {
+			pr_info("em8300: Bus Mastering is not enabled\n");
+			return -ENXIO;
+		}
+	}
+
+	em->adr = pci_resource_start(dev, 0);
+	em->memsize = pci_resource_len(dev, 0);
+
+	pci_read_config_byte(dev, PCI_CLASS_REVISION, &revision);
+	em->pci_revision = revision;
+
+	return 0;
+}
+
 static int __devinit em8300_probe(struct pci_dev *dev,
 				  const struct pci_device_id *pci_id)
 {
-	unsigned char revision;
 	struct em8300_s *em;
 	int result;
 
@@ -701,8 +734,13 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	memset(em, 0, sizeof(struct em8300_s));
 	em->dev = dev;
 	em->card_nr = em8300_cards;
-	em->adr = dev->resource[0].start;
-	em->memsize = 1024 * 1024;
+
+	pci_set_drvdata(dev, em);
+	result = em8300_pci_setup(dev);
+	if (result != 0) {
+		printk(KERN_ERR "em8300: pci setup failed\n");
+		return result;
+	}
 
 	/*
 	 * Specify default values if card is not identified.
@@ -760,15 +798,7 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 
 	em->model = card_model[em8300_cards];
 
-	result = pci_enable_device(dev);
-	if (result != 0) {
-		printk(KERN_ERR "em8300: Unable to enable PCI device\n");
-		return result;
-	}
-
-	pci_read_config_byte(dev, PCI_CLASS_REVISION, &revision);
-	em->pci_revision = revision;
-	pr_info("em8300: EM8300 %x (rev %d) ", dev->device, revision);
+	pr_info("em8300: EM8300 %x (rev %d) ", dev->device, em->pci_revision);
 	pr_info("bus: %d, devfn: %d, irq: %d, ", dev->bus->number, dev->devfn, dev->irq);
 	pr_info("memory: 0x%08lx.\n", em->adr);
 
@@ -790,9 +820,6 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 		printk(KERN_ERR "em8300: Bad irq number or handler\n");
 		return -EINVAL;
 	}
-
-	pci_set_master(dev);
-	pci_set_drvdata(dev, em);
 
 	em->irqmask = 0;
 	em->encoder = NULL;

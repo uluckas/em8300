@@ -695,7 +695,6 @@ static int em8300_pci_setup(struct pci_dev *dev)
 	struct em8300_s *em = pci_get_drvdata(dev);
 	unsigned char revision;
 	int rc = 0;
-	u16 cmd;
 
 	rc = pci_enable_device(dev);
 	if (rc < 0) {

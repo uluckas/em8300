@@ -843,6 +843,10 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	return 0;
 
 irq_error:
+#ifdef CONFIG_MTRR
+	if (em->mtrr_reg)
+		mtrr_del(em->mtrr_reg, em->adr, em->memsize);
+#endif
 	iounmap(em->mem);
 	return result;
 }

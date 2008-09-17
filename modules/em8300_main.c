@@ -465,9 +465,8 @@ int em8300_io_release(struct inode *inode, struct file *filp)
 		struct memory_info *info = list_entry(em->memory.next, struct memory_info, item);
 		list_del(&info->item);
 
-		for (adr = (long)info->ptr; adr < (long)info->ptr + info->length; adr += PAGE_SIZE) {
+		for (adr = (long)info->ptr; adr < (long)info->ptr + info->length; adr += PAGE_SIZE)
 			ClearPageReserved(virt_to_page(adr));
-		}
 
 		kfree(info->ptr);
 		vfree(info);

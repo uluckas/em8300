@@ -601,16 +601,16 @@ static int init_em8300(struct em8300_s *em)
 	if (em->model == -1) {
 		if (identified_model > 0) {
 			em->model = identified_model;
-			printk("em8300.c: detected card: %s.\n",
+			pr_info("em8300: detected card: %s.\n",
 			       known_models[identified_model].name);
 		} else {
 			em->model = 0;
-			printk("em8300.c: unable to identify model...\n");
+			printk(KERN_ERR "em8300: unable to identify model...\n");
 		}
 	}
 
 	if ((em->model != identified_model) && (em->model > 0) && (identified_model > 0))
-		printk("em8300.c: mismatch between detected and requested model.\n");
+		printk(KERN_WARNING "em8300: mismatch between detected and requested model.\n");
 
 	if (em->model > 0) {
 		if (known_models[em->model].module != NULL)

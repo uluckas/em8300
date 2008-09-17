@@ -48,7 +48,6 @@
 #include "adv717x.h"
 #include "bt865.h"
 #include "encoder.h"
-//#include <linux/sensors.h>
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
 #define sysfs_create_link(kobj, target, name) 0

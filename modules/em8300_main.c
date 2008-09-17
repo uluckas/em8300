@@ -815,10 +815,6 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 		goto irq_error;
 	}
 
-	em->irqmask = 0;
-	em->encoder = NULL;
-	em->linecounter = 0;
-
 	init_em8300(em);
 
 	em8300_register_card(em);

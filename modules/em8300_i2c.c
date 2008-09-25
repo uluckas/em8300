@@ -107,6 +107,16 @@ static int em8300_getsda(void *data)
 	return read_register(em->i2c_pin_reg) & (p->data << 8);
 }
 
+/* template for i2c_algo_bit */
+static const struct i2c_algo_bit_data em8300_i2c_algo_template = {
+	.setscl = em8300_setscl,
+	.setsda = em8300_setsda,
+	.getscl = em8300_getscl,
+	.getsda = em8300_getsda,
+	.udelay = 10,
+	.timeout = 100,
+};
+
 static int em8300_i2c_lock_client(struct i2c_client *client)
 {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54)
@@ -303,12 +313,7 @@ int em8300_i2c_init1(struct em8300_s *em)
 	  Setup info structure for bus 2
 	*/
 
-	em->i2c_data_2.setsda = &em8300_setsda;
-	em->i2c_data_2.setscl = &em8300_setscl;
-	em->i2c_data_2.getsda = &em8300_getsda;
-	em->i2c_data_2.getscl = &em8300_getscl;
-	em->i2c_data_2.udelay = 10;
-	em->i2c_data_2.timeout = 100;
+	em->i2c_data_2 = em8300_i2c_algo_template;
 
 	pdata = kmalloc(sizeof(struct private_data_s), GFP_KERNEL);
 	pdata->clk = 0x4;
@@ -342,12 +347,7 @@ int em8300_i2c_init2(struct em8300_s *em)
 	  Setup info structure for bus 1
 	*/
 
-	em->i2c_data_1.setsda = &em8300_setsda;
-	em->i2c_data_1.setscl = &em8300_setscl;
-	em->i2c_data_1.getsda = &em8300_getsda;
-	em->i2c_data_1.getscl = &em8300_getscl;
-	em->i2c_data_1.udelay = 10;
-	em->i2c_data_1.timeout = 100;
+	em->i2c_data_1 = em8300_i2c_algo_template;
 
 	pdata = kmalloc(sizeof(struct private_data_s), GFP_KERNEL);
 	pdata->clk = 0x10;

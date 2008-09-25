@@ -22,6 +22,7 @@
 
 #define __NO_VERSION__
 
+#include <linux/delay.h>
 #include <linux/pci.h>
 
 #include "em8300_reg.h"

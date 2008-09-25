@@ -292,7 +292,10 @@ static DEVICE_ATTR(zoom, S_IRUGO|S_IWUSR, show_zoom, store_zoom);
 
 static void em8300_sysfs_postregister_driver(void)
 {
-	driver_create_file(&em8300_driver.driver, &driver_attr_version);
+	int result = driver_create_file(&em8300_driver.driver, &driver_attr_version);
+	if (result != 0) {
+		printk(KERN_ERR "em8300: driver_create_file failed with error %d\n", result);
+	}
 }
 
 static void em8300_sysfs_register_card(struct em8300_s *em)

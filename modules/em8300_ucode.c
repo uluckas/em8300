@@ -209,7 +209,7 @@ void em8300_require_ucode(struct em8300_s *em)
 			return;
 		}
 #endif
-		em8300_ucode_upload(em, fw_entry->data, fw_entry->size);
+		em8300_ucode_upload(em, (void *)fw_entry->data, fw_entry->size);
 
 		em8300_dicom_init(em);
 

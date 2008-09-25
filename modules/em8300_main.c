@@ -87,7 +87,7 @@ EXPORT_NO_SYMBOLS;
 
 static int em8300_cards, clients;
 
-static struct em8300_s em8300[EM8300_MAX];
+static struct em8300_s *em8300[EM8300_MAX];
 
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
 static int dsp_num_table[16];
@@ -188,6 +188,8 @@ static void release_em8300(struct em8300_s *em)
 	/* unmap and free memory */
 	if (em->mem)
 		iounmap((unsigned *) em->mem);
+
+	kfree(em);
 }
 
 static int em8300_io_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg)
@@ -217,30 +219,30 @@ static int em8300_io_open(struct inode *inode, struct file *filp)
 {
 	int card = EM8300_IMINOR(inode) / 4;
 	int subdevice = EM8300_IMINOR(inode) % 4;
-	struct em8300_s *em = &em8300[card];
+	struct em8300_s *em = em8300[card];
 	int err = 0;
 
 	if (card >= em8300_cards)
 		return -ENODEV;
 
 	if (subdevice != EM8300_SUBDEVICE_CONTROL) {
-		if (em8300[card].inuse[subdevice])
+		if (em->inuse[subdevice])
 			return -EBUSY;
 	}
 
-	filp->private_data = &em8300[card];
+	filp->private_data = em;
 
 	/* initalize the memory list */
 	INIT_LIST_HEAD(&em->memory);
 
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_CONTROL:
-		em8300[card].nonblock[0] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
+		em->nonblock[0] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
 		break;
 	case EM8300_SUBDEVICE_AUDIO:
 		if ((audio_driver_nr[card] == AUDIO_DRIVER_OSSLIKE)
 		    || (audio_driver_nr[card] == AUDIO_DRIVER_OSS)) {
-			em8300[card].nonblock[1] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
+			em->nonblock[1] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
 			err = em8300_audio_open(em);
 			break;
 		} else
@@ -250,7 +252,7 @@ static int em8300_io_open(struct inode *inode, struct file *filp)
 		if (!em->ucodeloaded)
 			return -ENODEV;
 
-		em8300[card].nonblock[2] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
+		em->nonblock[2] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
 		em8300_video_open(em);
 
 		if (!em->overlay_enabled)
@@ -263,7 +265,7 @@ static int em8300_io_open(struct inode *inode, struct file *filp)
 		if (!em->ucodeloaded)
 			return -ENODEV;
 
-		em8300[card].nonblock[3] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
+		em->nonblock[3] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
 		err = em8300_spu_open(em);
 		break;
 	default:
@@ -274,7 +276,7 @@ static int em8300_io_open(struct inode *inode, struct file *filp)
 	if (err)
 		return err;
 
-	em8300[card].inuse[subdevice]++;
+	em->inuse[subdevice]++;
 
 	clients++;
 	pr_debug("em8300_main.o: Opening device %d, Clients:%d\n", subdevice, clients);
@@ -465,9 +467,8 @@ int em8300_io_release(struct inode *inode, struct file *filp)
 		struct memory_info *info = list_entry(em->memory.next, struct memory_info, item);
 		list_del(&info->item);
 
-		for (adr = (long)info->ptr; adr < (long)info->ptr + info->length; adr += PAGE_SIZE) {
+		for (adr = (long)info->ptr; adr < (long)info->ptr + info->length; adr += PAGE_SIZE)
 			ClearPageReserved(virt_to_page(adr));
-		}
 
 		kfree(info->ptr);
 		vfree(info);
@@ -508,23 +509,24 @@ static int em8300_dsp_open(struct inode *inode, struct file *filp)
 	int dsp_number = ((EM8300_IMINOR(inode) >> 4) & 0x0f);
 	int card = dsp_num_table[dsp_number] - 1;
 	int err = 0;
+	struct em8300_s *em = em8300[card];
 
 	pr_debug("em8300: opening dsp %i for card %i\n", dsp_number, card);
 
 	if (card < 0 || card >= em8300_cards)
 		return -ENODEV;
 
-	if (em8300[card].inuse[EM8300_SUBDEVICE_AUDIO])
+	if (em->inuse[EM8300_SUBDEVICE_AUDIO])
 		return -EBUSY;
 
-	filp->private_data = &em8300[card];
+	filp->private_data = em;
 
-	err = em8300_audio_open(&em8300[card]);
+	err = em8300_audio_open(em);
 
 	if (err)
 		return err;
 
-	em8300[card].inuse[EM8300_SUBDEVICE_AUDIO]++;
+	em->inuse[EM8300_SUBDEVICE_AUDIO]++;
 
 	clients++;
 	pr_debug("em8300_main.o: Opening device %d, Clients:%d\n", EM8300_SUBDEVICE_AUDIO, clients);
@@ -601,16 +603,16 @@ static int init_em8300(struct em8300_s *em)
 	if (em->model == -1) {
 		if (identified_model > 0) {
 			em->model = identified_model;
-			printk("em8300.c: detected card: %s.\n",
+			pr_info("em8300: detected card: %s.\n",
 			       known_models[identified_model].name);
 		} else {
 			em->model = 0;
-			printk("em8300.c: unable to identify model...\n");
+			printk(KERN_ERR "em8300: unable to identify model...\n");
 		}
 	}
 
 	if ((em->model != identified_model) && (em->model > 0) && (identified_model > 0))
-		printk("em8300.c: mismatch between detected and requested model.\n");
+		printk(KERN_WARNING "em8300: mismatch between detected and requested model.\n");
 
 	if (em->model > 0) {
 		if (known_models[em->model].module != NULL)
@@ -719,8 +721,12 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	struct em8300_s *em;
 	int result;
 
-	em = &em8300[em8300_cards];
-	memset(em, 0, sizeof(struct em8300_s));
+	em = kzalloc(sizeof(struct em8300_s), GFP_KERNEL);
+ 	if (!em) {
+		printk(KERN_ERR "em8300: kzalloc failed - out of memory!\n");
+		return -ENOMEM;
+ 	}
+
 	em->dev = dev;
 	em->card_nr = em8300_cards;
 
@@ -728,7 +734,7 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	result = em8300_pci_setup(dev);
 	if (result != 0) {
 		printk(KERN_ERR "em8300: pci setup failed\n");
-		return result;
+		goto mem_free;
 	}
 
 	/*
@@ -794,7 +800,8 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	em->mem = ioremap(em->adr, em->memsize);
 	if (!em->mem) {
 		printk(KERN_ERR "em8300: ioremap for memory region failed\n");
-		return -ENOMEM;
+		result = -ENOMEM;
+		goto mem_free;
 	}
 
 	pr_info("em8300: mapped-memory at 0x%p\n", em->mem);
@@ -814,10 +821,6 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 		printk(KERN_ERR "em8300: Bad irq number or handler\n");
 		goto irq_error;
 	}
-
-	em->irqmask = 0;
-	em->encoder = NULL;
-	em->linecounter = 0;
 
 	init_em8300(em);
 
@@ -839,7 +842,7 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	em8300_enable_card(em);
 #endif
 
-	em8300_cards++;
+	em8300[em8300_cards++] = em;
 	return 0;
 
 irq_error:
@@ -848,6 +851,9 @@ irq_error:
 		mtrr_del(em->mtrr_reg, em->adr, em->memsize);
 #endif
 	iounmap(em->mem);
+
+mem_free:
+	kfree(em);
 	return result;
 }
 

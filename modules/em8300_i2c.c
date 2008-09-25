@@ -108,7 +108,7 @@ static int em8300_getsda(void *data)
 }
 
 /* template for i2c_algo_bit */
-static struct i2c_algo_bit_data em8300_i2c_algo_template = {
+static const struct i2c_algo_bit_data em8300_i2c_algo_template = {
 	.setscl = em8300_setscl,
 	.setsda = em8300_setsda,
 	.getscl = em8300_getscl,
@@ -313,8 +313,7 @@ int em8300_i2c_init1(struct em8300_s *em)
 	  Setup info structure for bus 2
 	*/
 
-	memcpy(&em->i2c_data_2, &em8300_i2c_algo_template,
-			sizeof(struct i2c_algo_bit_data));
+	em->i2c_data_2 = em8300_i2c_algo_template;
 
 	pdata = kmalloc(sizeof(struct private_data_s), GFP_KERNEL);
 	pdata->clk = 0x4;
@@ -348,8 +347,7 @@ int em8300_i2c_init2(struct em8300_s *em)
 	  Setup info structure for bus 1
 	*/
 
-	memcpy(&em->i2c_data_1, &em8300_i2c_algo_template,
-			sizeof(struct i2c_algo_bit_data));
+	em->i2c_data_1 = em8300_i2c_algo_template;
 
 	pdata = kmalloc(sizeof(struct private_data_s), GFP_KERNEL);
 	pdata->clk = 0x10;

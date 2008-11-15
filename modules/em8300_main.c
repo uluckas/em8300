@@ -279,7 +279,7 @@ static int em8300_io_open(struct inode *inode, struct file *filp)
 	em->inuse[subdevice]++;
 
 	clients++;
-	pr_debug("em8300_main.o: Opening device %d, Clients:%d\n", subdevice, clients);
+	pr_debug("em8300-%d: Opening device %d, Clients:%d\n", em->card_nr, subdevice, clients);
 
 	EM8300_MOD_INC_USE_COUNT;
 
@@ -412,7 +412,7 @@ static unsigned int em8300_poll(struct file *file, struct poll_table_struct *wai
 			poll_wait(file, &em->mafifo->wait, wait);
 			if (file->f_mode & FMODE_WRITE) {
 				if (em8300_fifo_freeslots(em->mafifo)) {
-					pr_debug("Poll audio - Free slots: %d\n", em8300_fifo_freeslots(em->mafifo));
+				  pr_debug("em8300-%d: Poll audio - Free slots: %d\n", em->card_nr, em8300_fifo_freeslots(em->mafifo));
 					mask |= POLLOUT | POLLWRNORM;
 				}
 			}
@@ -422,7 +422,7 @@ static unsigned int em8300_poll(struct file *file, struct poll_table_struct *wai
 		poll_wait(file, &em->mvfifo->wait, wait);
 		if (file->f_mode & FMODE_WRITE) {
 			if (em8300_fifo_freeslots(em->mvfifo)) {
-				pr_debug("Poll video - Free slots: %d\n", em8300_fifo_freeslots(em->mvfifo));
+				pr_debug("em8300-%d: Poll video - Free slots: %d\n", em->card_nr, em8300_fifo_freeslots(em->mvfifo));
 				mask |= POLLOUT | POLLWRNORM;
 			}
 		}
@@ -431,7 +431,7 @@ static unsigned int em8300_poll(struct file *file, struct poll_table_struct *wai
 		poll_wait(file, &em->spfifo->wait, wait);
 		if (file->f_mode & FMODE_WRITE) {
 			if (em8300_fifo_freeslots(em->spfifo)) {
-				pr_debug("Poll subpic - Free slots: %d\n", em8300_fifo_freeslots(em->spfifo));
+				pr_debug("em8300-%d: Poll subpic - Free slots: %d\n", em->card_nr, em8300_fifo_freeslots(em->spfifo));
 				mask |= POLLOUT | POLLWRNORM;
 			}
 		}
@@ -477,7 +477,7 @@ int em8300_io_release(struct inode *inode, struct file *filp)
 	em->inuse[subdevice]--;
 
 	clients--;
-	pr_debug("em8300_main.o: Releasing device %d, clients:%d\n", subdevice, clients);
+	pr_debug("em8300-%d: Releasing device %d, clients:%d\n", em->card_nr, subdevice, clients);
 
 	EM8300_MOD_DEC_USE_COUNT;
 
@@ -511,7 +511,7 @@ static int em8300_dsp_open(struct inode *inode, struct file *filp)
 	int err = 0;
 	struct em8300_s *em = em8300[card];
 
-	pr_debug("em8300: opening dsp %i for card %i\n", dsp_number, card);
+	pr_debug("em8300-%d: opening dsp %i for card %i\n", em->card_nr, dsp_number, card);
 
 	if (card < 0 || card >= em8300_cards)
 		return -ENODEV;
@@ -529,7 +529,7 @@ static int em8300_dsp_open(struct inode *inode, struct file *filp)
 	em->inuse[EM8300_SUBDEVICE_AUDIO]++;
 
 	clients++;
-	pr_debug("em8300_main.o: Opening device %d, Clients:%d\n", EM8300_SUBDEVICE_AUDIO, clients);
+	pr_debug("em8300-%d: Opening device %d, Clients:%d\n", em->card_nr, EM8300_SUBDEVICE_AUDIO, clients);
 
 	EM8300_MOD_INC_USE_COUNT;
 
@@ -549,7 +549,7 @@ static unsigned int em8300_dsp_poll(struct file *file, struct poll_table_struct 
 	poll_wait(file, &em->mafifo->wait, wait);
 	if (file->f_mode & FMODE_WRITE) {
 		if (em8300_fifo_freeslots(em->mafifo)) {
-			pr_debug("Poll dsp - Free slots: %d\n", em8300_fifo_freeslots(em->mafifo));
+			pr_debug("em8300-%d: Poll dsp - Free slots: %d\n", em->card_nr, em8300_fifo_freeslots(em->mafifo));
 			mask |= POLLOUT | POLLWRNORM;
 		}
 	}
@@ -565,7 +565,7 @@ int em8300_dsp_release(struct inode *inode, struct file *filp)
 	em->inuse[EM8300_SUBDEVICE_AUDIO]--;
 
 	clients--;
-	pr_debug("em8300_main.o: Releasing device %d, clients:%d\n", EM8300_SUBDEVICE_AUDIO, clients);
+	pr_debug("em8300-%d: Releasing device %d, clients:%d\n", em->card_nr, EM8300_SUBDEVICE_AUDIO, clients);
 
 	EM8300_MOD_DEC_USE_COUNT;
 
@@ -603,16 +603,16 @@ static int init_em8300(struct em8300_s *em)
 	if (em->model == -1) {
 		if (identified_model > 0) {
 			em->model = identified_model;
-			pr_info("em8300: detected card: %s.\n",
+			pr_info("em8300-%d: detected card: %s.\n", em->card_nr,
 			       known_models[identified_model].name);
 		} else {
 			em->model = 0;
-			printk(KERN_ERR "em8300: unable to identify model...\n");
+			printk(KERN_ERR "em8300-%d: unable to identify model...\n", em->card_nr);
 		}
 	}
 
 	if ((em->model != identified_model) && (em->model > 0) && (identified_model > 0))
-		printk(KERN_WARNING "em8300: mismatch between detected and requested model.\n");
+		printk(KERN_WARNING "em8300-%d: mismatch between detected and requested model.\n", em->card_nr);
 
 	if (em->model > 0) {
 		if (known_models[em->model].module != NULL)
@@ -669,8 +669,8 @@ static int init_em8300(struct em8300_s *em)
 		em->config.model.activate_loopback =
 			activate_loopback[em->card_nr];
 
-	pr_info("em8300_main.o: Chip revision: %d\n", em->chip_revision);
-	pr_debug("em8300_main.o: use_bt865: %d\n", em->config.model.use_bt865);
+	pr_info("em8300-%d: Chip revision: %d\n", em->card_nr, em->chip_revision);
+	pr_debug("em8300-%d: use_bt865: %d\n", em->card_nr, em->config.model.use_bt865);
 
 	em8300_i2c_init2(em);
 
@@ -687,7 +687,7 @@ static int init_em8300(struct em8300_s *em)
 
 	em->zoom = 100;
 
-	pr_debug("em8300_main.o: activate_loopback: %d\n", em->config.model.activate_loopback);
+	pr_debug("em8300-%d: activate_loopback: %d\n", em->card_nr, em->config.model.activate_loopback);
 
 	return 0;
 }
@@ -700,7 +700,7 @@ static int em8300_pci_setup(struct pci_dev *dev)
 
 	rc = pci_enable_device(dev);
 	if (rc < 0) {
-		printk(KERN_ERR "em8300: Unable to enable PCI device\n");
+		printk(KERN_ERR "em8300-%d: Unable to enable PCI device\n", em->card_nr);
 		return rc;
 	}
 
@@ -722,10 +722,10 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	int result;
 
 	em = kzalloc(sizeof(struct em8300_s), GFP_KERNEL);
- 	if (!em) {
+	if (!em) {
 		printk(KERN_ERR "em8300: kzalloc failed - out of memory!\n");
 		return -ENOMEM;
- 	}
+	}
 
 	em->dev = dev;
 	em->card_nr = em8300_cards;
@@ -733,7 +733,7 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	pci_set_drvdata(dev, em);
 	result = em8300_pci_setup(dev);
 	if (result != 0) {
-		printk(KERN_ERR "em8300: pci setup failed\n");
+		printk(KERN_ERR "em8300-%d: pci setup failed\n", em->card_nr);
 		goto mem_free;
 	}
 
@@ -793,22 +793,22 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 
 	em->model = card_model[em8300_cards];
 
-	pr_info("em8300: EM8300 %x (rev %d) ", dev->device, em->pci_revision);
+	pr_info("em8300-%d: EM8300 %x (rev %d) ", em->card_nr, dev->device, em->pci_revision);
 	pr_info("bus: %d, devfn: %d, irq: %d, ", dev->bus->number, dev->devfn, dev->irq);
 	pr_info("memory: 0x%08lx.\n", em->adr);
 
 	em->mem = ioremap(em->adr, em->memsize);
 	if (!em->mem) {
-		printk(KERN_ERR "em8300: ioremap for memory region failed\n");
+		printk(KERN_ERR "em8300-%d: ioremap for memory region failed\n", em->card_nr);
 		result = -ENOMEM;
 		goto mem_free;
 	}
 
-	pr_info("em8300: mapped-memory at 0x%p\n", em->mem);
+	pr_info("em8300-%d: mapped-memory at 0x%p\n", em->card_nr, em->mem);
 #ifdef CONFIG_MTRR
 	em->mtrr_reg = mtrr_add(em->adr, em->memsize, MTRR_TYPE_UNCACHABLE, 1);
 	if (em->mtrr_reg)
-		pr_info("em8300: using MTRR\n");
+		pr_info("em8300-%d: using MTRR\n", em->card_nr);
 #endif
 
 	init_waitqueue_head(&em->video_ptsfifo_wait);
@@ -818,7 +818,7 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	result = request_irq(dev->irq, em8300_irq, IRQF_SHARED | IRQF_DISABLED, "em8300", (void *) em);
 
 	if (result == -EINVAL) {
-		printk(KERN_ERR "em8300: Bad irq number or handler\n");
+		printk(KERN_ERR "em8300-%d: Bad irq number or handler\n", em->card_nr);
 		goto irq_error;
 	}
 
@@ -830,10 +830,10 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	if (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS) {
 		em->dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, dsp_num[em->card_nr]);
 		if (em->dsp_num < 0) {
-			printk(KERN_ERR "em8300: cannot register oss audio device!\n");
+			printk(KERN_ERR "em8300-%d: cannot register oss audio device!\n", em->card_nr);
 		} else {
 			dsp_num_table[em->dsp_num >> 4 & 0x0f] = em8300_cards + 1;
-			pr_debug("em8300: registered dsp %i for device %i\n", em->dsp_num >> 4 & 0x0f, em8300_cards);
+			pr_debug("em8300-%d: registered dsp %i for device %i\n", em->card_nr, em->dsp_num >> 4 & 0x0f, em8300_cards);
 		}
 	}
 #endif
@@ -929,7 +929,7 @@ static int __init em8300_init(void)
 		if (m > 0) {
 			major = m;
 		} else {
-			printk(KERN_ERR "em8300: unable to get any majo\n");
+			printk(KERN_ERR "em8300: unable to get any major\n");
 			err = -ENODEV;
 			goto err_chrdev;
 		}

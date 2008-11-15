@@ -395,7 +395,7 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 				scr = val - scr;
 
 			if (scr > 2 * 1800) { /* Tolerance: 2 frames */
-				pr_info("adjusting scr: %i\n", val);
+				pr_info("em8300-%d: adjusting scr: %i\n", em->card_nr, val);
 				write_ucregister(MV_SCRlo, val & 0xffff);
 				write_ucregister(MV_SCRhi, (val >> 16) & 0xffff);
 			}
@@ -546,7 +546,7 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc)
 
 	em->ucodeloaded = 1;
 
-	printk(KERN_NOTICE "em8300: Microcode version 0x%02x loaded\n", read_ucregister(MicroCodeVersion));
+	printk(KERN_NOTICE "em8300-%d: Microcode version 0x%02x loaded\n", em->card_nr, read_ucregister(MicroCodeVersion));
 	return 0;
 }
 

@@ -165,7 +165,7 @@ int em8300_fifo_sync(struct fifo_s *fifo)
 	long ret;
 	ret = wait_event_interruptible_timeout(fifo->wait, readl(fifo->writeptr) == readl(fifo->readptr), 3 * HZ);
 	if (ret == 0) {
-		printk(KERN_ERR "em8300.o: FIFO sync timeout during sync\n");
+		printk(KERN_ERR "em8300-%d: FIFO sync timeout during sync\n", fifo->em->card_nr);
 		return -EINTR;
 	} else if (ret > 0)
 		return 0;
@@ -254,7 +254,7 @@ int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *use
 			struct em8300_s *em = fifo->em;
 			int running = 1;
 
-			//printk("Fifo Full %p\n", fifo);
+			//printk("em8300-%d: Fifo Full %p\n", em->card_nr, fifo);
 
 			running = (running && (read_ucregister(MV_SCRSpeed) > 0));
 			running = (running && (em->video_playmode == EM8300_PLAYMODE_PLAY));
@@ -268,14 +268,14 @@ int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *use
 					if (ret > 0)
 						break;
 					else if (ret == 0) {
-						printk("Fifo still full, trying stop\n");
+						printk("em8300-%d: Fifo still full, trying stop\n", fifo->em->card_nr);
 						em8300_video_setplaymode(em, EM8300_PLAYMODE_STOPPED);
 						em8300_video_setplaymode(em, EM8300_PLAYMODE_PLAY);
 					} else
 						return (total_bytes_written>0) ? total_bytes_written : ret;
 				}
 				if (ret == 0) {
-					printk(KERN_ERR "em8300.o: FIFO sync timeout during blocking write\n");
+					printk(KERN_ERR "em8300-%d: FIFO sync timeout during blocking write\n", fifo->em->card_nr);
 					return (total_bytes_written>0)?total_bytes_written:-EINTR;
 				}
 			} else {
@@ -286,8 +286,8 @@ int em8300_fifo_writeblocking_nolock(struct fifo_s *fifo, int n, const char *use
 		}
 	}
 
-	// printk(KERN_ERR "em8300.o: count = %d\n", total_bytes_written);
-	// printk(KERN_ERR "em8300.o: time  = %d\n", jiffies - safe_jiff);
+	// printk(KERN_ERR "em8300-%d: count = %d\n", em->card_nr, total_bytes_written);
+	// printk(KERN_ERR "em8300-%d: time  = %d\n", em->card_nr, jiffies - safe_jiff);
 	return total_bytes_written;
 }
 

@@ -129,7 +129,7 @@ int em8300_video_sync(struct em8300_s *em)
 		}
 
 		if (rdptr == rdptr_last) {
-			pr_debug("em8300_video.o: Video sync rdptr is stuck at 0x%08x, wrptr 0x%08x, left %d\n", rdptr, wrptr, wrptr - rdptr);
+			pr_debug("em8300-%d: Video sync rdptr is stuck at 0x%08x, wrptr 0x%08x, left %d\n", em->card_nr, rdptr, wrptr, wrptr - rdptr);
 			break;
 		}
 		rdptr_last = rdptr;
@@ -139,13 +139,13 @@ int em8300_video_sync(struct em8300_s *em)
 
 		if (signal_pending(current)) {
 			set_current_state(TASK_RUNNING);
-			printk(KERN_ERR "em8300_video.o: Video sync interrupted\n");
+			printk(KERN_ERR "em8300-%d: Video sync interrupted\n", em->card_nr);
 			return -EINTR;
 		}
 	} while (++synctimeout < 4);
 
 	if (rdptr != wrptr) {
-		pr_debug("em8300_video.o: Video sync timeout\n");
+		pr_debug("em8300-%d: Video sync timeout\n", em->card_nr);
 	}
 
 	set_current_state(TASK_RUNNING);
@@ -188,7 +188,7 @@ void set_dicom_kmin(struct em8300_s *em)
 		kmin = 0x900;
 	}
 	write_ucregister(DICOM_Kmin, kmin);
-	pr_debug("em8300: register DICOM_Kmin = 0x%x\n", kmin);
+	pr_debug("em8300-%d: register DICOM_Kmin = 0x%x\n", em->card_nr, kmin);
 }
 
 int em8300_video_setup(struct em8300_s *em)
@@ -238,14 +238,14 @@ int em8300_video_setup(struct em8300_s *em)
 	em9010_write(em, 0xa, 0x0);
 
 	if (em9010_cabledetect(em)) {
-		pr_debug("em8300: overlay loop-back cable detected\n");
+		pr_debug("em8300-%d: overlay loop-back cable detected\n", em->card_nr);
 	}
 
-	pr_debug("em8300: overlay reg 0x80 = %x \n", em9010_read16(em, 0x80));
+	pr_debug("em8300-%d: overlay reg 0x80 = %x \n", em->card_nr, em9010_read16(em, 0x80));
 
 	em9010_write(em, 0xb, 0xc8);
 
-	pr_debug("em8300: register 0x1f4b = %x (0x138)\n", read_register(0x1f4b));
+	pr_debug("em8300-%d: register 0x1f4b = %x (0x138)\n", em->card_nr, read_register(0x1f4b));
 
 	em9010_write16(em, 1, 0x4fe);
 	em9010_write(em, 1, 4);
@@ -296,7 +296,7 @@ int em8300_video_setup(struct em8300_s *em)
 	write_register(0x2000, 0x1);
 
 	if (mpegvideo_command(em, MVCOMMAND_DISPLAYBUFINFO)) {
-		printk(KERN_ERR "em8300_video: mpegvideo_command(0x11) failed\n");
+		printk(KERN_ERR "em8300-%d: mpegvideo_command(0x11) failed\n", em->card_nr);
 		return -ETIME;
 	}
 	em8300_dicom_get_dbufinfo(em);
@@ -304,7 +304,7 @@ int em8300_video_setup(struct em8300_s *em)
 	write_ucregister(SP_Status, 0x0);
 
 	if (mpegvideo_command(em, 0x10)) {
-		printk(KERN_ERR "em8300: mpegvideo_command(0x10) failed\n");
+		printk(KERN_ERR "em8300-%d: mpegvideo_command(0x10) failed\n", em->card_nr);
 		return -ETIME;
 	}
 
@@ -319,7 +319,7 @@ int em8300_video_setup(struct em8300_s *em)
 	em8300_dicom_setBCS(em, 500, 500, 500);
 
 	if (em8300_dicom_update(em)) {
-		printk(KERN_ERR "em8300: DICOM Update failed\n");
+		printk(KERN_ERR "em8300-%d: DICOM Update failed\n", em->card_nr);
 		return -ETIME;
 	}
 
@@ -365,13 +365,13 @@ ssize_t em8300_video_write(struct em8300_s *em, const char *buf, size_t count, l
 		ret = wait_event_interruptible_timeout(em->video_ptsfifo_wait,
 						       (read_register(ptsfifoptr + 3) & 1) == 0, HZ);
 		if (ret == 0) {
-			printk(KERN_ERR "em8300_video.c: Video Fifo timeout\n");
+			printk(KERN_ERR "em8300-%d: Video Fifo timeout\n", em->card_nr);
 			return -EINTR;
 		} else if (ret < 0)
 			return ret;
 
 #ifdef DEBUG_SYNC
-		pr_info("em8300_video.o: pts: %u\n", em->video_pts >> 1);
+		pr_info("em8300-%d: pts: %u\n", em->card_nr, em->video_pts >> 1);
 #endif
 
 		write_register(ptsfifoptr, em->video_offset >> 16);
@@ -406,7 +406,7 @@ int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 		}
 
 		if (em->video_pts == 0) {
-			pr_debug("Video SETPTS = 0x%x\n", em->video_pts);
+			pr_debug("em8300-%d: Video SETPTS = 0x%x\n", em->card_nr, em->video_pts);
 		}
 
 		if (em->video_pts != em->video_lastpts) {
@@ -424,7 +424,7 @@ int em8300_video_ioctl(struct em8300_s *em, unsigned int cmd, unsigned long arg)
 			scr -= val;
 			if (scr < 0) scr = -scr;
 			if (scr > 9000) {
-				pr_info("setting scr: %i\n", val);
+				pr_info("em8300-%d: setting scr: %i\n", em->card_nr, val);
 				write_ucregister(MV_SCRlo, val & 0xffff);
 				write_ucregister(MV_SCRhi, (val >> 16) & 0xffff);
 			}

@@ -262,7 +262,7 @@ void em8300_require_ucode(struct em8300_s *em)
 
 		em->ucodeloaded = 1;
 
-		printk(KERN_NOTICE "em8300: Microcode version 0x%02x loaded\n", read_ucregister(MicroCodeVersion));
+		printk(KERN_NOTICE "em8300-%d: Microcode version 0x%02x loaded\n", em->card_nr, read_ucregister(MicroCodeVersion));
 
 	}
 }

@@ -118,13 +118,15 @@ static const struct i2c_algo_bit_data em8300_i2c_algo_template = {
 
 static int em8300_i2c_lock_client(struct i2c_client *client)
 {
+	struct em8300_s *em = i2c_get_adapdata(client->adapter);
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,16)
 	if (!try_module_get(client->driver->driver.owner)) {
 #else
 	if (!try_module_get(client->driver->owner)) {
 #endif
-		printk(KERN_ERR "em8300_i2c: Unable to lock client module\n");
+		printk(KERN_ERR "em8300-%d: i2c: Unable to lock client module\n", em->card_nr);
 		return -ENODEV;
 	}
 #endif
@@ -134,7 +136,7 @@ static int em8300_i2c_lock_client(struct i2c_client *client)
 #define EM8300_I2C_MAKE_LINK(link_name) \
 	do { \
 		if (sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, link_name)) \
-			printk(KERN_WARNING "em8300_i2c: unable to create the %s link\n", link_name); \
+			printk(KERN_WARNING "em8300-%d: i2c: unable to create the %s link\n", em->card_nr, link_name); \
 	} while (0)
 
 static int em8300_i2c_reg(struct i2c_client *client)
@@ -162,7 +164,7 @@ static int em8300_i2c_reg(struct i2c_client *client)
 			if (client->driver->command(client,
 						    ENCODER_CMD_GETCONFIG,
 						    (void *) &data) != 0) {
-				printk("ENCODER_CMD_GETCONFIG failed\n");
+				printk("em8300-%d: ENCODER_CMD_GETCONFIG failed\n", em->card_nr);
 				break;
 			}
 
@@ -237,7 +239,7 @@ static int em8300_i2c_reg(struct i2c_client *client)
 			break;
 		}
 #endif
-		printk(KERN_ERR "em8300_i2c: unknown client id\n");
+		printk(KERN_ERR "em8300-%d: i2c: unknown client id\n", em->card_nr);
 		return -ENODEV;
 	}
 

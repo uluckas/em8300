@@ -90,6 +90,16 @@ static inline void i2c_set_adapdata(struct i2c_adapter *dev, void *data)
 #define EM8300_IMINOR(inode) (minor((inode)->i_rdev))
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)
+#define kzalloc(size, flags)						\
+({									\
+	void *__ret = kmalloc(size, flags);				\
+	if (__ret)							\
+		memset(__ret, 0, size);					\
+	__ret;								\
+})
+#endif
+
 #ifdef _LINUX_WAIT_H
 
 /* Macros backported from linux-2.6/include/linux/wait.h */

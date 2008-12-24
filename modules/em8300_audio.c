@@ -491,6 +491,9 @@ int em8300_audio_open(struct em8300_s *em)
 		return -ENODEV;
 	}
 
+	set_speed(em, em->audio.speed);
+	set_audiomode(em, em->audio_mode);
+
 	em->mafifo->bytes = 0;
 
 	return audio_start(em);
@@ -506,6 +509,9 @@ int em8300_audio_release(struct em8300_s *em)
 static int set_audiomode(struct em8300_s *em, int mode)
 {
 	em->audio_mode = mode;
+
+	if (em->audio_driver_style != OSS)
+		return 0;
 
 	em->clockgen &= ~CLOCKGEN_OUTMASK;
 
@@ -575,9 +581,9 @@ int em8300_audio_setup(struct em8300_s *em)
 	em->audio.format = AFMT_S16_NE;
 	em->audio.slotsize = em->mafifo->slotsize;
 
-	set_speed(em, 48000);
+	em->audio.speed = 48000;
 
-	set_audiomode(em, EM8300_AUDIOMODE_DEFAULT);
+	em->audio_mode = EM8300_AUDIOMODE_DEFAULT;
 
 	ret = em8300_audio_flush(em);
 

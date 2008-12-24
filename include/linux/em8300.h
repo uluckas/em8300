@@ -390,6 +390,8 @@ struct em8300_s
 	/* Channel status for S/PDIF */
 	unsigned int channel_status_pos;
 	unsigned char channel_status[24];
+	enum { NONE, OSS, ALSA } audio_driver_style;
+	struct semaphore audio_driver_style_lock;
 
 	/* Video */
 	int video_mode;

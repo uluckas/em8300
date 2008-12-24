@@ -70,11 +70,9 @@ static void em8300_udev_enable_card(struct em8300_s *em)
 	device_create(em8300_class, &em->dev->dev,
 		      MKDEV(major, em->card_nr * 4 + 1), NULL,
 		      "%s_mv-%d", EM8300_LOGNAME, em->card_nr);
-	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
-	    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
-		device_create(em8300_class, &em->dev->dev,
-			      MKDEV(major, em->card_nr * 4 + 2), NULL,
-			      "%s_ma-%d", EM8300_LOGNAME, em->card_nr);
+	device_create(em8300_class, &em->dev->dev,
+		      MKDEV(major, em->card_nr * 4 + 2), NULL,
+		      "%s_ma-%d", EM8300_LOGNAME, em->card_nr);
 	device_create(em8300_class, &em->dev->dev,
 		      MKDEV(major, em->card_nr * 4 + 3), NULL,
 		      "%s_sp-%d", EM8300_LOGNAME, em->card_nr);
@@ -83,9 +81,7 @@ static void em8300_udev_enable_card(struct em8300_s *em)
 static void em8300_udev_disable_card(struct em8300_s *em)
 {
 	device_destroy(em8300_class, MKDEV(major, em->card_nr * 4 + 1));
-	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
-	    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
-		device_destroy(em8300_class, MKDEV(major, em->card_nr * 4 + 2));
+	device_destroy(em8300_class, MKDEV(major, em->card_nr * 4 + 2));
 	device_destroy(em8300_class, MKDEV(major, em->card_nr * 4 + 3));
 }
 

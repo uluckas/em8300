@@ -116,9 +116,19 @@ static int snd_em8300_playback_open(snd_pcm_substream_t *substream)
 	if (!em->ucodeloaded)
 		return -ENODEV;
 
+	down(&em->audio_driver_style_lock);
+	if (em->audio_driver_style != NONE) {
+		up(&em->audio_driver_style_lock);
+		return -EBUSY;
+	}
+	em->audio_driver_style = ALSA;
+	up(&em->audio_driver_style_lock);
+
 	down(&em8300_alsa->lock);
 	if (em8300_alsa->substream) {
 		up(&em8300_alsa->lock);
+		printk("em8300-%d: snd_em8300_playback_open: em->audio_driver_style == NONE but em8300_alsa->substream is not NULL !?\n", em->card_nr);
+		em->audio_driver_style = NONE;
 		return -EBUSY;
 	}
 	em8300_alsa->substream = substream;
@@ -153,8 +163,10 @@ static int snd_em8300_playback_open(snd_pcm_substream_t *substream)
 static int snd_em8300_playback_close(snd_pcm_substream_t *substream)
 {
 	em8300_alsa_t *em8300_alsa = snd_pcm_substream_chip(substream);
+	struct em8300_s *em = em8300_alsa->em;
 
 	em8300_alsa->substream = NULL;
+	em->audio_driver_style = NONE;
 //	printk("em8300-%d: snd_em8300_playback_close called.\n", em->card_nr);
 	return 0;
 }
@@ -487,9 +499,6 @@ static void em8300_alsa_enable_card(struct em8300_s *em)
 	em8300_alsa_t *em8300_alsa;
 	int err;
 
-	if (audio_driver_nr[em->card_nr] != AUDIO_DRIVER_ALSA)
-		return;
-
 	em->alsa_card = NULL;
 
 	card = snd_card_new(alsa_index[em->card_nr], alsa_id[em->card_nr], THIS_MODULE, 0);
@@ -527,16 +536,13 @@ static void em8300_alsa_enable_card(struct em8300_s *em)
 
 static void em8300_alsa_disable_card(struct em8300_s *em)
 {
-	if (audio_driver_nr[em->card_nr] != AUDIO_DRIVER_ALSA)
-		return;
-
 	if (em->alsa_card)
 		snd_card_free(em->alsa_card);
 }
 
 void em8300_alsa_audio_interrupt(struct em8300_s *em)
 {
-	if (audio_driver_nr[em->card_nr] != AUDIO_DRIVER_ALSA)
+	if (em->audio_driver_style != ALSA)
 		return;
 
 	if (em->alsa_card) {

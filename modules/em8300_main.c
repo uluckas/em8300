@@ -134,8 +134,7 @@ static irqreturn_t em8300_irq(int irq, void *dev_id
 
 		if (irqstatus & IRQSTATUS_AUDIO_FIFO) {
 			em8300_audio_interrupt(em);
-			if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
-			    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
+			if (em->audio_driver_style == OSS)
 				em8300_fifo_check(em->mafifo);
 		}
 
@@ -177,9 +176,7 @@ static void release_em8300(struct em8300_s *em)
 	write_register(0x2000, 0);
 
 	em8300_fifo_free(em->mvfifo);
-	if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
-	    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
-		em8300_fifo_free(em->mafifo);
+	em8300_fifo_free(em->mafifo);
 	em8300_fifo_free(em->spfifo);
 
 	/* free it */
@@ -199,11 +196,7 @@ static int em8300_io_ioctl(struct inode *inode, struct file *filp, unsigned int 
 
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_AUDIO:
-		if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
-		    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
-			return em8300_audio_ioctl(em, cmd, arg);
-		else
-			return -EINVAL;
+		return em8300_audio_ioctl(em, cmd, arg);
 	case EM8300_SUBDEVICE_VIDEO:
 		return em8300_video_ioctl(em, cmd, arg);
 	case EM8300_SUBDEVICE_SUBPICTURE:
@@ -240,13 +233,19 @@ static int em8300_io_open(struct inode *inode, struct file *filp)
 		em->nonblock[0] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
 		break;
 	case EM8300_SUBDEVICE_AUDIO:
-		if ((audio_driver_nr[card] == AUDIO_DRIVER_OSSLIKE)
-		    || (audio_driver_nr[card] == AUDIO_DRIVER_OSS)) {
-			em->nonblock[1] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
-			err = em8300_audio_open(em);
-			break;
-		} else
-			return -ENODEV;
+		down(&em->audio_driver_style_lock);
+		if (em->audio_driver_style != NONE) {
+			up(&em->audio_driver_style_lock);
+			return -EBUSY;
+		}
+		em->audio_driver_style = OSS;
+		up(&em->audio_driver_style_lock);
+
+		em->nonblock[1] = ((filp->f_flags&O_NONBLOCK) == O_NONBLOCK);
+		err = em8300_audio_open(em);
+		if (err)
+			em->audio_driver_style = NONE;
+		break;
 	case EM8300_SUBDEVICE_VIDEO:
 		em8300_require_ucode(em);
 		if (!em->ucodeloaded)
@@ -297,13 +296,9 @@ static ssize_t em8300_io_write(struct file *file, const char *buf, size_t count,
 		return em8300_video_write(em, buf, count, ppos);
 		break;
 	case EM8300_SUBDEVICE_AUDIO:
-		if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
-		    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS)) {
-			em->nonblock[1] = ((file->f_flags&O_NONBLOCK) == O_NONBLOCK);
-			return em8300_audio_write(em, buf, count, ppos);
-			break;
-		} else
-			return -ENODEV;
+		em->nonblock[1] = ((file->f_flags&O_NONBLOCK) == O_NONBLOCK);
+		return em8300_audio_write(em, buf, count, ppos);
+		break;
 	case EM8300_SUBDEVICE_SUBPICTURE:
 		em->nonblock[3] = ((file->f_flags&O_NONBLOCK) == O_NONBLOCK);
 		return em8300_spu_write(em, buf, count, ppos);
@@ -407,17 +402,14 @@ static unsigned int em8300_poll(struct file *file, struct poll_table_struct *wai
 
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_AUDIO:
-		if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
-		    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS)) {
-			poll_wait(file, &em->mafifo->wait, wait);
-			if (file->f_mode & FMODE_WRITE) {
-				if (em8300_fifo_freeslots(em->mafifo)) {
-				  pr_debug("em8300-%d: Poll audio - Free slots: %d\n", em->card_nr, em8300_fifo_freeslots(em->mafifo));
-					mask |= POLLOUT | POLLWRNORM;
-				}
+		poll_wait(file, &em->mafifo->wait, wait);
+		if (file->f_mode & FMODE_WRITE) {
+			if (em8300_fifo_freeslots(em->mafifo)) {
+				pr_debug("em8300-%d: Poll audio - Free slots: %d\n", em->card_nr, em8300_fifo_freeslots(em->mafifo));
+				mask |= POLLOUT | POLLWRNORM;
 			}
-			break;
 		}
+		break;
 	case EM8300_SUBDEVICE_VIDEO:
 		poll_wait(file, &em->mvfifo->wait, wait);
 		if (file->f_mode & FMODE_WRITE) {
@@ -447,9 +439,8 @@ int em8300_io_release(struct inode *inode, struct file *filp)
 
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_AUDIO:
-		if ((audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSSLIKE)
-		    || (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS))
-			em8300_audio_release(em);
+		em8300_audio_release(em);
+		em->audio_driver_style = NONE;
 		break;
 	case EM8300_SUBDEVICE_VIDEO:
 		em8300_video_release(em);
@@ -516,15 +507,28 @@ static int em8300_dsp_open(struct inode *inode, struct file *filp)
 	if (card < 0 || card >= em8300_cards)
 		return -ENODEV;
 
-	if (em->inuse[EM8300_SUBDEVICE_AUDIO])
+	down(&em->audio_driver_style_lock);
+	if (em->audio_driver_style != NONE) {
+		up(&em->audio_driver_style_lock);
 		return -EBUSY;
+	}
+	em->audio_driver_style = OSS;
+	up(&em->audio_driver_style_lock);
+
+	if (em->inuse[EM8300_SUBDEVICE_AUDIO]) {
+		printk("em8300-%d: em8300_dsp_open: em->audio_driver_style == NONE but em->inuse[EM8300_SUBDEVICE_AUDIO] !?\n", em->card_nr);
+		em->audio_driver_style = NONE;
+		return -EBUSY;
+	}
 
 	filp->private_data = em;
 
 	err = em8300_audio_open(em);
 
-	if (err)
+	if (err) {
+		em->audio_driver_style = NONE;
 		return err;
+	}
 
 	em->inuse[EM8300_SUBDEVICE_AUDIO]++;
 
@@ -561,6 +565,8 @@ int em8300_dsp_release(struct inode *inode, struct file *filp)
 	struct em8300_s *em = filp->private_data;
 
 	em8300_audio_release(em);
+
+	em->audio_driver_style = NONE;
 
 	em->inuse[EM8300_SUBDEVICE_AUDIO]--;
 
@@ -815,6 +821,9 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	init_waitqueue_head(&em->vbi_wait);
 	init_waitqueue_head(&em->sp_ptsfifo_wait);
 
+	em->audio_driver_style = NONE;
+	init_MUTEX(&em->audio_driver_style_lock);
+
 	result = request_irq(dev->irq, em8300_irq, IRQF_SHARED | IRQF_DISABLED, "em8300", (void *) em);
 
 	if (result == -EINVAL) {
@@ -827,14 +836,12 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	em8300_register_card(em);
 
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
-	if (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS) {
-		em->dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, dsp_num[em->card_nr]);
-		if (em->dsp_num < 0) {
-			printk(KERN_ERR "em8300-%d: cannot register oss audio device!\n", em->card_nr);
-		} else {
-			dsp_num_table[em->dsp_num >> 4 & 0x0f] = em8300_cards + 1;
-			pr_debug("em8300-%d: registered dsp %i for device %i\n", em->card_nr, em->dsp_num >> 4 & 0x0f, em8300_cards);
-		}
+	em->dsp_num = register_sound_dsp(&em8300_dsp_audio_fops, dsp_num[em->card_nr]);
+	if (em->dsp_num < 0) {
+		printk(KERN_ERR "em8300-%d: cannot register oss audio device!\n", em->card_nr);
+	} else {
+		dsp_num_table[em->dsp_num >> 4 & 0x0f] = em8300_cards + 1;
+		pr_debug("em8300-%d: registered dsp %i for device %i\n", em->card_nr, em->dsp_num >> 4 & 0x0f, em8300_cards);
 	}
 #endif
 
@@ -870,8 +877,7 @@ static void __devexit em8300_remove(struct pci_dev *pci)
 #endif
 
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
-		if (audio_driver_nr[em->card_nr] == AUDIO_DRIVER_OSS)
-			unregister_sound_dsp(em->dsp_num);
+		unregister_sound_dsp(em->dsp_num);
 #endif
 
 		em8300_unregister_card(em);

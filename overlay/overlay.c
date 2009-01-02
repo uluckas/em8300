@@ -279,7 +279,7 @@ int overlay_set_bcs(overlay_t *o, int brightness, int contrast, int saturation)
     bcs.contrast = contrast;
     bcs.saturation = saturation;
 
-    if (ioctl(o->dev, EM8300_IOCTL_GETBCS, &bcs)==-1)
+    if (ioctl(o->dev, EM8300_IOCTL_SETBCS, &bcs)==-1)
         {
             perror("Failed setting bcs");
             return -1;

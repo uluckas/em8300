@@ -524,7 +524,8 @@ static void em8300_alsa_enable_card(struct em8300_s *em)
 
 	strcpy(card->driver, "EM8300");
 	strcpy(card->shortname, "Sigma Designs' EM8300");
-	sprintf(card->longname, "%s", card->shortname);
+	sprintf(card->longname, "%s at %#lx irq %d",
+		card->shortname, (unsigned long int)em->mem, em->dev->irq);
 
 	if ((err = snd_card_register(card)) < 0) {
 		snd_card_free(card);

@@ -100,6 +100,11 @@ static inline void i2c_set_adapdata(struct i2c_adapter *dev, void *data)
 })
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
+#define pr_warning(fmt, arg...) \
+  printk(KERN_WARNING fmt, ##arg)
+#endif
+
 #ifdef _LINUX_WAIT_H
 
 /* Macros backported from linux-2.6/include/linux/wait.h */

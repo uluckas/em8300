@@ -22,6 +22,8 @@
 #include <linux/em8300.h>
 #include <linux/module.h>
 #include <linux/string.h>
+#include <linux/kernel.h>
+#include "em8300_compat24.h"
 
 int use_bt865[EM8300_MAX] = { [0 ... EM8300_MAX-1] = -1 };
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,10)
@@ -112,6 +114,7 @@ MODULE_PARM(audio_driver, "1-" __MODULE_STRING(EM8300_MAX) "s");
 #else
 static int param_set_audio_driver_t(const char *val, struct kernel_param *kp)
 {
+	pr_warning("em8300: %s: deprecated module parameter: all audio interfaces are now enabled\n", kp->name);
 	if (val) {
 		int i;
 		for (i = 0; i < AUDIO_DRIVER_MAX; i++)
@@ -132,7 +135,7 @@ static int param_get_audio_driver_t(char *buffer, struct kernel_param *kp)
 
 module_param_array_named(audio_driver, audio_driver_nr, audio_driver_t, NULL, 0444);
 #endif
-MODULE_PARM_DESC(audio_driver, "The audio driver to use (none, osslike, oss, or alsa).");
+MODULE_PARM_DESC(audio_driver, "[DEPRECATED] The audio driver to use (none, osslike, oss, or alsa).");
 
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
 int dsp_num[EM8300_MAX] = { [0 ... EM8300_MAX-1] = -1 };
@@ -178,6 +181,7 @@ void em8300_params_init(void)
 	for (i = 0; i < EM8300_MAX; i++)
 		if ((audio_driver[i]) && (audio_driver[i][0])) {
 			int j;
+			pr_warning("em8300: audio_driver: deprecated module parameter: all audio interfaces are now enabled\n");
 			for (j = 0; j < AUDIO_DRIVER_MAX; j++)
 				if (strcmp(audio_driver[i], audio_driver_name[j]) == 0) {
 					audio_driver_nr[i] = j;

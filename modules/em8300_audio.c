@@ -631,10 +631,12 @@ ssize_t em8300_audio_write(struct em8300_s *em, const char *buf, size_t count, l
 
 int em8300_ioctl_setaudiomode(struct em8300_s *em, int mode)
 {
-	em8300_audio_flush(em);
+	if (em->audio_driver_style == OSS)
+		em8300_audio_flush(em);
 	set_audiomode(em, mode);
 	setup_mafifo(em);
-	mpegaudio_command(em, MACOMMAND_PLAY);
+	if (em->audio_driver_style == OSS)
+		mpegaudio_command(em, MACOMMAND_PLAY);
 	em->audio.enable_bits = PCM_ENABLE_OUTPUT;
 	return 0;
 }

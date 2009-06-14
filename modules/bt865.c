@@ -48,7 +48,6 @@
 
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
-#include <linux/video_encoder.h>
 
 #include "em8300_compat24.h"
 #include "bt865.h"

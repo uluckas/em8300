@@ -24,7 +24,7 @@
 #define _EM8300_COMPAT24_H_
 
 /* Interrupt handler backwards compatibility stuff */
-#ifndef IRQ_NONE
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0) && !defined(IRQ_NONE)
 #define IRQ_NONE
 #define IRQ_HANDLED
 typedef void irqreturn_t;

@@ -198,8 +198,9 @@ void em8300_require_ucode(struct em8300_s *em)
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,0)
 		if (request_firmware(&fw_entry, "em8300.bin", &em->dev->dev) != 0) {
-			printk(KERN_ALERT "%s: firmware %s is missing, cannot start.\n",
-			       em->dev->dev.bus_id, "em8300.bin");
+			dev_err(&em->dev->dev,
+				"firmware %s is missing, cannot start.\n",
+				"em8300.bin");
 			return;
 		}
 #else

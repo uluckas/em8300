@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([EM8300], [0.17.3])
+AC_INIT([EM8300], [0.17.3-hg])
 AC_CONFIG_SRCDIR([em8300setup/em8300setup.c])
 AC_PREREQ(2.50)
 AC_CONFIG_AUX_DIR(autotools)

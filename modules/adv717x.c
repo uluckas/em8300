@@ -183,9 +183,9 @@ MODULE_PARM_DESC(output_mode, "Specifies the output mode to use for the ADV717x 
 #define ADV7170_REG_PCR3	0x15
 #define ADV7170_REG_TTXRQ_CTRL	0x19
 
-static int adv717x_attach_adapter(struct i2c_adapter *adapter);
-int adv717x_detach_client(struct i2c_client *client);
-int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg);
+static int adv717x_probe(struct i2c_client *client, const struct i2c_device_id *id);
+static int adv717x_remove(struct i2c_client *client);
+static int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg);
 
 static const mode_info_t mode_info[] = {
 	[ MODE_COMPOSITE_SVIDEO ] =		{ "comp+svideo" , { 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
@@ -233,8 +233,8 @@ static struct i2c_driver adv717x_driver = {
 	.flags =		I2C_DF_NOTIFY,
 #endif
 	.id =			I2C_DRIVERID_ADV717X,
-	.attach_adapter =	&adv717x_attach_adapter,
-	.detach_client =	&adv717x_detach_client,
+	.probe =		&adv717x_probe,
+	.remove =		&adv717x_remove,
 	.command =		&adv717x_command
 };
 
@@ -668,71 +668,53 @@ static int adv7175a_setup(struct i2c_client *client)
 	return 0;
 }
 
-static int adv717x_detect(struct i2c_adapter *adapter, int address)
+static int adv717x_probe(struct i2c_client *client,
+			 const struct i2c_device_id *id)
 {
 	struct adv717x_data_s *data;
-	struct i2c_client *new_client;
-	int reg, result;
+	int result;
 	int err = 0;
 
-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA)) {
+/*
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA)) {
 		return 0;
 	}
+*/
 
-	if (!(new_client = kmalloc(sizeof(struct i2c_client) + sizeof(struct adv717x_data_s), GFP_KERNEL))) {
+	if (!(data = kmalloc(sizeof(struct adv717x_data_s), GFP_KERNEL))) {
 		return -ENOMEM;
 	}
-	memset(new_client, 0, sizeof(struct i2c_client) + sizeof(struct adv717x_data_s));
-	data = (struct adv717x_data_s *) (((struct i2c_client *) new_client) + 1);
-	new_client->addr = address;
-	new_client->adapter = adapter;
-	new_client->driver = &adv717x_driver;
-	new_client->flags = 0;
+	memset(data, 0, sizeof(struct adv717x_data_s));
 
-	i2c_set_clientdata(new_client, data);
-
-	/* Registers up to 0x24 are implemented on ADV7170/ADV7175A chips. */
-	for (reg = 0; reg <= 0x24; reg++) {
-		result = i2c_smbus_read_byte_data(new_client, reg);
-		if (result < 0)
-			goto cleanup;
-	}
-
-	/* Registers 0x30 and above are not implemented on ADV7170/ADV7175A chips. */
-	for (reg = 0x30; reg < 0x100; reg++) {
-		result = i2c_smbus_read_byte_data(new_client, reg);
-		if (result >= 0)
-			goto cleanup;
-	}
+	i2c_set_clientdata(client, data);
 
 	/* Registers 0x25 to 0x2f are implemented on ADV7170 but not on ADV7175A chips */
-	result = i2c_smbus_read_byte_data(new_client, 0x25);
+	result = i2c_smbus_read_byte_data(client, 0x25);
 	data->chiptype = (result < 0)?CHIP_ADV7175A:CHIP_ADV7170;
-	for (reg = 0x26; reg <= 0x2f; reg++) {
-		result = i2c_smbus_read_byte_data(new_client, reg);
-		if (data->chiptype != ((result < 0)?CHIP_ADV7175A:CHIP_ADV7170))
-			goto cleanup;
-	}
 
 	switch (data->chiptype) {
 	case CHIP_ADV7175A:
-		result = i2c_smbus_read_byte_data(new_client, ADV7175_REG_MR3);
-		if (result < 0)
+		result = i2c_smbus_read_byte_data(client, ADV7175_REG_MR3);
+		if (result < 0) {
+			err = -ENODEV;
 			goto cleanup;
+		}
 		data->chiprev = result & 0x1;
-		strcpy(new_client->name, "ADV7175A chip");
-		printk(KERN_NOTICE "adv717x.o: ADV7175A rev. %d chip detected\n", data->chiprev);
-		if ((err = adv7175a_setup(new_client)))
+		strcpy(client->name, "ADV7175A chip");
+		printk(KERN_NOTICE "adv717x.o: ADV7175A rev. %d chip probed\n", data->chiprev);
+		if ((err = adv7175a_setup(client)))
 			goto cleanup;
 		break;
 	case CHIP_ADV7170:
-		result = i2c_smbus_read_byte_data(new_client, ADV7170_REG_MR3);
-		if (result < 0)
+		result = i2c_smbus_read_byte_data(client, ADV7170_REG_MR3);
+		if (result < 0) {
+			err = -ENODEV;
 			goto cleanup;
+		}
 		data->chiprev = result & 0x3;
-		strcpy(new_client->name, "ADV7170 chip");
-		printk(KERN_NOTICE "adv717x.o: ADV7170 rev. %d chip detected\n", data->chiprev);
-		if ((err = adv7170_setup(new_client)))
+		strcpy(client->name, "ADV7170 chip");
+		printk(KERN_NOTICE "adv717x.o: ADV7170 rev. %d chip probed\n", data->chiprev);
+		if ((err = adv7170_setup(client)))
 			goto cleanup;
 		break;
 	default:
@@ -740,48 +722,21 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 		goto cleanup;
 	}
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,12)
-	new_client->id = adv717x_id++;
-#endif
-
-	/*
-	if (strncmp(adapter->name, "EM8300", 6) == 0)
-		adv717x_em8300_setup(new_client);
-	*/
-
-	if ((err = i2c_attach_client(new_client)))
-		goto cleanup;
-
-	adv717x_update(new_client);
+	adv717x_update(client);
 
 	EM8300_MOD_INC_USE_COUNT;
 
 	return 0;
 
  cleanup:
-	kfree(new_client);
+	kfree(data);
 
 	return err;
 }
 
-static int adv717x_attach_adapter(struct i2c_adapter *adapter)
+static int adv717x_remove(struct i2c_client *client)
 {
-	adv717x_detect(adapter, 0x6a);
-	adv717x_detect(adapter, 0x7a);
-	adv717x_detect(adapter, 0xa);
-	return 0;
-}
-
-
-int adv717x_detach_client(struct i2c_client *client)
-{
-	int err;
 	struct adv717x_data_s *data = i2c_get_clientdata(client);
-
-	if ((err = i2c_detach_client(client))) {
-		printk(KERN_ERR "adv717x.o: Client deregistration failed, client not detached.\n");
-		return err;
-	}
 
 	EM8300_MOD_DEC_USE_COUNT;
 
@@ -791,7 +746,7 @@ int adv717x_detach_client(struct i2c_client *client)
 	return 0;
 }
 
-int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
+static int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg)
 {
 	int ret = 0;
 	struct adv717x_data_s *data = i2c_get_clientdata(client);

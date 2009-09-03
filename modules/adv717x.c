@@ -2,7 +2,7 @@
    ADV7175A - Analog Devices ADV7175A video encoder driver version 0.0.3
 
    Copyright (C) 2000 Henrik Johannson <henrikjo@post.utfors.se>
-   Copyright (C) 2007 Nicolas Boullis <nboullis@debian.org>
+   Copyright (C) 2007, 2009 Nicolas Boullis <nboullis@debian.org>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -209,6 +209,7 @@ struct mode_config_s {
 
 struct adv717x_data_s {
 	int chiptype;
+	int chiprev;
 	int mode;
 	int enableoutput;
 
@@ -671,8 +672,8 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 {
 	struct adv717x_data_s *data;
 	struct i2c_client *new_client;
-	int mr0, mr1;
-	int err;
+	int reg, result;
+	int err = 0;
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA)) {
 		return 0;
@@ -690,53 +691,77 @@ static int adv717x_detect(struct i2c_adapter *adapter, int address)
 
 	i2c_set_clientdata(new_client, data);
 
-	i2c_smbus_write_byte_data(new_client, ADV717X_REG_MR1, 0x55);
-	mr1=i2c_smbus_read_byte_data(new_client, ADV717X_REG_MR1);
+	/* Registers up to 0x24 are implemented on ADV7170/ADV7175A chips. */
+	for (reg = 0; reg <= 0x24; reg++) {
+		result = i2c_smbus_read_byte_data(new_client, reg);
+		if (result < 0)
+			goto cleanup;
+	}
 
-	if (mr1 == 0x55) {
-		mr0 = i2c_smbus_read_byte_data(new_client, ADV717X_REG_MR0);
+	/* Registers 0x30 and above are not implemented on ADV7170/ADV7175A chips. */
+	for (reg = 0x30; reg < 0x100; reg++) {
+		result = i2c_smbus_read_byte_data(new_client, reg);
+		if (result >= 0)
+			goto cleanup;
+	}
 
-		if (mr0 & 0x20) {
-			strcpy(new_client->name, "ADV7175A chip");
-			data->chiptype = CHIP_ADV7175A;
-			printk(KERN_NOTICE "adv717x.o: ADV7175A chip detected\n");
-			if ((err = adv7175a_setup(new_client))) {
-				kfree(new_client);
-				return err;
-			}
-		} else {
-			strcpy(new_client->name, "ADV7170 chip");
-			data->chiptype = CHIP_ADV7170;
-			printk(KERN_NOTICE "adv717x.o: ADV7170 chip detected\n");
-			if ((err = adv7170_setup(new_client))) {
-				kfree(new_client);
-				return err;
-			}
-		}
+	/* Registers 0x25 to 0x2f are implemented on ADV7170 but not on ADV7175A chips */
+	result = i2c_smbus_read_byte_data(new_client, 0x25);
+	data->chiptype = (result < 0)?CHIP_ADV7175A:CHIP_ADV7170;
+	for (reg = 0x26; reg <= 0x2f; reg++) {
+		result = i2c_smbus_read_byte_data(new_client, reg);
+		if (data->chiptype != ((result < 0)?CHIP_ADV7175A:CHIP_ADV7170))
+			goto cleanup;
+	}
+
+	switch (data->chiptype) {
+	case CHIP_ADV7175A:
+		result = i2c_smbus_read_byte_data(new_client, ADV7175_REG_MR3);
+		if (result < 0)
+			goto cleanup;
+		data->chiprev = result & 0x1;
+		strcpy(new_client->name, "ADV7175A chip");
+		printk(KERN_NOTICE "adv717x.o: ADV7175A rev. %d chip detected\n", data->chiprev);
+		if ((err = adv7175a_setup(new_client)))
+			goto cleanup;
+		break;
+	case CHIP_ADV7170:
+		result = i2c_smbus_read_byte_data(new_client, ADV7170_REG_MR3);
+		if (result < 0)
+			goto cleanup;
+		data->chiprev = result & 0x3;
+		strcpy(new_client->name, "ADV7170 chip");
+		printk(KERN_NOTICE "adv717x.o: ADV7170 rev. %d chip detected\n", data->chiprev);
+		if ((err = adv7170_setup(new_client)))
+			goto cleanup;
+		break;
+	default:
+		printk(KERN_ERR "adv717x.o: WTF!?\n");
+		goto cleanup;
+	}
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,12)
-		new_client->id = adv717x_id++;
+	new_client->id = adv717x_id++;
 #endif
 
-		/*
-		if (strncmp(adapter->name, "EM8300", 6) == 0)
-			adv717x_em8300_setup(new_client);
-		*/
+	/*
+	if (strncmp(adapter->name, "EM8300", 6) == 0)
+		adv717x_em8300_setup(new_client);
+	*/
 
-		if ((err = i2c_attach_client(new_client))) {
-			kfree(new_client);
-			return err;
-		}
+	if ((err = i2c_attach_client(new_client)))
+		goto cleanup;
 
-		adv717x_update(new_client);
+	adv717x_update(new_client);
 
-		EM8300_MOD_INC_USE_COUNT;
-
-		return 0;
-	}
-	kfree(new_client);
+	EM8300_MOD_INC_USE_COUNT;
 
 	return 0;
+
+ cleanup:
+	kfree(new_client);
+
+	return err;
 }
 
 static int adv717x_attach_adapter(struct i2c_adapter *adapter)

@@ -748,7 +748,7 @@ static int adv717x_remove(struct i2c_client *client)
 	EM8300_MOD_DEC_USE_COUNT;
 
 	kfree(data->conf);
-	kfree(client);
+	kfree(data);
 
 	return 0;
 }

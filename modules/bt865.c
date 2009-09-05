@@ -92,9 +92,9 @@ module_param_array_named(output_mode, output_mode_nr, output_mode_t, NULL, 0444)
 #endif
 MODULE_PARM_DESC(output_mode, "Specifies the output mode to use for the BT865 video encoder. See the README-modoptions file for the list of mode names to use. Default is SVideo + composite (\"comp+svideo\").");
 
-static int bt865_attach_adapter(struct i2c_adapter *adapter);
-int bt865_detach_client(struct i2c_client *client);
-int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg);
+static int bt865_probe(struct i2c_client *client, const struct i2c_device_id *id);
+static int bt865_remove(struct i2c_client *client);
+static int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg);
 static int bt865_setup(struct i2c_client *client);
 
 static const mode_info_t mode_info[] = {
@@ -113,6 +113,13 @@ struct bt865_data_s {
 	int configlen;
 };
 
+static struct i2c_device_id bt865_idtable[] = {
+	{ "bt865", 0 },
+	{ }
+};
+
+MODULE_DEVICE_TABLE(i2c, bt865_idtable);
+
 /* This is the driver that will be inserted */
 static struct i2c_driver bt865_driver = {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,16)
@@ -126,9 +133,9 @@ static struct i2c_driver bt865_driver = {
 	.name =			"bt865",
 	.flags =		I2C_DF_NOTIFY,
 #endif
-	.id =			I2C_DRIVERID_BT865,
-	.attach_adapter =	&bt865_attach_adapter,
-	.detach_client =	&bt865_detach_client,
+	.id_table =		bt865_idtable,
+	.probe =		&bt865_probe,
+	.remove =		&bt865_remove,
 	.command =		&bt865_command
 };
 
@@ -897,90 +904,51 @@ static int bt865_setup(struct i2c_client *client)
 	return 0;
 }
 
-static int bt865_detect(struct i2c_adapter *adapter, int address)
+static int bt865_probe(struct i2c_client *client,
+		       const struct i2c_device_id *id)
 {
 	struct bt865_data_s *data;
-	struct i2c_client *new_client;
-	int err, chk = 0;
+	int err = 0;
 
-	chk = i2c_check_functionality(adapter,
-			I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA);
-
-	if (!chk) {
+/*
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA)) {
 		return 0;
 	}
+*/
 
-	new_client = kmalloc(sizeof(struct i2c_client) + sizeof(struct bt865_data_s),
-			GFP_KERNEL);
-
-	if (!new_client) {
+	if (!(data = kmalloc(sizeof(struct bt865_data_s), GFP_KERNEL)))
 		return -ENOMEM;
-	}
-	memset(new_client, 0, sizeof(struct i2c_client) + sizeof(struct bt865_data_s));
-	data = (struct bt865_data_s *) (((struct i2c_client *) new_client) + 1);
-	new_client->addr = address;
-	new_client->adapter = adapter;
-	new_client->driver = &bt865_driver;
-	new_client->flags = 0;
+	memset(data, 0, sizeof(struct bt865_data_s));
 
-	i2c_set_clientdata(new_client, data);
+	i2c_set_clientdata(client, data);
 
-//	i2c_smbus_write_byte_data(new_client,0xa6, 0x80/*b1*/);
-//	the write is not needed
-//	from the left we have three bits identifying the chip
-//	which is a 4 (100) for the bt864 and a 5 (101) for the bt865
-//  followed by 5 bits for the version number. in this case 17 (1 0001)
-//	thus 1011 0001 (0xb1) is correct for the bt865a version 17
-	if (i2c_smbus_read_byte_data(new_client, 0) == 0xb1) {
-		strcpy(new_client->name, "BT865 chip");
-		printk(KERN_NOTICE "bt865.o: BT865 chip detected\n");
+	strcpy(client->name, "BT865 chip");
+	printk(KERN_NOTICE "bt865.o: BT865 chip detected\n");
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,12)
-		new_client->id = bt865_id++;
-#endif
+	if ((err = bt865_setup(client)))
+		goto cleanup;
 
-		if ((err = i2c_attach_client(new_client))) {
-			kfree(new_client);
-			return err;
-		}
+	EM8300_MOD_INC_USE_COUNT;
 
-		if (bt865_setup(new_client)) {
-			return -1;
-		}
-
-		EM8300_MOD_INC_USE_COUNT;
-
-		return 0;
-	}
-
-	kfree(new_client);
 	return 0;
+
+ cleanup:
+	kfree(data);
+	return err;
 }
 
-static int bt865_attach_adapter(struct i2c_adapter *adapter)
+static int bt865_remove(struct i2c_client *client)
 {
-	bt865_detect(adapter, 0x45);
-	return 0;
-}
-
-
-int bt865_detach_client(struct i2c_client *client)
-{
-	int err;
-
-	if ((err = i2c_detach_client(client))) {
-		printk(KERN_ERR "bt865.o: Client deregistration failed, client not detached.\n");
-		return err;
-	}
+	struct bt865_data_s *data = i2c_get_clientdata(client);
 
 	EM8300_MOD_DEC_USE_COUNT;
 
-	kfree(client);
+	kfree(data);
 
 	return 0;
 }
 
-int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg)
+static int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg)
 {
 	struct bt865_data_s *data = i2c_get_clientdata(client);
 

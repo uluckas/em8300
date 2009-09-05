@@ -360,6 +360,7 @@ struct em8300_s
 	/* I2C clients */
 	int encoder_type;
 	struct i2c_client *encoder;
+	struct i2c_client *eeprom;
 	
 	/* Microcode registers */
 	unsigned ucode_regs[MAX_UCODE_REGISTER];

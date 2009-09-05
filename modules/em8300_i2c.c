@@ -116,23 +116,6 @@ static const struct i2c_algo_bit_data em8300_i2c_algo_template = {
 	.timeout = 100,
 };
 
-static int em8300_i2c_lock_client(struct i2c_client *client)
-{
-	struct em8300_s *em = i2c_get_adapdata(client->adapter);
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54)
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,16)
-	if (!try_module_get(client->driver->driver.owner)) {
-#else
-	if (!try_module_get(client->driver->owner)) {
-#endif
-		printk(KERN_ERR "em8300-%d: i2c: Unable to lock client module\n", em->card_nr);
-		return -ENODEV;
-	}
-#endif
-	return 0;
-}
-
 static void em8300_adv717x_setup(struct em8300_s *em,
 				 struct i2c_client *client)
 {
@@ -193,93 +176,6 @@ static void em8300_adv717x_setup(struct em8300_s *em,
 				&param);
 }
 
-#define EM8300_I2C_MAKE_LINK(link_name) \
-	do { \
-		if (sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, link_name)) \
-			printk(KERN_WARNING "em8300-%d: i2c: unable to create the %s link\n", em->card_nr, link_name); \
-	} while (0)
-
-static int em8300_i2c_reg(struct i2c_client *client)
-{
-	struct em8300_s *em = i2c_get_adapdata(client->adapter);
-
-	switch (client->driver->id) {
-	case I2C_DRIVERID_ADV717X:
-		if (em8300_i2c_lock_client(client)) {
-			return -ENODEV;
-		}
-		if (!strncmp(client->name, "ADV7175", 7)) {
-			em->encoder_type = ENCODER_ADV7175;
-		}
-		if (!strncmp(client->name, "ADV7170", 7)) {
-			em->encoder_type = ENCODER_ADV7170;
-		}
-		em->encoder = client;
-		EM8300_I2C_MAKE_LINK("encoder");
-		em8300_adv717x_setup(em, client);
-		break;
-	case I2C_DRIVERID_BT865:
-		if (em8300_i2c_lock_client(client)) {
-			return -ENODEV;
-		}
-		em->encoder_type = ENCODER_BT865;
-		em->encoder = client;
-		EM8300_I2C_MAKE_LINK("encoder");
-		break;
-#ifdef I2C_DRIVERID_EEPROM
-	case I2C_DRIVERID_EEPROM:
-		EM8300_I2C_MAKE_LINK("eeprom");
-		break;
-#endif
-	default:
-#ifndef I2C_DRIVERID_EEPROM
-		if ((client->addr == 0x50) &&
-		    (strcmp(client->name, "eeprom") == 0)) {
-			EM8300_I2C_MAKE_LINK("eeprom");
-			break;
-		}
-#endif
-		printk(KERN_ERR "em8300-%d: i2c: unknown client id\n", em->card_nr);
-		return -ENODEV;
-	}
-
-	return 0;
-}
-
-static int em8300_i2c_unreg(struct i2c_client *client)
-{
-	struct em8300_s *em = i2c_get_adapdata(client->adapter);
-
-	switch (client->driver->id) {
-	case I2C_DRIVERID_ADV717X:
-	case I2C_DRIVERID_BT865:
-		sysfs_remove_link(&em->dev->dev.kobj, "encoder");
-		em->encoder = NULL;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54)
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,16)
-		module_put(client->driver->driver.owner);
-#else
-		module_put(client->driver->owner);
-#endif
-#endif
-		break;
-#ifdef I2C_DRIVERID_EEPROM
-	case I2C_DRIVERID_EEPROM:
-		sysfs_remove_link(&em->dev->dev.kobj, "eeprom");
-		break;
-#else
-	default:
-		if ((client->addr == 0x50) &&
-		    (strcmp(client->name, "eeprom") == 0)) {
-			sysfs_remove_link(&em->dev->dev.kobj, "eeprom");
-			break;
-		}
-#endif
-	}
-
-	return 0;
-}
-
 /* ----------------------------------------------------------------------- */
 /* I2C functions							   */
 /* ----------------------------------------------------------------------- */
@@ -327,16 +223,27 @@ int em8300_i2c_init1(struct em8300_s *em)
 	em->i2c_ops_2.id = I2C_HW_B_EM8300;
 	em->i2c_ops_2.algo = NULL;
 	em->i2c_ops_2.algo_data = &em->i2c_data_2;
-	em->i2c_ops_2.client_register = em8300_i2c_reg;
-	em->i2c_ops_2.client_unregister = em8300_i2c_unreg;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
 	em->i2c_ops_2.dev.parent = &em->dev->dev;
 #endif
 
 	i2c_set_adapdata(&em->i2c_ops_2, (void *)em);
 
-	ret = i2c_bit_add_bus(&em->i2c_ops_2);
-	return ret;
+	if ((ret = i2c_bit_add_bus(&em->i2c_ops_2)))
+		return ret;
+
+	{
+		struct i2c_board_info i2c_info;
+		const unsigned short eeprom_addr[] = { 0x50, I2C_CLIENT_END };
+		memset(&i2c_info, 0, sizeof(struct i2c_board_info));
+		strlcpy(i2c_info.type, "eeprom", I2C_NAME_SIZE);
+		em->eeprom = i2c_new_probed_device(&em->i2c_ops_2, &i2c_info, eeprom_addr);
+		if (em->eeprom) {
+			if (sysfs_create_link(&em->dev->dev.kobj, &em->eeprom->dev.kobj, "eeprom"))
+				printk(KERN_WARNING "em8300-%d: i2c: unable to create the eeprom link\n", em->card_nr);
+		}
+	}
+	return 0;
 }
 
 int em8300_i2c_init2(struct em8300_s *em)
@@ -361,20 +268,61 @@ int em8300_i2c_init2(struct em8300_s *em)
 	em->i2c_ops_1.id = I2C_HW_B_EM8300;
 	em->i2c_ops_1.algo = NULL;
 	em->i2c_ops_1.algo_data = &em->i2c_data_1;
-	em->i2c_ops_1.client_register = em8300_i2c_reg;
-	em->i2c_ops_1.client_unregister = em8300_i2c_unreg;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
 	em->i2c_ops_1.dev.parent = &em->dev->dev;
 #endif
 
 	i2c_set_adapdata(&em->i2c_ops_1, (void *)em);
 
-	ret = i2c_bit_add_bus(&em->i2c_ops_1);
-	return ret;
+	if ((ret = i2c_bit_add_bus(&em->i2c_ops_1)))
+		return ret;
+
+	{
+		struct i2c_board_info i2c_info;
+		const unsigned short adv717x_addr[] = { 0x6a, I2C_CLIENT_END };
+		const unsigned short bt865_addr[] = { 0x45, I2C_CLIENT_END };
+		memset(&i2c_info, 0, sizeof(struct i2c_board_info));
+		strlcpy(i2c_info.type, "adv717x", I2C_NAME_SIZE);
+		em->encoder = i2c_new_probed_device(&em->i2c_ops_1, &i2c_info, adv717x_addr);
+		if (em->encoder) {
+			if (!strncmp(em->encoder->name, "ADV7175", 7)) {
+				em->encoder_type = ENCODER_ADV7175;
+			}
+			if (!strncmp(em->encoder->name, "ADV7170", 7)) {
+				em->encoder_type = ENCODER_ADV7170;
+			}
+			em8300_adv717x_setup(em, em->encoder);
+			goto found;
+		}
+		memset(&i2c_info, 0, sizeof(struct i2c_board_info));
+		strlcpy(i2c_info.type, "bt865", I2C_NAME_SIZE);
+		em->encoder = i2c_new_probed_device(&em->i2c_ops_1, &i2c_info, bt865_addr);
+		if (em->encoder) {
+			em->encoder_type = ENCODER_BT865;
+			goto found;
+		}
+		printk(KERN_WARNING "em8300-%d: video encoder chip not found\n", em->card_nr);
+		return 0;
+
+	found:
+		if (sysfs_create_link(&em->dev->dev.kobj, &em->encoder->dev.kobj, "encoder"))
+			printk(KERN_WARNING "em8300-%d: i2c: unable to create the encoder link\n", em->card_nr);
+	}
+	return 0;
 }
 
 void em8300_i2c_exit(struct em8300_s *em)
 {
+	if (em->eeprom) {
+		sysfs_remove_link(&em->dev->dev.kobj, "eeprom");
+		i2c_unregister_device(em->eeprom);
+		em->eeprom = NULL;
+	}
+	if (em->encoder) {
+		sysfs_remove_link(&em->dev->dev.kobj, "encoder");
+		i2c_unregister_device(em->encoder);
+		em->encoder = NULL;
+	}
 	/* unregister i2c_bus */
 	kfree(em->i2c_data_1.data);
 	kfree(em->i2c_data_2.data);

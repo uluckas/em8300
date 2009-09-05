@@ -4,7 +4,7 @@
  * Copyright (C) 2000-2001 Henrik Johansson <lhj@users.sourceforge.net>
  *           (C) 2001 Rick Haines <rick@kuroyi.net>
  *           (C) 2004 Hakon Skjelten <skjelten@pvv.org>
- *           (C) 2003-2008 Nicolas Boullis <nboullis@debian.org>
+ *           (C) 2003-2009 Nicolas Boullis <nboullis@debian.org>
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License

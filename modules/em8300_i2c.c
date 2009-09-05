@@ -133,6 +133,66 @@ static int em8300_i2c_lock_client(struct i2c_client *client)
 	return 0;
 }
 
+static void em8300_adv717x_setup(struct em8300_s *em,
+				 struct i2c_client *client)
+{
+	struct getconfig_s data;
+	struct setparam_s param;
+
+	client->driver->command(client, ENCODER_CMD_ENABLEOUTPUT, (void *)0);
+
+	data.card_nr = em->card_nr;
+	if (client->driver->command(client, ENCODER_CMD_GETCONFIG,
+				    (void *) &data) != 0) {
+		printk("em8300-%d: ENCODER_CMD_GETCONFIG failed\n",
+		       em->card_nr);
+		return;
+	}
+
+	if (data.config[0] >= 0)
+		em->config.adv717x_model.pixelport_16bit =
+			data.config[0];
+	if (data.config[1] >= 0)
+		em->config.adv717x_model.pixelport_other_pal =
+			data.config[1];
+	if (data.config[2] >= 0)
+		em->config.adv717x_model.pixeldata_adjust_ntsc =
+			data.config[2];
+	if (data.config[3] >= 0)
+		em->config.adv717x_model.pixeldata_adjust_pal =
+			data.config[3];
+
+	param.param = ENCODER_PARAM_COLORBARS;
+	param.modes = (uint32_t)-1;
+	param.val = data.config[4] ? 1 : 0;
+	client->driver->command(client, ENCODER_CMD_SETPARAM,
+				&param);
+	param.param = ENCODER_PARAM_OUTPUTMODE;
+	param.val = data.config[5];
+	client->driver->command(client, ENCODER_CMD_SETPARAM,
+				&param);
+	param.param = ENCODER_PARAM_PPORT;
+	param.modes = NTSC_MODES_MASK;
+	param.val = em->config.adv717x_model.pixelport_16bit?1:0;
+	client->driver->command(client, ENCODER_CMD_SETPARAM,
+				&param);
+	param.modes = PAL_MODES_MASK;
+	param.val = em->config.adv717x_model.pixelport_other_pal
+		? (em->config.adv717x_model.pixelport_16bit ? 0 : 1)
+		: (em->config.adv717x_model.pixelport_16bit ? 1 : 0);
+	client->driver->command(client, ENCODER_CMD_SETPARAM,
+				&param);
+	param.param = ENCODER_PARAM_PDADJ;
+	param.modes = NTSC_MODES_MASK;
+	param.val = em->config.adv717x_model.pixeldata_adjust_ntsc;
+	client->driver->command(client, ENCODER_CMD_SETPARAM,
+				&param);
+	param.modes = PAL_MODES_MASK;
+	param.val = em->config.adv717x_model.pixeldata_adjust_pal;
+	client->driver->command(client, ENCODER_CMD_SETPARAM,
+				&param);
+}
+
 #define EM8300_I2C_MAKE_LINK(link_name) \
 	do { \
 		if (sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, link_name)) \
@@ -156,67 +216,7 @@ static int em8300_i2c_reg(struct i2c_client *client)
 		}
 		em->encoder = client;
 		EM8300_I2C_MAKE_LINK("encoder");
-		client->driver->command(client, ENCODER_CMD_ENABLEOUTPUT, (void *)0);
-		do {
-			struct getconfig_s data;
-			struct setparam_s param;
-			data.card_nr = em->card_nr;
-			if (client->driver->command(client,
-						    ENCODER_CMD_GETCONFIG,
-						    (void *) &data) != 0) {
-				printk("em8300-%d: ENCODER_CMD_GETCONFIG failed\n", em->card_nr);
-				break;
-			}
-
-			if (data.config[0] >= 0)
-				em->config.adv717x_model.pixelport_16bit =
-					data.config[0];
-			if (data.config[1] >= 0)
-				em->config.adv717x_model.pixelport_other_pal =
-					data.config[1];
-			if (data.config[2] >= 0)
-				em->config.adv717x_model.pixeldata_adjust_ntsc =
-					data.config[2];
-			if (data.config[3] >= 0)
-				em->config.adv717x_model.pixeldata_adjust_pal =
-					data.config[3];
-
-			param.param = ENCODER_PARAM_COLORBARS;
-			param.modes = (uint32_t)-1;
-			param.val = data.config[4] ? 1 : 0;
-			client->driver->command(client,
-						ENCODER_CMD_SETPARAM,
-						&param);
-			param.param = ENCODER_PARAM_OUTPUTMODE;
-			param.val = data.config[5];
-			client->driver->command(client,
-						ENCODER_CMD_SETPARAM,
-						&param);
-			param.param = ENCODER_PARAM_PPORT;
-			param.modes = NTSC_MODES_MASK;
-			param.val = em->config.adv717x_model.pixelport_16bit?1:0;
-			client->driver->command(client,
-						ENCODER_CMD_SETPARAM,
-						&param);
-			param.modes = PAL_MODES_MASK;
-			param.val = em->config.adv717x_model.pixelport_other_pal
-				? (em->config.adv717x_model.pixelport_16bit ? 0 : 1)
-				: (em->config.adv717x_model.pixelport_16bit ? 1 : 0);
-			client->driver->command(client,
-						ENCODER_CMD_SETPARAM,
-						&param);
-			param.param = ENCODER_PARAM_PDADJ;
-			param.modes = NTSC_MODES_MASK;
-			param.val = em->config.adv717x_model.pixeldata_adjust_ntsc;
-			client->driver->command(client,
-						ENCODER_CMD_SETPARAM,
-						&param);
-			param.modes = PAL_MODES_MASK;
-			param.val = em->config.adv717x_model.pixeldata_adjust_pal;
-			client->driver->command(client,
-						ENCODER_CMD_SETPARAM,
-						&param);
-		} while (0);
+		em8300_adv717x_setup(em, client);
 		break;
 	case I2C_DRIVERID_BT865:
 		if (em8300_i2c_lock_client(client)) {

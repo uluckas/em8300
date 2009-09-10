@@ -54,7 +54,7 @@
 #define snd_device_ops_t struct snd_device_ops
 #endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,28)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,30)
 #define snd_card_create(idx, xid, module, extra_size, card_ret)		\
 ({									\
 	*(card_ret) = snd_card_new(idx, xid, module, extra_size);	\

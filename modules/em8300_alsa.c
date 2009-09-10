@@ -22,7 +22,9 @@
 
 #if defined(CONFIG_SND) || defined(CONFIG_SND_MODULE)
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,25)
 #include <sound/driver.h>
+#endif
 #include <sound/core.h>
 #include <sound/pcm.h>
 #include <sound/control.h>

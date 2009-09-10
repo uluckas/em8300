@@ -52,6 +52,14 @@
 #define snd_device_ops_t struct snd_device_ops
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,28)
+#define snd_card_create(idx, xid, module, extra_size, card_ret)		\
+({									\
+	*(card_ret) = snd_card_new(idx, xid, module, extra_size);	\
+	*(card_ret) == NULL?-1:0;					\
+})
+#endif
+
 typedef struct snd_em8300_pcm_indirect {
 	unsigned int hw_buffer_size;    /* Byte size of hardware buffer */
 	unsigned int hw_queue_size;     /* Max queue size of hw buffer (0 = buffer size) */
@@ -501,8 +509,7 @@ static void em8300_alsa_enable_card(struct em8300_s *em)
 
 	em->alsa_card = NULL;
 
-	card = snd_card_new(alsa_index[em->card_nr], alsa_id[em->card_nr], THIS_MODULE, 0);
-	if (card == NULL)
+	if ((err = snd_card_create(alsa_index[em->card_nr], alsa_id[em->card_nr], THIS_MODULE, 0, &card)) < 0)
 		return;
 
 	if ((err = snd_em8300_create(card, em, &em8300_alsa)) < 0) {

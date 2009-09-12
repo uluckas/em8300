@@ -183,6 +183,10 @@ MODULE_PARM_DESC(output_mode, "Specifies the output mode to use for the ADV717x 
 #define ADV7170_REG_PCR3	0x15
 #define ADV7170_REG_TTXRQ_CTRL	0x19
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,26)
+#define adv717x_probe(client, id) adv717x_probe(client)
+#endif
+
 static int adv717x_probe(struct i2c_client *client, const struct i2c_device_id *id);
 static int adv717x_remove(struct i2c_client *client);
 static int adv717x_command(struct i2c_client *client, unsigned int cmd, void *arg);
@@ -219,12 +223,14 @@ struct adv717x_data_s {
 	struct mode_config_s *conf;
 };
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,26)
 static struct i2c_device_id adv717x_idtable[] = {
 	{ "adv717x", 0 },
 	{ }
 };
 
 MODULE_DEVICE_TABLE(i2c, adv717x_idtable);
+#endif
 
 /* This is the driver that will be inserted */
 static struct i2c_driver adv717x_driver = {
@@ -239,7 +245,9 @@ static struct i2c_driver adv717x_driver = {
 	.name =			"adv717x",
 	.flags =		I2C_DF_NOTIFY,
 #endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,26)
 	.id_table =		adv717x_idtable,
+#endif
 	.probe =		&adv717x_probe,
 	.remove =		&adv717x_remove,
 	.command =		&adv717x_command

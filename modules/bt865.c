@@ -92,6 +92,10 @@ module_param_array_named(output_mode, output_mode_nr, output_mode_t, NULL, 0444)
 #endif
 MODULE_PARM_DESC(output_mode, "Specifies the output mode to use for the BT865 video encoder. See the README-modoptions file for the list of mode names to use. Default is SVideo + composite (\"comp+svideo\").");
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,26)
+#define bt865_probe(client, id) bt865_probe(client)
+#endif
+
 static int bt865_probe(struct i2c_client *client, const struct i2c_device_id *id);
 static int bt865_remove(struct i2c_client *client);
 static int bt865_command(struct i2c_client *client, unsigned int cmd, void *arg);
@@ -113,12 +117,14 @@ struct bt865_data_s {
 	int configlen;
 };
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,26)
 static struct i2c_device_id bt865_idtable[] = {
 	{ "bt865", 0 },
 	{ }
 };
 
 MODULE_DEVICE_TABLE(i2c, bt865_idtable);
+#endif
 
 /* This is the driver that will be inserted */
 static struct i2c_driver bt865_driver = {
@@ -133,7 +139,9 @@ static struct i2c_driver bt865_driver = {
 	.name =			"bt865",
 	.flags =		I2C_DF_NOTIFY,
 #endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,26)
 	.id_table =		bt865_idtable,
+#endif
 	.probe =		&bt865_probe,
 	.remove =		&bt865_remove,
 	.command =		&bt865_command

@@ -235,8 +235,7 @@ int em8300_i2c_init1(struct em8300_s *em)
 	{
 		struct i2c_board_info i2c_info;
 		const unsigned short eeprom_addr[] = { 0x50, I2C_CLIENT_END };
-		memset(&i2c_info, 0, sizeof(struct i2c_board_info));
-		strlcpy(i2c_info.type, "eeprom", I2C_NAME_SIZE);
+		i2c_info = (struct i2c_board_info){ I2C_BOARD_INFO("eeprom", 0) };
 		em->eeprom = i2c_new_probed_device(&em->i2c_ops_2, &i2c_info, eeprom_addr);
 		if (em->eeprom) {
 			if (sysfs_create_link(&em->dev->dev.kobj, &em->eeprom->dev.kobj, "eeprom"))
@@ -281,8 +280,7 @@ int em8300_i2c_init2(struct em8300_s *em)
 		struct i2c_board_info i2c_info;
 		const unsigned short adv717x_addr[] = { 0x6a, I2C_CLIENT_END };
 		const unsigned short bt865_addr[] = { 0x45, I2C_CLIENT_END };
-		memset(&i2c_info, 0, sizeof(struct i2c_board_info));
-		strlcpy(i2c_info.type, "adv717x", I2C_NAME_SIZE);
+		i2c_info = (struct i2c_board_info){ I2C_BOARD_INFO("adv717x", 0) };
 		em->encoder = i2c_new_probed_device(&em->i2c_ops_1, &i2c_info, adv717x_addr);
 		if (em->encoder) {
 			if (!strncmp(em->encoder->name, "ADV7175", 7)) {
@@ -294,8 +292,7 @@ int em8300_i2c_init2(struct em8300_s *em)
 			em8300_adv717x_setup(em, em->encoder);
 			goto found;
 		}
-		memset(&i2c_info, 0, sizeof(struct i2c_board_info));
-		strlcpy(i2c_info.type, "bt865", I2C_NAME_SIZE);
+		i2c_info = (struct i2c_board_info){ I2C_BOARD_INFO("bt865", 0) };
 		em->encoder = i2c_new_probed_device(&em->i2c_ops_1, &i2c_info, bt865_addr);
 		if (em->encoder) {
 			em->encoder_type = ENCODER_BT865;

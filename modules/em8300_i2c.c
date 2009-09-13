@@ -176,6 +176,43 @@ static void em8300_adv717x_setup(struct em8300_s *em,
 				&param);
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,27)
+static int em8300_i2c_reg(struct i2c_client *client)
+{
+	struct em8300_s *em = i2c_get_adapdata(client->adapter);
+
+	switch (client->addr) {
+	case 0x50:
+		if (em->eeprom) {
+			printk(KERN_WARNING "em8300-%d: second eeprom found!?\n", em->card_nr);
+			return -ENODEV;
+		}
+		em->eeprom = client;
+		if (sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, "eeprom"))
+			printk(KERN_WARNING "em8300-%d: unable to create the eeprom link\n", em->card_nr);
+		break;
+	default:
+		printk(KERN_ERR "em8300-%d: unknown i2c chip found @0x%02x\n", em->card_nr, client->addr);
+		return -ENODEV;
+	}
+	return 0;
+}
+
+static int em8300_i2c_unreg(struct i2c_client *client)
+{
+	struct em8300_s *em = i2c_get_adapdata(client->adapter);
+
+	if (client == em->eeprom) {
+		em->eeprom = NULL;
+		sysfs_remove_link(&em->dev->dev.kobj, "eeprom");
+	}
+	else
+		printk(KERN_WARNING "em8300-%d: unknown i2c chip being removed\n", em->card_nr);
+	return 0;
+}
+#endif
+
+
 /* ----------------------------------------------------------------------- */
 /* I2C functions							   */
 /* ----------------------------------------------------------------------- */
@@ -223,6 +260,10 @@ int em8300_i2c_init1(struct em8300_s *em)
 	em->i2c_ops_2.id = I2C_HW_B_EM8300;
 	em->i2c_ops_2.algo = NULL;
 	em->i2c_ops_2.algo_data = &em->i2c_data_2;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,27)
+	em->i2c_ops_2.client_register = em8300_i2c_reg;
+	em->i2c_ops_2.client_unregister = em8300_i2c_unreg;
+#endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
 	em->i2c_ops_2.dev.parent = &em->dev->dev;
 #endif
@@ -232,6 +273,9 @@ int em8300_i2c_init1(struct em8300_s *em)
 	if ((ret = i2c_bit_add_bus(&em->i2c_ops_2)))
 		return ret;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,27)
+	request_module("eeprom");
+#else
 	{
 		struct i2c_board_info i2c_info;
 		const unsigned short eeprom_addr[] = { 0x50, I2C_CLIENT_END };
@@ -242,6 +286,7 @@ int em8300_i2c_init1(struct em8300_s *em)
 				printk(KERN_WARNING "em8300-%d: i2c: unable to create the eeprom link\n", em->card_nr);
 		}
 	}
+#endif
 	return 0;
 }
 
@@ -310,11 +355,13 @@ int em8300_i2c_init2(struct em8300_s *em)
 
 void em8300_i2c_exit(struct em8300_s *em)
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,27)
 	if (em->eeprom) {
 		sysfs_remove_link(&em->dev->dev.kobj, "eeprom");
 		i2c_unregister_device(em->eeprom);
 		em->eeprom = NULL;
 	}
+#endif
 	if (em->encoder) {
 		sysfs_remove_link(&em->dev->dev.kobj, "encoder");
 		i2c_unregister_device(em->encoder);

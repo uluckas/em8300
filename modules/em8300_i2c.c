@@ -191,6 +191,36 @@ static int em8300_i2c_reg(struct i2c_client *client)
 		if (sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, "eeprom"))
 			printk(KERN_WARNING "em8300-%d: unable to create the eeprom link\n", em->card_nr);
 		break;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
+	case 0x6a:
+		if (em->encoder) {
+			printk(KERN_WARNING "em8300-%d: second encoder found!?\n", em->card_nr);
+			return -ENODEV;
+		}
+		if (!strncmp(client->name, "ADV7175", 7))
+			em->encoder_type = ENCODER_ADV7175;
+		else if (!strncmp(client->name, "ADV7170", 7))
+			em->encoder_type = ENCODER_ADV7170;
+		else {
+			printk(KERN_WARNING "em8300-%d: unknown i2c chip found @0x6a\n", em->card_nr);
+			return -ENODEV;
+		}
+		em8300_adv717x_setup(em, client);
+		em->encoder = client;
+		if (sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, "encoder"))
+			printk(KERN_WARNING "em8300-%d: unable to create the encoder link\n", em->card_nr);
+		break;
+	case 0x45:
+		if (em->encoder) {
+			printk(KERN_WARNING "em8300-%d: second encoder found!?\n", em->card_nr);
+			return -ENODEV;
+		}
+		em->encoder_type = ENCODER_BT865;
+		em->encoder = client;
+		if (sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, "encoder"))
+			printk(KERN_WARNING "em8300-%d: unable to create the encoder link\n", em->card_nr);
+		break;
+#endif
 	default:
 		printk(KERN_ERR "em8300-%d: unknown i2c chip found @0x%02x\n", em->card_nr, client->addr);
 		return -ENODEV;
@@ -206,6 +236,12 @@ static int em8300_i2c_unreg(struct i2c_client *client)
 		em->eeprom = NULL;
 		sysfs_remove_link(&em->dev->dev.kobj, "eeprom");
 	}
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
+	else if (client == em->encoder) {
+		em->encoder = NULL;
+		sysfs_remove_link(&em->dev->dev.kobj, "encoder");
+	}
+#endif
 	else
 		printk(KERN_WARNING "em8300-%d: unknown i2c chip being removed\n", em->card_nr);
 	return 0;
@@ -312,6 +348,10 @@ int em8300_i2c_init2(struct em8300_s *em)
 	em->i2c_ops_1.id = I2C_HW_B_EM8300;
 	em->i2c_ops_1.algo = NULL;
 	em->i2c_ops_1.algo_data = &em->i2c_data_1;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
+	em->i2c_ops_1.client_register = em8300_i2c_reg;
+	em->i2c_ops_1.client_unregister = em8300_i2c_unreg;
+#endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
 	em->i2c_ops_1.dev.parent = &em->dev->dev;
 #endif
@@ -321,6 +361,12 @@ int em8300_i2c_init2(struct em8300_s *em)
 	if ((ret = i2c_bit_add_bus(&em->i2c_ops_1)))
 		return ret;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
+	if (!em->encoder)
+		request_module("adv717x");
+	if (!em->encoder)
+		request_module("bt865");
+#else
 	{
 		struct i2c_board_info i2c_info;
 		const unsigned short adv717x_addr[] = { 0x6a, I2C_CLIENT_END };
@@ -350,6 +396,7 @@ int em8300_i2c_init2(struct em8300_s *em)
 		if (sysfs_create_link(&em->dev->dev.kobj, &em->encoder->dev.kobj, "encoder"))
 			printk(KERN_WARNING "em8300-%d: i2c: unable to create the encoder link\n", em->card_nr);
 	}
+#endif
 	return 0;
 }
 
@@ -362,11 +409,13 @@ void em8300_i2c_exit(struct em8300_s *em)
 		em->eeprom = NULL;
 	}
 #endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,22)
 	if (em->encoder) {
 		sysfs_remove_link(&em->dev->dev.kobj, "encoder");
 		i2c_unregister_device(em->encoder);
 		em->encoder = NULL;
 	}
+#endif
 	/* unregister i2c_bus */
 	kfree(em->i2c_data_1.data);
 	kfree(em->i2c_data_2.data);

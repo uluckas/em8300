@@ -25,11 +25,11 @@
 const struct em8300_model_s known_models[] = {
 	{
 		.name = "unknown",
-		.module = NULL
+		.module = { .name=NULL, .addr=0 }
 	},
 	{
 		.name = "DXR3 with BT865",
-		.module = "bt865",
+		.module = { .name="bt865", .addr=0x45 },
 		.em8300_config = {
 			.use_bt865 = 1,
 			.dicom_other_pal = 1,
@@ -42,7 +42,7 @@ const struct em8300_model_s known_models[] = {
 	},
 	{
 		.name = "DXR3 with ADV7175A",
-		.module = "adv717x",
+		.module = { .name="adv717x", .addr=0x6a },
 		.em8300_config = {
 			.use_bt865 = 0,
 			.dicom_other_pal = 0,
@@ -60,7 +60,7 @@ const struct em8300_model_s known_models[] = {
 	},
 	{
 		.name = "Hollywood+ type 1",
-		.module = "adv717x",
+		.module = { .name="adv717x", .addr=0x6a },
 		.em8300_config = {
 			.use_bt865 = 0,
 			.dicom_other_pal = 0,
@@ -78,7 +78,7 @@ const struct em8300_model_s known_models[] = {
 	},
 	{
 		.name = "Hollywood+ type 2",
-		.module = "adv717x",
+		.module = { .name="adv717x", .addr=0x6a },
 		.em8300_config = {
 			.use_bt865 = 0,
 			.dicom_other_pal = 0,

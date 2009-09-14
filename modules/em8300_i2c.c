@@ -362,40 +362,56 @@ int em8300_i2c_init2(struct em8300_s *em)
 		return ret;
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
-	if (!em->encoder)
-		request_module("adv717x");
-	if (!em->encoder)
-		request_module("bt865");
+	if (known_models[em->model].module.name != NULL)
+		request_module(known_models[em->model].module.name);
 #else
-	{
+	if (known_models[em->model].module.name != NULL) {
+		struct i2c_board_info i2c_info;
+		memset(&i2c_info, 0, sizeof(i2c_info));
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,26)
+		strncpy((char *)&i2c_info.driver_name,
+			known_models[em->model].module.name,
+			sizeof(i2c_info.driver_name));
+#else
+		strncpy((char *)&i2c_info.type,
+			known_models[em->model].module.name,
+			sizeof(i2c_info.type));
+#endif
+		i2c_info.addr = known_models[em->model].module.addr;
+		em->encoder = i2c_new_device(&em->i2c_ops_1, &i2c_info);
+		if (em->encoder)
+			goto found;
+	}
+	else {
 		struct i2c_board_info i2c_info;
 		const unsigned short adv717x_addr[] = { 0x6a, I2C_CLIENT_END };
 		const unsigned short bt865_addr[] = { 0x45, I2C_CLIENT_END };
 		i2c_info = (struct i2c_board_info){ I2C_BOARD_INFO("adv717x", 0) };
 		em->encoder = i2c_new_probed_device(&em->i2c_ops_1, &i2c_info, adv717x_addr);
-		if (em->encoder) {
-			if (!strncmp(em->encoder->name, "ADV7175", 7)) {
-				em->encoder_type = ENCODER_ADV7175;
-			}
-			if (!strncmp(em->encoder->name, "ADV7170", 7)) {
-				em->encoder_type = ENCODER_ADV7170;
-			}
-			em8300_adv717x_setup(em, em->encoder);
+		if (em->encoder)
 			goto found;
-		}
 		i2c_info = (struct i2c_board_info){ I2C_BOARD_INFO("bt865", 0) };
 		em->encoder = i2c_new_probed_device(&em->i2c_ops_1, &i2c_info, bt865_addr);
-		if (em->encoder) {
-			em->encoder_type = ENCODER_BT865;
+		if (em->encoder)
 			goto found;
-		}
-		printk(KERN_WARNING "em8300-%d: video encoder chip not found\n", em->card_nr);
-		return 0;
-
-	found:
-		if (sysfs_create_link(&em->dev->dev.kobj, &em->encoder->dev.kobj, "encoder"))
-			printk(KERN_WARNING "em8300-%d: i2c: unable to create the encoder link\n", em->card_nr);
 	}
+	printk(KERN_WARNING "em8300-%d: video encoder chip not found\n", em->card_nr);
+	return 0;
+
+ found:
+	if (!strncmp(em->encoder->name, "ADV7175", 7)) {
+		em->encoder_type = ENCODER_ADV7175;
+		em8300_adv717x_setup(em, em->encoder);
+	}
+	if (!strncmp(em->encoder->name, "ADV7170", 7)) {
+		em->encoder_type = ENCODER_ADV7170;
+		em8300_adv717x_setup(em, em->encoder);
+	}
+	if (!strncmp(em->encoder->name, "BT865", 5)) {
+		em->encoder_type = ENCODER_BT865;
+	}
+	if (sysfs_create_link(&em->dev->dev.kobj, &em->encoder->dev.kobj, "encoder"))
+		printk(KERN_WARNING "em8300-%d: i2c: unable to create the encoder link\n", em->card_nr);
 #endif
 	return 0;
 }

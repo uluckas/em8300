@@ -621,8 +621,6 @@ static int init_em8300(struct em8300_s *em)
 		printk(KERN_WARNING "em8300-%d: mismatch between detected and requested model.\n", em->card_nr);
 
 	if (em->model > 0) {
-		if (known_models[em->model].module != NULL)
-			request_module(known_models[em->model].module);
 		em->config.model = known_models[em->model].em8300_config;
 		em->config.adv717x_model = known_models[em->model].adv717x_config;
 	}

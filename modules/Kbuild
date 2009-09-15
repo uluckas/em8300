@@ -59,8 +59,7 @@ obj-m += adv717x.o
 obj-m += bt865.o
 obj-m += em8300.o
 
-# The following hack tests for old kernels (2.4 and old 2.5).
-ifneq ($(TOPDIR),$(shell /bin/pwd))
+ifeq ($(shell expr $(VERSION) \* 10000 + $(PATCHLEVEL) \* 100 + $(SUBLEVEL) \< 20600),1)
 
 EXTRA_CFLAGS += -include $(TOPDIR)/include/linux/config.h
 

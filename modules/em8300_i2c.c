@@ -122,6 +122,12 @@ static void em8300_adv717x_setup(struct em8300_s *em,
 	struct getconfig_s data;
 	struct setparam_s param;
 
+	if (!((client->driver) && (client->driver->command))) {
+		printk("em8300-%d: cannot configure adv717x encoder: "
+		       "no client->driver->command\n", em->card_nr);
+		return;
+	}
+
 	client->driver->command(client, ENCODER_CMD_ENABLEOUTPUT, (void *)0);
 
 	data.card_nr = em->card_nr;

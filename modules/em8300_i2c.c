@@ -336,6 +336,7 @@ int em8300_i2c_init2(struct em8300_s *em)
 {
 	int ret;
 	struct private_data_s *pdata;
+	int i;
 
 	/*
 	  Setup info structure for bus 1
@@ -405,6 +406,13 @@ int em8300_i2c_init2(struct em8300_s *em)
 	return 0;
 
  found:
+	for (i = 0; (i < 50) && !em->encoder->driver; i++) {
+		set_current_state(TASK_UNINTERRUPTIBLE);
+		schedule_timeout(HZ/10);
+	}
+	if (!em->encoder->driver)
+		printk(KERN_WARNING "em8300-%d: encoder chip found but no driver found within 5 seconds\n", em->card_nr);
+
 	if (!strncmp(em->encoder->name, "ADV7175", 7)) {
 		em->encoder_type = ENCODER_ADV7175;
 		em8300_adv717x_setup(em, em->encoder);

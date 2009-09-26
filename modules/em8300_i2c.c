@@ -116,6 +116,35 @@ static const struct i2c_algo_bit_data em8300_i2c_algo_template = {
 	.timeout = 100,
 };
 
+static int em8300_i2c_lock_client(struct i2c_client *client)
+{
+	struct em8300_s *em = i2c_get_adapdata(client->adapter);
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,16)
+	if (!try_module_get(client->driver->driver.owner))
+#else
+	if (!try_module_get(client->driver->owner))
+#endif
+	{
+		printk(KERN_ERR "em8300-%d: i2c: Unable to lock client module\n", em->card_nr);
+		return -ENODEV;
+	}
+#endif
+	return 0;
+}
+
+static void em8300_i2c_unlock_client(struct i2c_client *client)
+{
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,54)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,16)
+	module_put(client->driver->driver.owner);
+#else
+	module_put(client->driver->owner);
+#endif
+#endif
+}
+
 static void em8300_adv717x_setup(struct em8300_s *em,
 				 struct i2c_client *client)
 {
@@ -211,6 +240,7 @@ static int em8300_i2c_reg(struct i2c_client *client)
 			printk(KERN_WARNING "em8300-%d: unknown i2c chip found @0x6a\n", em->card_nr);
 			return -ENODEV;
 		}
+		em8300_i2c_lock_client(client);
 		em8300_adv717x_setup(em, client);
 		em->encoder = client;
 		if (sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, "encoder"))
@@ -222,6 +252,7 @@ static int em8300_i2c_reg(struct i2c_client *client)
 			return -ENODEV;
 		}
 		em->encoder_type = ENCODER_BT865;
+		em8300_i2c_lock_client(client);
 		em->encoder = client;
 		if (sysfs_create_link(&em->dev->dev.kobj, &client->dev.kobj, "encoder"))
 			printk(KERN_WARNING "em8300-%d: unable to create the encoder link\n", em->card_nr);
@@ -244,6 +275,7 @@ static int em8300_i2c_unreg(struct i2c_client *client)
 	}
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
 	else if (client == em->encoder) {
+		em8300_i2c_unlock_client(em->encoder);
 		em->encoder = NULL;
 		sysfs_remove_link(&em->dev->dev.kobj, "encoder");
 	}
@@ -412,6 +444,7 @@ int em8300_i2c_init2(struct em8300_s *em)
 	if (!em->encoder->driver)
 		printk(KERN_WARNING "em8300-%d: encoder chip found but no driver found within 5 seconds\n", em->card_nr);
 
+	em8300_i2c_lock_client(em->encoder);
 	if (!strncmp(em->encoder->name, "ADV7175", 7)) {
 		em->encoder_type = ENCODER_ADV7175;
 		em8300_adv717x_setup(em, em->encoder);
@@ -440,6 +473,7 @@ void em8300_i2c_exit(struct em8300_s *em)
 #endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,22)
 	if (em->encoder) {
+		em8300_i2c_unlock_client(em->encoder);
 		sysfs_remove_link(&em->dev->dev.kobj, "encoder");
 		i2c_unregister_device(em->encoder);
 		em->encoder = NULL;

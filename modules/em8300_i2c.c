@@ -368,10 +368,9 @@ int em8300_i2c_init2(struct em8300_s *em)
 	if ((ret = i2c_bit_add_bus(&em->i2c_ops_1)))
 		return ret;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
 	if (known_models[em->model].module.name != NULL)
 		request_module(known_models[em->model].module.name);
-#else
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,22)
 	if (known_models[em->model].module.name != NULL) {
 		struct i2c_board_info i2c_info;
 		memset(&i2c_info, 0, sizeof(i2c_info));

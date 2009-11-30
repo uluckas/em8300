@@ -41,6 +41,7 @@
 
 #include "em8300_reg.h"
 #include <linux/em8300.h>
+#include "em8300_driver.h"
 
 #include <linux/soundcard.h>
 

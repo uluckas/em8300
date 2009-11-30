@@ -20,6 +20,7 @@
 
 #include "em8300_eeprom.h"
 #include <linux/em8300.h>
+#include "em8300_driver.h"
 #include <linux/i2c.h>
 #include <linux/crypto.h>
 #include <linux/slab.h>

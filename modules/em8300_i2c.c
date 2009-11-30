@@ -44,6 +44,7 @@
 #include "em8300_reg.h"
 #include "em8300_models.h"
 #include <linux/em8300.h>
+#include "em8300_driver.h"
 
 #include "adv717x.h"
 #include "bt865.h"

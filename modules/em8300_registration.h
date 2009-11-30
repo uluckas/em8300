@@ -28,6 +28,7 @@
 #include <linux/i2c-algo-bit.h>
 #include <linux/time.h>
 #include <linux/em8300.h>
+#include "em8300_driver.h"
 
 struct em8300_registrar_s {
 	void (*register_driver)(void);

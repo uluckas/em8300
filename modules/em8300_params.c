@@ -20,6 +20,7 @@
 
 #include "em8300_params.h"
 #include <linux/em8300.h>
+#include "em8300_driver.h"
 #include <linux/module.h>
 #include <linux/string.h>
 #include <linux/kernel.h>

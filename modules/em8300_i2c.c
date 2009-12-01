@@ -291,6 +291,24 @@ static int em8300_i2c_unreg(struct i2c_client *client)
 /* ----------------------------------------------------------------------- */
 /* I2C functions							   */
 /* ----------------------------------------------------------------------- */
+
+/* template for i2c-bit-algo */
+static struct i2c_adapter em8300_i2c_adap_template = {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 31)
+    .id = I2C_HW_B_EM8300,
+#endif
+    .algo = NULL,                   /* set by i2c-algo-bit */
+    .algo_data = NULL,              /* filled from template */
+    .owner = THIS_MODULE,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,27)
+    .client_register = em8300_i2c_reg;
+    .client_unregister = em8300_i2c_unreg;
+#endif
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 26)
+    .class = I2C_CLASS_TV_ANALOG,
+#endif
+};
+
 int em8300_i2c_init1(struct em8300_s *em)
 {
 	int ret;
@@ -331,14 +349,12 @@ int em8300_i2c_init1(struct em8300_s *em)
 
 	em->i2c_data_2.data = pdata;
 
+
+    /* Setup adapter */
+    memcpy(&em->i2c_ops_2, &em8300_i2c_adap_template,
+        sizeof(struct i2c_adapter));
 	strcpy(em->i2c_ops_2.name, "EM8300 I2C bus 2");
-	em->i2c_ops_2.id = I2C_HW_B_EM8300;
-	em->i2c_ops_2.algo = NULL;
 	em->i2c_ops_2.algo_data = &em->i2c_data_2;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,27)
-	em->i2c_ops_2.client_register = em8300_i2c_reg;
-	em->i2c_ops_2.client_unregister = em8300_i2c_unreg;
-#endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
 	em->i2c_ops_2.dev.parent = &em->dev->dev;
 #endif
@@ -384,16 +400,14 @@ int em8300_i2c_init2(struct em8300_s *em)
 
 	em->i2c_data_1.data = pdata;
 
-	strcpy(em->i2c_ops_1.name, "EM8300 I2C bus 1");
-	em->i2c_ops_1.id = I2C_HW_B_EM8300;
-	em->i2c_ops_1.algo = NULL;
-	em->i2c_ops_1.algo_data = &em->i2c_data_1;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
-	em->i2c_ops_1.client_register = em8300_i2c_reg;
-	em->i2c_ops_1.client_unregister = em8300_i2c_unreg;
-#endif
+
+    /* Setup adapter */
+    memcpy(&em->i2c_ops_1, &em8300_i2c_adap_template,
+        sizeof(struct i2c_adapter));
+    strcpy(em->i2c_ops_1.name, "EM8300 I2C bus 1");
+    em->i2c_ops_1.algo_data = &em->i2c_data_1;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
-	em->i2c_ops_1.dev.parent = &em->dev->dev;
+    em->i2c_ops_1.dev.parent = &em->dev->dev;
 #endif
 
 	i2c_set_adapdata(&em->i2c_ops_1, (void *)em);

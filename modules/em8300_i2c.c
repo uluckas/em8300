@@ -479,6 +479,7 @@ int em8300_i2c_init2(struct em8300_s *em)
 
 void em8300_i2c_exit(struct em8300_s *em)
 {
+	int i;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,27)
 	if (em->eeprom) {
 		sysfs_remove_link(&em->dev->dev.kobj, "eeprom");
@@ -497,13 +498,14 @@ void em8300_i2c_exit(struct em8300_s *em)
 	/* unregister i2c_bus */
 	kfree(em->i2c_data_1.data);
 	kfree(em->i2c_data_2.data);
+
+	for (i = 0; i < 2; i++) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
-	i2c_del_adapter(&em->i2c_adap[0]);
-	i2c_del_adapter(&em->i2c_adap[1]);
+		i2c_del_adapter(&em->i2c_adap[i]);
 #else
-	i2c_bit_del_bus(&em->i2c_adap[0]);
-	i2c_bit_del_bus(&em->i2c_adap[1]);
+		i2c_bit_del_bus(&em->i2c_adap[i]);
 #endif
+	}
 }
 
 void em8300_clockgen_write(struct em8300_s *em, int abyte)

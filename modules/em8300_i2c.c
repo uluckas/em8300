@@ -294,6 +294,7 @@ static int em8300_i2c_unreg(struct i2c_client *client)
 
 /* template for i2c-bit-algo */
 static struct i2c_adapter em8300_i2c_adap_template = {
+	.name = "em8300 i2c driver",
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 31)
 	.id = I2C_HW_B_EM8300,
 #endif
@@ -353,7 +354,8 @@ int em8300_i2c_init1(struct em8300_s *em)
     /* Setup adapter */
     memcpy(&em->i2c_adap[0], &em8300_i2c_adap_template,
         sizeof(struct i2c_adapter));
-    strcpy(em->i2c_adap[0].name, "EM8300 I2C bus 1");
+	sprintf(em->i2c_adap[0].name + strlen(em->i2c_adap[0].name),
+		" #%d-%d", em->card_nr, 0);
     em->i2c_adap[0].algo_data = &em->i2c_data_1;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
     em->i2c_adap[0].dev.parent = &em->dev->dev;
@@ -379,7 +381,8 @@ int em8300_i2c_init1(struct em8300_s *em)
     /* Setup adapter */
     memcpy(&em->i2c_adap[1], &em8300_i2c_adap_template,
         sizeof(struct i2c_adapter));
-	strcpy(em->i2c_adap[1].name, "EM8300 I2C bus 2");
+	sprintf(em->i2c_adap[1].name + strlen(em->i2c_adap[1].name),
+		" #%d-%d", em->card_nr, 1);
 	em->i2c_adap[1].algo_data = &em->i2c_data_2;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
 	em->i2c_adap[1].dev.parent = &em->dev->dev;

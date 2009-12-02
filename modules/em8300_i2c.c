@@ -341,14 +341,14 @@ int em8300_i2c_init1(struct em8300_s *em)
 	  Setup info structure for bus 1
 	*/
 
-	em->i2c_data_1 = em8300_i2c_algo_template;
+	em->i2c_algo[0] = em8300_i2c_algo_template;
 
 	pdata = kmalloc(sizeof(struct private_data_s), GFP_KERNEL);
 	pdata->clk = 0x10;
 	pdata->data = 0x8;
 	pdata->em = em;
 
-	em->i2c_data_1.data = pdata;
+	em->i2c_algo[0].data = pdata;
 
 
     /* Setup adapter */
@@ -356,7 +356,7 @@ int em8300_i2c_init1(struct em8300_s *em)
         sizeof(struct i2c_adapter));
 	sprintf(em->i2c_adap[0].name + strlen(em->i2c_adap[0].name),
 		" #%d-%d", em->card_nr, 0);
-    em->i2c_adap[0].algo_data = &em->i2c_data_1;
+    em->i2c_adap[0].algo_data = &em->i2c_algo[0];
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
     em->i2c_adap[0].dev.parent = &em->dev->dev;
 #endif
@@ -368,14 +368,14 @@ int em8300_i2c_init1(struct em8300_s *em)
 	  Setup info structure for bus 2
 	*/
 
-	em->i2c_data_2 = em8300_i2c_algo_template;
+	em->i2c_algo[1] = em8300_i2c_algo_template;
 
 	pdata = kmalloc(sizeof(struct private_data_s), GFP_KERNEL);
 	pdata->clk = 0x4;
 	pdata->data = 0x8;
 	pdata->em = em;
 
-	em->i2c_data_2.data = pdata;
+	em->i2c_algo[1].data = pdata;
 
 
     /* Setup adapter */
@@ -383,7 +383,7 @@ int em8300_i2c_init1(struct em8300_s *em)
         sizeof(struct i2c_adapter));
 	sprintf(em->i2c_adap[1].name + strlen(em->i2c_adap[1].name),
 		" #%d-%d", em->card_nr, 1);
-	em->i2c_adap[1].algo_data = &em->i2c_data_2;
+	em->i2c_adap[1].algo_data = &em->i2c_algo[1];
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
 	em->i2c_adap[1].dev.parent = &em->dev->dev;
 #endif
@@ -505,8 +505,8 @@ void em8300_i2c_exit(struct em8300_s *em)
 	}
 #endif
 	/* unregister i2c_bus */
-	kfree(em->i2c_data_1.data);
-	kfree(em->i2c_data_2.data);
+	kfree(em->i2c_algo[0].data);
+	kfree(em->i2c_algo[1].data);
 
 	for (i = 0; i < 2; i++) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)

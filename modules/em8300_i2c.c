@@ -351,17 +351,17 @@ int em8300_i2c_init1(struct em8300_s *em)
 
 
     /* Setup adapter */
-    memcpy(&em->i2c_ops_2, &em8300_i2c_adap_template,
+    memcpy(&em->i2c_adap[1], &em8300_i2c_adap_template,
         sizeof(struct i2c_adapter));
-	strcpy(em->i2c_ops_2.name, "EM8300 I2C bus 2");
-	em->i2c_ops_2.algo_data = &em->i2c_data_2;
+	strcpy(em->i2c_adap[1].name, "EM8300 I2C bus 2");
+	em->i2c_adap[1].algo_data = &em->i2c_data_2;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
-	em->i2c_ops_2.dev.parent = &em->dev->dev;
+	em->i2c_adap[1].dev.parent = &em->dev->dev;
 #endif
 
-	i2c_set_adapdata(&em->i2c_ops_2, (void *)em);
+	i2c_set_adapdata(&em->i2c_adap[1], (void *)em);
 
-	if ((ret = i2c_bit_add_bus(&em->i2c_ops_2)))
+	if ((ret = i2c_bit_add_bus(&em->i2c_adap[1])))
 		return ret;
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,27)
@@ -371,7 +371,7 @@ int em8300_i2c_init1(struct em8300_s *em)
 		struct i2c_board_info i2c_info;
 		const unsigned short eeprom_addr[] = { 0x50, I2C_CLIENT_END };
 		i2c_info = (struct i2c_board_info){ I2C_BOARD_INFO("eeprom", 0) };
-		em->eeprom = i2c_new_probed_device(&em->i2c_ops_2, &i2c_info, eeprom_addr);
+		em->eeprom = i2c_new_probed_device(&em->i2c_adap[1], &i2c_info, eeprom_addr);
 		if (em->eeprom) {
 			if (sysfs_create_link(&em->dev->dev.kobj, &em->eeprom->dev.kobj, "eeprom"))
 				printk(KERN_WARNING "em8300-%d: i2c: unable to create the eeprom link\n", em->card_nr);
@@ -402,17 +402,17 @@ int em8300_i2c_init2(struct em8300_s *em)
 
 
     /* Setup adapter */
-    memcpy(&em->i2c_ops_1, &em8300_i2c_adap_template,
+    memcpy(&em->i2c_adap[0], &em8300_i2c_adap_template,
         sizeof(struct i2c_adapter));
-    strcpy(em->i2c_ops_1.name, "EM8300 I2C bus 1");
-    em->i2c_ops_1.algo_data = &em->i2c_data_1;
+    strcpy(em->i2c_adap[0].name, "EM8300 I2C bus 1");
+    em->i2c_adap[0].algo_data = &em->i2c_data_1;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
-    em->i2c_ops_1.dev.parent = &em->dev->dev;
+    em->i2c_adap[0].dev.parent = &em->dev->dev;
 #endif
 
-	i2c_set_adapdata(&em->i2c_ops_1, (void *)em);
+	i2c_set_adapdata(&em->i2c_adap[0], (void *)em);
 
-	if ((ret = i2c_bit_add_bus(&em->i2c_ops_1)))
+	if ((ret = i2c_bit_add_bus(&em->i2c_adap[0])))
 		return ret;
 
 	if (known_models[em->model].module.name != NULL)
@@ -431,7 +431,7 @@ int em8300_i2c_init2(struct em8300_s *em)
 			sizeof(i2c_info.type));
 #endif
 		i2c_info.addr = known_models[em->model].module.addr;
-		em->encoder = i2c_new_device(&em->i2c_ops_1, &i2c_info);
+		em->encoder = i2c_new_device(&em->i2c_adap[0], &i2c_info);
 		if (em->encoder)
 			goto found;
 	}
@@ -440,11 +440,11 @@ int em8300_i2c_init2(struct em8300_s *em)
 		const unsigned short adv717x_addr[] = { 0x6a, I2C_CLIENT_END };
 		const unsigned short bt865_addr[] = { 0x45, I2C_CLIENT_END };
 		i2c_info = (struct i2c_board_info){ I2C_BOARD_INFO("adv717x", 0) };
-		em->encoder = i2c_new_probed_device(&em->i2c_ops_1, &i2c_info, adv717x_addr);
+		em->encoder = i2c_new_probed_device(&em->i2c_adap[0], &i2c_info, adv717x_addr);
 		if (em->encoder)
 			goto found;
 		i2c_info = (struct i2c_board_info){ I2C_BOARD_INFO("bt865", 0) };
-		em->encoder = i2c_new_probed_device(&em->i2c_ops_1, &i2c_info, bt865_addr);
+		em->encoder = i2c_new_probed_device(&em->i2c_adap[0], &i2c_info, bt865_addr);
 		if (em->encoder)
 			goto found;
 	}
@@ -498,11 +498,11 @@ void em8300_i2c_exit(struct em8300_s *em)
 	kfree(em->i2c_data_1.data);
 	kfree(em->i2c_data_2.data);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
-	i2c_del_adapter(&em->i2c_ops_1);
-	i2c_del_adapter(&em->i2c_ops_2);
+	i2c_del_adapter(&em->i2c_adap[0]);
+	i2c_del_adapter(&em->i2c_adap[1]);
 #else
-	i2c_bit_del_bus(&em->i2c_ops_1);
-	i2c_bit_del_bus(&em->i2c_ops_2);
+	i2c_bit_del_bus(&em->i2c_adap[0]);
+	i2c_bit_del_bus(&em->i2c_adap[1]);
 #endif
 }
 

@@ -65,7 +65,7 @@ int em8300_eeprom_read(struct em8300_s *em, u8 *data)
 		}
 	};
 
-	if (i2c_transfer(&em->i2c_ops_2, message, 2) == 2)
+	if (i2c_transfer(&em->i2c_adap[1], message, 2) == 2)
 		return 0;
 
 	return -1;

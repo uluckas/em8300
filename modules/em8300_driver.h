@@ -154,17 +154,16 @@ struct em8300_s
 	/* I2C */
 	int i2c_pin_reg;
 	int i2c_oe_reg;
+	struct i2c_adapter i2c_adap[2];
 	
 	/* different between revision 1 and revision 2 boards */
 	int mystery_divisor;
 	
 	/* I2C bus 1*/
 	struct i2c_algo_bit_data i2c_data_1;
-	struct i2c_adapter i2c_ops_1;
 	
 	/* I2C bus 2*/
 	struct i2c_algo_bit_data i2c_data_2;
-	struct i2c_adapter i2c_ops_2;
 	
 	/* I2C clients */
 	int encoder_type;

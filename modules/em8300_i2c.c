@@ -71,7 +71,7 @@ struct private_data_s {
 
 /* software I2C functions */
 
-static void em8300_setscl(void *data,int state)
+static void em8300_setscl(void *data, int state)
 {
 	struct private_data_s *p = (struct private_data_s *) data;
 	struct em8300_s *em = p->em;
@@ -192,7 +192,7 @@ static void em8300_adv717x_setup(struct em8300_s *em,
 				&param);
 	param.param = ENCODER_PARAM_PPORT;
 	param.modes = NTSC_MODES_MASK;
-	param.val = em->config.adv717x_model.pixelport_16bit?1:0;
+	param.val = em->config.adv717x_model.pixelport_16bit ? 1 : 0;
 	client->driver->command(client, ENCODER_CMD_SETPARAM,
 				&param);
 	param.modes = PAL_MODES_MASK;
@@ -357,7 +357,7 @@ int em8300_i2c_init1(struct em8300_s *em)
 	pdata->em = em;
 
 	em->i2c_algo[1].data = pdata;
-	
+
 	/*
 	  Setup i2c adapters
 	*/
@@ -402,7 +402,7 @@ int em8300_i2c_init1(struct em8300_s *em)
  err_del_bus_0:
 	i2c_del_adapter(&em->i2c_adap[0]);
  err:
-	return ret;	
+	return ret;
 }
 
 int em8300_i2c_init2(struct em8300_s *em)
@@ -428,8 +428,7 @@ int em8300_i2c_init2(struct em8300_s *em)
 		em->encoder = i2c_new_device(&em->i2c_adap[0], &i2c_info);
 		if (em->encoder)
 			goto found;
-	}
-	else {
+	} else {
 		struct i2c_board_info i2c_info;
 		const unsigned short adv717x_addr[] = { 0x6a, I2C_CLIENT_END };
 		const unsigned short bt865_addr[] = { 0x45, I2C_CLIENT_END };
@@ -492,7 +491,7 @@ void em8300_i2c_exit(struct em8300_s *em)
 
 	/* unregister i2c_bus */
 	for (i = 0; i < 2; i++) {
-	  	kfree(em->i2c_algo[i].data);
+		kfree(em->i2c_algo[i].data);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
 		i2c_del_adapter(&em->i2c_adap[i]);
 #else
@@ -506,7 +505,7 @@ void em8300_clockgen_write(struct em8300_s *em, int abyte)
 	int i;
 
 	write_register(em->i2c_pin_reg, 0x808);
-	for (i=0; i < 8; i++) {
+	for (i = 0; i < 8; i++) {
 		write_register(em->i2c_pin_reg, 0x2000);
 		write_register(em->i2c_pin_reg, 0x800 | ((abyte & 1) ? 8 : 0));
 		write_register(em->i2c_pin_reg, 0x2020);

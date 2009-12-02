@@ -337,57 +337,6 @@ int em8300_i2c_init1(struct em8300_s *em)
 	write_register(em->i2c_pin_reg, 0x0808);
 
 	/*
-	  Setup info structure for bus 2
-	*/
-
-	em->i2c_data_2 = em8300_i2c_algo_template;
-
-	pdata = kmalloc(sizeof(struct private_data_s), GFP_KERNEL);
-	pdata->clk = 0x4;
-	pdata->data = 0x8;
-	pdata->em = em;
-
-	em->i2c_data_2.data = pdata;
-
-
-    /* Setup adapter */
-    memcpy(&em->i2c_adap[1], &em8300_i2c_adap_template,
-        sizeof(struct i2c_adapter));
-	strcpy(em->i2c_adap[1].name, "EM8300 I2C bus 2");
-	em->i2c_adap[1].algo_data = &em->i2c_data_2;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
-	em->i2c_adap[1].dev.parent = &em->dev->dev;
-#endif
-
-	i2c_set_adapdata(&em->i2c_adap[1], (void *)em);
-
-	if ((ret = i2c_bit_add_bus(&em->i2c_adap[1])))
-		return ret;
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,27)
-	request_module("eeprom");
-#else
-	{
-		struct i2c_board_info i2c_info;
-		const unsigned short eeprom_addr[] = { 0x50, I2C_CLIENT_END };
-		i2c_info = (struct i2c_board_info){ I2C_BOARD_INFO("eeprom", 0) };
-		em->eeprom = i2c_new_probed_device(&em->i2c_adap[1], &i2c_info, eeprom_addr);
-		if (em->eeprom) {
-			if (sysfs_create_link(&em->dev->dev.kobj, &em->eeprom->dev.kobj, "eeprom"))
-				printk(KERN_WARNING "em8300-%d: i2c: unable to create the eeprom link\n", em->card_nr);
-		}
-	}
-#endif
-	return 0;
-}
-
-int em8300_i2c_init2(struct em8300_s *em)
-{
-	int ret;
-	struct private_data_s *pdata;
-	int i;
-
-	/*
 	  Setup info structure for bus 1
 	*/
 
@@ -412,8 +361,65 @@ int em8300_i2c_init2(struct em8300_s *em)
 
 	i2c_set_adapdata(&em->i2c_adap[0], (void *)em);
 
-	if ((ret = i2c_bit_add_bus(&em->i2c_adap[0])))
-		return ret;
+	
+	/*
+	  Setup info structure for bus 2
+	*/
+
+	em->i2c_data_2 = em8300_i2c_algo_template;
+
+	pdata = kmalloc(sizeof(struct private_data_s), GFP_KERNEL);
+	pdata->clk = 0x4;
+	pdata->data = 0x8;
+	pdata->em = em;
+
+	em->i2c_data_2.data = pdata;
+
+
+    /* Setup adapter */
+    memcpy(&em->i2c_adap[1], &em8300_i2c_adap_template,
+        sizeof(struct i2c_adapter));
+	strcpy(em->i2c_adap[1].name, "EM8300 I2C bus 2");
+	em->i2c_adap[1].algo_data = &em->i2c_data_2;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+	em->i2c_adap[1].dev.parent = &em->dev->dev;
+#endif
+
+	i2c_set_adapdata(&em->i2c_adap[1], (void *)em);
+
+	ret = i2c_bit_add_bus(&em->i2c_adap[0]);
+	if (ret)
+		goto err;
+	ret = i2c_bit_add_bus(&em->i2c_adap[1]);
+	if (ret)
+		goto err_del_bus_0;
+	return 0;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,27)
+	request_module("eeprom");
+#else
+	{
+		struct i2c_board_info i2c_info;
+		const unsigned short eeprom_addr[] = { 0x50, I2C_CLIENT_END };
+		i2c_info = (struct i2c_board_info){ I2C_BOARD_INFO("eeprom", 0) };
+		em->eeprom = i2c_new_probed_device(&em->i2c_adap[1], &i2c_info, eeprom_addr);
+		if (em->eeprom) {
+			if (sysfs_create_link(&em->dev->dev.kobj, &em->eeprom->dev.kobj, "eeprom"))
+				printk(KERN_WARNING "em8300-%d: i2c: unable to create the eeprom link\n", em->card_nr);
+		}
+	}
+#endif
+	return 0;
+
+ err_del_bus_0:
+	i2c_del_adapter(&em->i2c_adap[0]);
+ err:
+	return ret;	
+}
+
+int em8300_i2c_init2(struct em8300_s *em)
+{
+	int i;
 
 	if (known_models[em->model].module.name != NULL)
 		request_module(known_models[em->model].module.name);

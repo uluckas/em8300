@@ -295,17 +295,17 @@ static int em8300_i2c_unreg(struct i2c_client *client)
 /* template for i2c-bit-algo */
 static struct i2c_adapter em8300_i2c_adap_template = {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 31)
-    .id = I2C_HW_B_EM8300,
+	.id = I2C_HW_B_EM8300,
 #endif
-    .algo = NULL,                   /* set by i2c-algo-bit */
-    .algo_data = NULL,              /* filled from template */
-    .owner = THIS_MODULE,
+	.algo = NULL,                   /* set by i2c-algo-bit */
+	.algo_data = NULL,              /* filled from template */
+	.owner = THIS_MODULE,
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,27)
-    .client_register = em8300_i2c_reg;
-    .client_unregister = em8300_i2c_unreg;
+	.client_register = em8300_i2c_reg;
+	.client_unregister = em8300_i2c_unreg;
 #endif
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 26)
-    .class = I2C_CLASS_TV_ANALOG,
+	.class = I2C_CLASS_TV_ANALOG,
 #endif
 };
 

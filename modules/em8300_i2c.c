@@ -312,7 +312,7 @@ static struct i2c_adapter em8300_i2c_adap_template = {
 
 int em8300_i2c_init1(struct em8300_s *em)
 {
-	int ret;
+	int ret, i;
 	struct private_data_s *pdata;
 
 	//request_module("i2c-algo-bit");
@@ -337,11 +337,12 @@ int em8300_i2c_init1(struct em8300_s *em)
 	write_register(em->i2c_pin_reg, 0x0101);
 	write_register(em->i2c_pin_reg, 0x0808);
 
-	/*
-	  Setup info structure for bus 1
-	*/
 
+	/*
+	  Setup algo data structs
+	*/
 	em->i2c_algo[0] = em8300_i2c_algo_template;
+	em->i2c_algo[1] = em8300_i2c_algo_template;
 
 	pdata = kmalloc(sizeof(struct private_data_s), GFP_KERNEL);
 	pdata->clk = 0x10;
@@ -350,45 +351,29 @@ int em8300_i2c_init1(struct em8300_s *em)
 
 	em->i2c_algo[0].data = pdata;
 
-
-    /* Setup adapter */
-    memcpy(&em->i2c_adap[0], &em8300_i2c_adap_template,
-        sizeof(struct i2c_adapter));
-	sprintf(em->i2c_adap[0].name + strlen(em->i2c_adap[0].name),
-		" #%d-%d", em->card_nr, 0);
-    em->i2c_adap[0].algo_data = &em->i2c_algo[0];
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
-    em->i2c_adap[0].dev.parent = &em->dev->dev;
-#endif
-
-	i2c_set_adapdata(&em->i2c_adap[0], (void *)em);
-
-	
-	/*
-	  Setup info structure for bus 2
-	*/
-
-	em->i2c_algo[1] = em8300_i2c_algo_template;
-
 	pdata = kmalloc(sizeof(struct private_data_s), GFP_KERNEL);
 	pdata->clk = 0x4;
 	pdata->data = 0x8;
 	pdata->em = em;
 
 	em->i2c_algo[1].data = pdata;
-
-
-    /* Setup adapter */
-    memcpy(&em->i2c_adap[1], &em8300_i2c_adap_template,
-        sizeof(struct i2c_adapter));
-	sprintf(em->i2c_adap[1].name + strlen(em->i2c_adap[1].name),
-		" #%d-%d", em->card_nr, 1);
-	em->i2c_adap[1].algo_data = &em->i2c_algo[1];
+	
+	/*
+	  Setup i2c adapters
+	*/
+	for (i = 0; i < 2; i++) {
+		/* Setup adapter */
+		memcpy(&em->i2c_adap[i], &em8300_i2c_adap_template,
+			sizeof(struct i2c_adapter));
+		sprintf(em->i2c_adap[i].name + strlen(em->i2c_adap[i].name),
+			" #%d-%d", em->card_nr, i);
+		em->i2c_adap[i].algo_data = &em->i2c_algo[i];
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
-	em->i2c_adap[1].dev.parent = &em->dev->dev;
+		em->i2c_adap[i].dev.parent = &em->dev->dev;
 #endif
 
-	i2c_set_adapdata(&em->i2c_adap[1], (void *)em);
+		i2c_set_adapdata(&em->i2c_adap[i], (void *)em);
+	}
 
 	ret = i2c_bit_add_bus(&em->i2c_adap[0]);
 	if (ret)
@@ -504,11 +489,10 @@ void em8300_i2c_exit(struct em8300_s *em)
 		em->encoder = NULL;
 	}
 #endif
-	/* unregister i2c_bus */
-	kfree(em->i2c_algo[0].data);
-	kfree(em->i2c_algo[1].data);
 
+	/* unregister i2c_bus */
 	for (i = 0; i < 2; i++) {
+	  	kfree(em->i2c_algo[i].data);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
 		i2c_del_adapter(&em->i2c_adap[i]);
 #else

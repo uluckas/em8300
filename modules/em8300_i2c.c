@@ -449,8 +449,12 @@ int em8300_i2c_init2(struct em8300_s *em)
 		set_current_state(TASK_UNINTERRUPTIBLE);
 		schedule_timeout(HZ/10);
 	}
-	if (!em->encoder->driver)
-		printk(KERN_WARNING "em8300-%d: encoder chip found but no driver found within 5 seconds\n", em->card_nr);
+	if (!em->encoder->driver) {	
+		printk(KERN_ERR "em8300-%d: encoder chip found but no driver found within 5 seconds\n", em->card_nr);
+		i2c_unregister_device(em->encoder);
+		em->encoder = NULL;
+		return 0;
+	}
 
 	em8300_i2c_lock_client(em->encoder);
 	if (!strncmp(em->encoder->name, "ADV7175", 7)) {

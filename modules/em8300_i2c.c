@@ -375,13 +375,10 @@ int em8300_i2c_init1(struct em8300_s *em)
 		i2c_set_adapdata(&em->i2c_adap[i], (void *)em);
 	}
 
-	ret = i2c_bit_add_bus(&em->i2c_adap[0]);
-	if (ret)
-		goto err;
+	/* add only bus 2 */
 	ret = i2c_bit_add_bus(&em->i2c_adap[1]);
 	if (ret)
-		goto err_del_bus_0;
-	return 0;
+		return ret;
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,27)
 	request_module("eeprom");
@@ -398,16 +395,16 @@ int em8300_i2c_init1(struct em8300_s *em)
 	}
 #endif
 	return 0;
-
- err_del_bus_0:
-	i2c_del_adapter(&em->i2c_adap[0]);
- err:
-	return ret;
 }
 
 int em8300_i2c_init2(struct em8300_s *em)
 {
-	int i;
+	int i, ret;
+
+	/* add only bus 1 */
+	ret = i2c_bit_add_bus(&em->i2c_adap[0]);
+	if (ret)
+		return ret;;
 
 	if (known_models[em->model].module.name != NULL)
 		request_module(known_models[em->model].module.name);

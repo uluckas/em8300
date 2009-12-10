@@ -127,16 +127,6 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 			return -EFAULT;
 		break;
 
-	case _IOC_NR(EM8300_IOCTL_GETSTATUS):
-		em8300_require_ucode(em);
-
-		if (!em->ucodeloaded) {
-			return -ENOTTY;
-		}
-
-		return em8300_ioctl_getstatus(em, (char *) arg);
-		break;
-
 	case _IOC_NR(EM8300_IOCTL_VBI):
 		em8300_require_ucode(em);
 
@@ -536,36 +526,6 @@ int em8300_ioctl_init(struct em8300_s *em, em8300_microcode_t *useruc)
 	printk(KERN_NOTICE "em8300-%d: Microcode version 0x%02x loaded\n", em->card_nr, read_ucregister(MicroCodeVersion));
 	return 0;
 }
-
-int em8300_ioctl_getstatus(struct em8300_s *em, char *usermsg)
-{
-	char tmpstr[1024];
-	struct timeval tv;
-	long tdiff, frames, scr, picpts;
-	char mvfstatus[128];
-	char mafstatus[128];
-	char spfstatus[128];
-
-	em8300_fifo_statusmsg(em->mvfifo, mvfstatus);
-	em8300_fifo_statusmsg(em->mafifo, mafstatus);
-	em8300_fifo_statusmsg(em->spfifo, spfstatus);
-
-	frames = (read_ucregister(MV_FrameCntHi) << 16) | read_ucregister(MV_FrameCntLo);
-	picpts = (read_ucregister(PicPTSHi) << 16) |
-	read_ucregister(PicPTSLo);
-	scr = (read_ucregister(MV_SCRhi) << 16) | read_ucregister(MV_SCRlo);
-
-	do_gettimeofday(&tv);
-	tdiff = TIMEDIFF(tv, em->last_status_time);
-	em->last_status_time = tv;
-	em->irqcount = 0;
-	em->frames = frames;
-	em->scr = scr;
-	if (copy_to_user((void *) usermsg, tmpstr, strlen(tmpstr) + 1))
-		return -EFAULT;
-	return 0;
-}
-
 
 int em8300_ioctl_setvideomode(struct em8300_s *em, int mode)
 {

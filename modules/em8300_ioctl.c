@@ -180,7 +180,7 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
 			get_user(val, (int *) arg);
-                        return em8300_ioctl_setvideomode(em, val);
+			return em8300_ioctl_setvideomode(em, val);
 		}
 
 		if (_IOC_DIR(cmd) & _IOC_READ) {
@@ -198,7 +198,7 @@ int em8300_control_ioctl(struct em8300_s *em, int cmd, unsigned long arg)
 
 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
 			get_user(val, (int *) arg);
-                        return em8300_ioctl_setplaymode(em, val);
+			return em8300_ioctl_setplaymode(em, val);
 		}
 		break;
 

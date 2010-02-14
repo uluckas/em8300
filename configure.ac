@@ -45,6 +45,13 @@ AM_PATH_GTK_2_0(2.0.0, has_gtk=yes, [has_gtk=no
 
 if test x$has_gtk = xyes; then
     AC_DEFINE(HAVE_GTK, 1, [Defined if you have GTK])
+    old_LIBS="$LIBS"
+    LIBS=""
+    AC_SEARCH_LIBS([XSetForeground], [X11])
+    AC_SEARCH_LIBS([rint], [m])
+    OVERLAY_LIBS="$LIBS"
+    AC_SUBST(OVERLAY_LIBS)
+    LIBS="$old_LIBS"
 fi
 AM_CONDITIONAL(HAVE_GTK, test x$has_gtk = "xyes")
 

@@ -293,7 +293,7 @@ static int em8300_i2c_unreg(struct i2c_client *client)
 /* ----------------------------------------------------------------------- */
 
 /* template for i2c-bit-algo */
-static struct i2c_adapter em8300_i2c_adap_template = {
+static const struct i2c_adapter em8300_i2c_adap_template = {
 	.name = "em8300 i2c driver",
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 31)
 	.id = I2C_HW_B_EM8300,
@@ -363,8 +363,7 @@ int em8300_i2c_init1(struct em8300_s *em)
 	*/
 	for (i = 0; i < 2; i++) {
 		/* Setup adapter */
-		memcpy(&em->i2c_adap[i], &em8300_i2c_adap_template,
-			sizeof(struct i2c_adapter));
+		em->i2c_adap[i] = em8300_i2c_adap_template;
 		sprintf(em->i2c_adap[i].name + strlen(em->i2c_adap[i].name),
 			" #%d-%d", em->card_nr, i);
 		em->i2c_adap[i].algo_data = &em->i2c_algo[i];

@@ -45,9 +45,11 @@
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 
+#include <linux/em8300.h>
+
 #include "em8300_compat24.h"
 #include "em8300_reg.h"
-#include <linux/em8300.h>
+#include "em8300_driver.h"
 
 #include "adv717x.h"
 #include "encoder.h"

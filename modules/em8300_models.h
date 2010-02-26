@@ -23,6 +23,7 @@
 
 #include <linux/types.h>
 #include <linux/em8300.h>
+#include "em8300_driver.h"
 
 struct em8300_model_s {
 	char const *name;

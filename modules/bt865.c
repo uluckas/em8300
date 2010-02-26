@@ -53,6 +53,7 @@
 #include "bt865.h"
 #include "encoder.h"
 
+#include "em8300_driver.h"
 #include "em8300_version.h"
 
 MODULE_SUPPORTED_DEVICE("bt865");

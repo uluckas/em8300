@@ -27,6 +27,7 @@
 
 #include "em8300_reg.h"
 #include <linux/em8300.h>
+#include "em8300_driver.h"
 
 /* sub_2ac2d */
 static int testcable(struct em8300_s *em)

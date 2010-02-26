@@ -302,8 +302,8 @@ static struct i2c_adapter em8300_i2c_adap_template = {
 	.algo_data = NULL,              /* filled from template */
 	.owner = THIS_MODULE,
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,27)
-	.client_register = em8300_i2c_reg;
-	.client_unregister = em8300_i2c_unreg;
+	.client_register = em8300_i2c_reg,
+	.client_unregister = em8300_i2c_unreg,
 #endif
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 26)
 	.class = I2C_CLASS_TV_ANALOG,

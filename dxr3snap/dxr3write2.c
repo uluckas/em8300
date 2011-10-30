@@ -297,7 +297,7 @@ int main() {
   di = &_di; /* works better if pointing to something */
   
   buf=malloc(72000*3);
-  memset(buf,72000*3, 0);
+  memset(buf, 0, 72000*3);
   //for(looping=0;looping < 32;looping ++) {
   fd_control=open("/dev/em8300-0", O_WRONLY);
   x=0;

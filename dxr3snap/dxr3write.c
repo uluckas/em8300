@@ -253,7 +253,7 @@ int main() {
   di = &_di; /* works better if pointing to something */
   
   buf=malloc(72000*3);
-  memset(buf,72000*3, 0);
+  memset(buf, 0, 72000*3);
   fd_control=open("/dev/em8300-0", O_WRONLY);
   y_out=fopen(BASE ".Y", "wb");
   u_out=fopen(BASE ".U", "wb");

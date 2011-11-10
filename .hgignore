@@ -26,6 +26,7 @@
 ^include/linux/Makefile\.in$
 ^include/stamp-h1$
 ^modules/em8300_version.h$
+^modules/modules\.order$
 ^modules/Module\.symvers$
 ^modules/\.tmp_versions/
 ^modules/\..*\.cmd$

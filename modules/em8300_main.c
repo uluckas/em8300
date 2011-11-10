@@ -193,15 +193,17 @@ static void release_em8300(struct em8300_s *em)
 	kfree(em);
 }
 
+#ifdef HAVE_UNLOCKED_IOCTL
+static long em8300_io_ioctl(
+#else
 static int em8300_io_ioctl(
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36)
 			struct inode *inode,
 #endif
 			struct file *filp,
 			unsigned int cmd,
 			unsigned long arg)
 {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,36)
+#ifdef HAVE_UNLOCKED_IOCTL
 	struct inode *inode = filp->f_dentry->d_inode;
 #endif
 	struct em8300_s *em = filp->private_data;
@@ -498,7 +500,7 @@ int em8300_io_release(struct inode *inode, struct file *filp)
 struct file_operations em8300_fops = {
 	.owner = THIS_MODULE,
 	.write = em8300_io_write,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,36)
+#ifdef HAVE_UNLOCKED_IOCTL
 	.unlocked_ioctl = em8300_io_ioctl,
 #else
 	.ioctl = em8300_io_ioctl,
@@ -513,8 +515,10 @@ struct file_operations em8300_fops = {
 };
 
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
+#ifdef HAVE_UNLOCKED_IOCTL
 static long em8300_dsp_ioctl(
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36)
+#else
+static int em8300_dsp_ioctl(
 		struct inode *inode,
 #endif
 		struct file *filp,
@@ -618,7 +622,7 @@ int em8300_dsp_release(struct inode *inode, struct file *filp)
 static struct file_operations em8300_dsp_audio_fops = {
 	.owner = THIS_MODULE,
 	.write = em8300_dsp_write,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,36)
+#ifdef HAVE_UNLOCKED_IOCTL
 	.unlocked_ioctl = em8300_dsp_ioctl,
 #else
 	.ioctl = em8300_dsp_ioctl,

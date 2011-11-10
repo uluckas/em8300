@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * em8300_sysfs.h -- interface to the sysfs filesystem
  * Copyright (C) 2004 Eric Donohue <epd3j@hotmail.com>
  *

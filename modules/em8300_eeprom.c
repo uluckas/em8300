@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * em8300_eeprom.c -- read the eeprom on em8300-based boards
  * Copyright (C) 2007 Nicolas Boullis <nboullis@debian.org>
  *

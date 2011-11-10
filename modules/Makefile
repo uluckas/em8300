@@ -1,4 +1,3 @@
-# $Id$
 #
 # Makefile -- makefile for the em8300 modules
 # Copyright (C) 2004 Nicolas Boullis <nboullis@debian.org>

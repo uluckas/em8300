@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * em8300_sysfs.c -- interface to the sysfs filesystem
  * Copyright (C) 2004 Eric Donohue <epd3j@hotmail.com>
  * Copyright (C) 2004,2006,2008 Nicolas Boullis <nboullis@debian.org>

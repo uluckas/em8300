@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * em8300_params.c -- parameters for the em8300 driver
  * Copyright (C) 2007 Nicolas Boullis <nboullis@debian.org>
  *

@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * em8300_ioctl32.h -- compatibility layer for 32-bit ioctls on 64-bit kernels
  * Copyright (C) 2004 Nicolas Boullis <nboullis@debian.org>
  *

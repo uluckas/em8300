@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * em8300_procfs.h -- interface to the procfs filesystem
  * Copyright (C) 2004 Nicolas Boullis <nboullis@debian.org>
  *

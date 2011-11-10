@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * em8300_models.h -- identify and configure known models of em8300-based cards
  * Copyright (C) 2007 Nicolas Boullis <nboullis@debian.org>
  *

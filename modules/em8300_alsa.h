@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * em8300_alsa.h -- alsa interface to the audio part of the em8300 chip
  * Copyright (C) 2004 Nicolas Boullis <nboullis@debian.org>
  *

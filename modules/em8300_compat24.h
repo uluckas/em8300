@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * em8300_compat24.h -- compatibility layer for 2.4 and some 2.5 kernels
  * Copyright (C) 2004 Andreas Schultz <aschultz@warp10.net>
  * Copyright (C) 2004 Nicolas Boullis <nboullis@debian.org>

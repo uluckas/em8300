@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * em8300_udev.h -- interface for udev
  * Copyright (C) 2006 Nicolas Boullis <nboullis@debian.org>
  *

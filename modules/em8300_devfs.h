@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * em8300_devfs.h -- interface to the devfs filesystem
  * Copyright (C) 2004 Nicolas Boullis <nboullis@debian.org>
  *

@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * em8300_registration.c -- common interface for everything that needs
  *                          to be registered
  * Copyright (C) 2004 Nicolas Boullis <nboullis@debian.org>

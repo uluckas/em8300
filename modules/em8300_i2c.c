@@ -386,7 +386,11 @@ int em8300_i2c_init1(struct em8300_s *em)
 		struct i2c_board_info i2c_info;
 		const unsigned short eeprom_addr[] = { 0x50, I2C_CLIENT_END };
 		i2c_info = (struct i2c_board_info){ I2C_BOARD_INFO("eeprom", 0) };
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,36)
+		em->eeprom = i2c_new_probed_device(&em->i2c_adap[1], &i2c_info, eeprom_addr, NULL);
+#else
 		em->eeprom = i2c_new_probed_device(&em->i2c_adap[1], &i2c_info, eeprom_addr);
+#endif
 		if (em->eeprom) {
 			if (sysfs_create_link(&em->dev->dev.kobj, &em->eeprom->dev.kobj, "eeprom"))
 				printk(KERN_WARNING "em8300-%d: i2c: unable to create the eeprom link\n", em->card_nr);
@@ -429,11 +433,19 @@ int em8300_i2c_init2(struct em8300_s *em)
 		const unsigned short adv717x_addr[] = { 0x6a, I2C_CLIENT_END };
 		const unsigned short bt865_addr[] = { 0x45, I2C_CLIENT_END };
 		i2c_info = (struct i2c_board_info){ I2C_BOARD_INFO("adv717x", 0) };
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,36)
+		em->encoder = i2c_new_probed_device(&em->i2c_adap[0], &i2c_info, adv717x_addr, NULL);
+#else
 		em->encoder = i2c_new_probed_device(&em->i2c_adap[0], &i2c_info, adv717x_addr);
+#endif
 		if (em->encoder)
 			goto found;
 		i2c_info = (struct i2c_board_info){ I2C_BOARD_INFO("bt865", 0) };
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,36)
+		em->encoder = i2c_new_probed_device(&em->i2c_adap[0], &i2c_info, bt865_addr, NULL);
+#else
 		em->encoder = i2c_new_probed_device(&em->i2c_adap[0], &i2c_info, bt865_addr);
+#endif
 		if (em->encoder)
 			goto found;
 	}

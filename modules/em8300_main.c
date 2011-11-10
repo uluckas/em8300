@@ -193,23 +193,39 @@ static void release_em8300(struct em8300_s *em)
 	kfree(em);
 }
 
-static int em8300_io_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg)
+static int em8300_io_ioctl(
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36)
+			struct inode *inode,
+#endif
+			struct file *filp,
+			unsigned int cmd,
+			unsigned long arg)
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,36)
+	struct inode *inode = filp->f_dentry->d_inode;
+#endif
 	struct em8300_s *em = filp->private_data;
 	int subdevice = EM8300_IMINOR(inode) % 4;
+	int ret = -EINVAL;
 
+	down(&em->ioctl_lock);
 	switch (subdevice) {
 	case EM8300_SUBDEVICE_AUDIO:
-		return em8300_audio_ioctl(em, cmd, arg);
+		ret = em8300_audio_ioctl(em, cmd, arg);
+		break;
 	case EM8300_SUBDEVICE_VIDEO:
-		return em8300_video_ioctl(em, cmd, arg);
+		ret = em8300_video_ioctl(em, cmd, arg);
+		break;
 	case EM8300_SUBDEVICE_SUBPICTURE:
-		return em8300_spu_ioctl(em, cmd, arg);
+		ret = em8300_spu_ioctl(em, cmd, arg);
+		break;
 	case EM8300_SUBDEVICE_CONTROL:
-		return em8300_control_ioctl(em, cmd, arg);
+		ret = em8300_control_ioctl(em, cmd, arg);
+		break;
 	}
+	up(&em->ioctl_lock);
 
-	return -EINVAL;
+	return ret;
 }
 
 static int em8300_io_open(struct inode *inode, struct file *filp)
@@ -482,7 +498,11 @@ int em8300_io_release(struct inode *inode, struct file *filp)
 struct file_operations em8300_fops = {
 	.owner = THIS_MODULE,
 	.write = em8300_io_write,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,36)
+	.unlocked_ioctl = em8300_io_ioctl,
+#else
 	.ioctl = em8300_io_ioctl,
+#endif
 	.mmap = em8300_io_mmap,
 	.poll = em8300_poll,
 	.open = em8300_io_open,
@@ -493,10 +513,23 @@ struct file_operations em8300_fops = {
 };
 
 #if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
-static int em8300_dsp_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg)
+static long em8300_dsp_ioctl(
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36)
+		struct inode *inode,
+#endif
+		struct file *filp,
+		unsigned int cmd,
+		unsigned long arg)
 {
 	struct em8300_s *em = filp->private_data;
-	return em8300_audio_ioctl(em, cmd, arg);
+	int ret;
+
+	down(&em->ioctl_lock);
+	ret = em8300_audio_ioctl(em, cmd, arg);
+	up(&em->ioctl_lock);
+
+	return ret;
+
 }
 
 static int em8300_dsp_open(struct inode *inode, struct file *filp)
@@ -585,7 +618,11 @@ int em8300_dsp_release(struct inode *inode, struct file *filp)
 static struct file_operations em8300_dsp_audio_fops = {
 	.owner = THIS_MODULE,
 	.write = em8300_dsp_write,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,36)
+	.unlocked_ioctl = em8300_dsp_ioctl,
+#else
 	.ioctl = em8300_dsp_ioctl,
+#endif
 	.poll = em8300_dsp_poll,
 	.open = em8300_dsp_open,
 	.release = em8300_dsp_release,
@@ -804,6 +841,7 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	pr_info("em8300-%d: EM8300 %x (rev %d) ", em->card_nr, dev->device, em->pci_revision);
 	pr_info("bus: %d, devfn: %d, irq: %d, ", dev->bus->number, dev->devfn, dev->irq);
 	pr_info("memory: 0x%08lx.\n", em->adr);
+	pr_info("size: %lu.\n", em->memsize);
 
 	em->mem = ioremap(em->adr, em->memsize);
 	if (!em->mem) {
@@ -822,9 +860,10 @@ static int __devinit em8300_probe(struct pci_dev *dev,
 	init_waitqueue_head(&em->video_ptsfifo_wait);
 	init_waitqueue_head(&em->vbi_wait);
 	init_waitqueue_head(&em->sp_ptsfifo_wait);
+	sema_init(&em->ioctl_lock, 1);
 
 	em->audio_driver_style = NONE;
-	init_MUTEX(&em->audio_driver_style_lock);
+	sema_init(&em->audio_driver_style_lock, 1);
 
 	result = request_irq(dev->irq, em8300_irq, IRQF_SHARED | IRQF_DISABLED, "em8300", (void *) em);
 

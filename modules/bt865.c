@@ -43,7 +43,6 @@
 #include <linux/sched.h>
 #include <linux/types.h>
 
-#include <linux/videodev.h>
 #include <asm/uaccess.h>
 
 #include <linux/i2c.h>

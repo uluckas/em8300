@@ -75,8 +75,13 @@ static int em8300_do_ioctl32_init(unsigned long arg, struct file* filp)
 
 	if (!err) {
 		set_fs(KERNEL_DS);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36)
 		err = filp->f_op->ioctl(filp->f_dentry->d_inode, filp,
 					EM8300_IOCTL_INIT, (unsigned long)&karg);
+#else
+		err = filp->f_op->unlocked_ioctl(filp,
+					EM8300_IOCTL_INIT, (unsigned long)&karg);
+#endif
 		set_fs(old_fs);
 
 		kfree(karg.ucode);
@@ -93,7 +98,11 @@ long em8300_compat_ioctl(struct file* filp, unsigned cmd, unsigned long arg)
 	case EM8300_IOCTL32_INIT:
 		return em8300_do_ioctl32_init(arg, filp);
 	default:
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36)
 		return filp->f_op->ioctl(filp->f_dentry->d_inode, filp, cmd, arg);
+#else
+		return filp->f_op->unlocked_ioctl(filp, cmd, arg);
+#endif
 	}
 }
 
@@ -107,7 +116,11 @@ static int do_em8300_ioctl(unsigned int fd, unsigned int cmd, unsigned long arg,
 	if (cmd==EM8300_IOCTL32_INIT) {
 		return em8300_do_ioctl32_init(arg, filp);
 	} else {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36)
 		return filp->f_op->ioctl(filp->f_dentry->d_inode, filp, cmd, arg);
+#else
+		return filp->f_op->unlocked_ioctl(filp, cmd, arg);
+#endif
 	}
 }
 

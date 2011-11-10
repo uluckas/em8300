@@ -44,6 +44,10 @@ extern int major;
 #include <linux/wait.h> /* wait_queue_head_t */
 #include <linux/list.h> /* struct list_head */
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,34) 
+#include <linux/semaphore.h> /* struct semaphore */ 
+#endif 
+ 
 #if defined(CONFIG_SND) || defined(CONFIG_SND_MODULE)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,16)
 #define snd_card_t struct snd_card
@@ -131,6 +135,8 @@ struct em8300_s
 	ulong memsize;
 	
 	int playmode;
+
+	struct semaphore ioctl_lock;
 
 #if defined(CONFIG_SND) || defined(CONFIG_SND_MODULE)
 	snd_card_t *alsa_card;

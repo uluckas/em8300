@@ -24,6 +24,7 @@
 
 #include <linux/device.h>
 #include <linux/pci.h>
+#include <linux/stat.h>
 
 #include "em8300_params.h"
 #include "em8300_eeprom.h"

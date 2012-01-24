@@ -22,6 +22,7 @@
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,2)
 
 #include <linux/device.h>
+#include <linux/module.h>
 #include <linux/pci.h>
 #include <linux/kdev_t.h>
 

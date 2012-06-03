@@ -17,11 +17,7 @@
 
 BUILD_IOCTL32 := n
 
-ifeq ($(ARCH),sparc64)
-BUILD_IOCTL32 := $(CONFIG_SPARC32_COMPAT)
-endif
-
-ifeq ($(ARCH),x86_64)
+ifeq ($(CONFIG_COMPAT),y)
 BUILD_IOCTL32 := $(CONFIG_IA32_EMULATION)
 endif
 
